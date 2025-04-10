@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -30,66 +29,95 @@
       animation: fly 10s linear infinite;
     }
     @keyframes fly {
-      0% {
-        transform: translateX(-100px) translateY(0px) rotate(0deg);
-        opacity: 0;
-      }
-      25% {
-        opacity: 1;
-      }
-      50% {
-        transform: translateX(100vw) translateY(-50px) rotate(10deg);
-      }
-      75% {
-        opacity: 1;
-      }
-      100% {
-        transform: translateX(110vw) translateY(0px) rotate(-10deg);
-        opacity: 0;
-      }
+      0% { transform: translateX(-100px) translateY(0px) rotate(0deg); opacity: 0; }
+      25% { opacity: 1; }
+      50% { transform: translateX(100vw) translateY(-50px) rotate(10deg); }
+      75% { opacity: 1; }
+      100% { transform: translateX(110vw) translateY(0px) rotate(-10deg); opacity: 0; }
     }
   </style>
 </head>
 <body class="p-4">
   <!-- Música de fundo -->
   <audio autoplay loop>
-    <source src="https://files.catbox.moe/kdxtn7.mp3" type="audio/mpeg">
+    <source src="https://vgmsite.com/soundtracks/castlevania-nes/xnqptfqz/01%20-%20Vampire%20Killer.mp3" type="audio/mpeg">
     Seu navegador não suporta áudio HTML5.
   </audio>
 
   <!-- Morcegos animados -->
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Bat_icon_black.svg/64px-Bat_icon_black.svg.png" class="bat" style="top:10%; left:0%; animation-delay: 0s;">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Bat_icon_black.svg/64px-Bat_icon_black.svg.png" class="bat" style="top:30%; left:-50px; animation-delay: 2s;">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Bat_icon_black.svg/64px-Bat_icon_black.svg.png" class="bat" style="top:50%; left:-100px; animation-delay: 4s;">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/4/45/Simple_bat_icon.png" class="bat" style="top:10%; left:0%; animation-delay: 0s;">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/4/45/Simple_bat_icon.png" class="bat" style="top:30%; left:-50px; animation-delay: 2s;">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/4/45/Simple_bat_icon.png" class="bat" style="top:50%; left:-100px; animation-delay: 4s;">
 
   <header class="text-center mb-6">
     <h1 class="text-4xl font-bold">NosferatuGames</h1>
     <p class="text-green-400">Consoles e jogos direto das sombras</p>
   </header>
 
-  <section class="grid md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-4">
-    <div class="retro-frame">
-      <img src="https://via.placeholder.com/300x200?text=Switch" alt="Produto" class="w-full h-40 object-cover mb-2">
-      <h2 class="text-xl font-bold">Nintendo Switch</h2>
-      <p class="text-green-300">R$ 1.500,00</p>
-      <button class="mt-2 px-4 py-2 bg-green-700 text-white hover:bg-green-600 rounded">Comprar</button>
-    </div>
-    <div class="retro-frame">
-      <img src="https://via.placeholder.com/300x200?text=Zelda" alt="Produto" class="w-full h-40 object-cover mb-2">
-      <h2 class="text-xl font-bold">Zelda: BOTW</h2>
-      <p class="text-green-300">R$ 250,00</p>
-      <button class="mt-2 px-4 py-2 bg-green-700 text-white hover:bg-green-600 rounded">Comprar</button>
-    </div>
-    <div class="retro-frame">
-      <img src="https://via.placeholder.com/300x200?text=Pro+Controller" alt="Produto" class="w-full h-40 object-cover mb-2">
-      <h2 class="text-xl font-bold">Pro Controller</h2>
-      <p class="text-green-300">R$ 400,00</p>
-      <button class="mt-2 px-4 py-2 bg-green-700 text-white hover:bg-green-600 rounded">Comprar</button>
-    </div>
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <!-- Painel lateral -->
+    <aside class="col-span-1 bg-black/60 p-4 rounded-lg border border-green-500">
+      <h2 class="text-2xl mb-2">Categorias</h2>
+      <ul class="space-y-2">
+        <li><input type="checkbox"> Nintendo Switch</li>
+        <li><input type="checkbox"> Jogos</li>
+        <li><input type="checkbox"> Controles</li>
+        <li><input type="checkbox"> Acessórios</li>
+        <li><input type="checkbox"> Retro</li>
+      </ul>
+      <h2 class="text-2xl mt-4 mb-2">Preço</h2>
+      <ul class="space-y-2">
+        <li><input type="checkbox"> Até R$ 500</li>
+        <li><input type="checkbox"> R$ 501 a R$ 1000</li>
+        <li><input type="checkbox"> R$ 1001 a R$ 2000</li>
+        <li><input type="checkbox"> Acima de R$ 2000</li>
+      </ul>
+    </aside>
+
+    <!-- Produtos (carregados via JS) -->
+    <section id="produtos" class="col-span-1 md:col-span-3 grid md:grid-cols-2 lg:grid-cols-3 gap-4"></section>
+  </div>
+
+  <!-- Quem somos nós -->
+  <section class="mt-10 text-center">
+    <h2 class="text-3xl mb-4">Quem Somos Nós</h2>
+    <p class="max-w-2xl mx-auto text-green-200">
+      A NosferatuGames nasceu da paixão por videogames e o universo retrô. Nosso objetivo é oferecer os melhores consoles e jogos com aquele toque sombrio e nostálgico. Trabalhamos com carinho pra que você tenha uma experiência única — como nas noites em claro jogando seu game favorito.
+    </p>
   </section>
 
-  <footer class="mt-8 text-center">
-    <p class="text-green-500">© 2025 NosferatuGames. Todos os direitos reservados.</p>
+  <!-- Redes Sociais -->
+  <footer class="mt-10 text-center space-x-4">
+    <a href="#" class="inline-block"><img src="https://cdn-icons-png.flaticon.com/24/733/733547.png" alt="Instagram"></a>
+    <a href="#" class="inline-block"><img src="https://cdn-icons-png.flaticon.com/24/733/733547.png" alt="Facebook"></a>
+    <a href="#" class="inline-block"><img src="https://cdn-icons-png.flaticon.com/24/733/733585.png" alt="WhatsApp"></a>
+    <p class="text-green-500 mt-4">© 2025 NosferatuGames. Todos os direitos reservados.</p>
   </footer>
+
+  <script>
+    const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnfzK1-vczbB91KqmufKZfaeNdE0bx1NHinjdaymkUKvZShXusVoCL13TbIbrraGLullJbpDVqGWdH/pub?output=csv';
+
+    fetch(url)
+      .then(res => res.text())
+      .then(csv => {
+        const lines = csv.trim().split('\n');
+        const [header, ...rows] = lines;
+        const container = document.getElementById('produtos');
+
+        rows.forEach(row => {
+          const [imagem, titulo, preco, categoria] = row.split(',');
+          const card = `
+            <div class="retro-frame">
+              <img src="${imagem}" alt="${titulo}" class="w-full h-40 object-cover mb-2">
+              <h2 class="text-xl font-bold">${titulo}</h2>
+              <p class="text-green-300">${preco}</p>
+              <button class="mt-2 px-4 py-2 bg-green-700 text-white hover:bg-green-600 rounded">Comprar</button>
+            </div>
+          `;
+          container.innerHTML += card;
+        });
+      })
+      .catch(err => console.error('Erro ao carregar produtos:', err));
+  </script>
 </body>
 </html>
