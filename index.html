@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -15,6 +16,7 @@
       background-size: cover;
       background-repeat: no-repeat;
       background-attachment: fixed;
+      overflow-x: hidden;
     }
     .retro-frame {
       border: 4px solid #3aff3a;
@@ -22,9 +24,44 @@
       box-shadow: 0 0 15px #3aff3a;
       background-color: rgba(0, 0, 0, 0.8);
     }
+    .bat {
+      position: absolute;
+      width: 40px;
+      animation: fly 10s linear infinite;
+    }
+    @keyframes fly {
+      0% {
+        transform: translateX(-100px) translateY(0px) rotate(0deg);
+        opacity: 0;
+      }
+      25% {
+        opacity: 1;
+      }
+      50% {
+        transform: translateX(100vw) translateY(-50px) rotate(10deg);
+      }
+      75% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateX(110vw) translateY(0px) rotate(-10deg);
+        opacity: 0;
+      }
+    }
   </style>
 </head>
 <body class="p-4">
+  <!-- Música de fundo -->
+  <audio autoplay loop>
+    <source src="https://files.catbox.moe/kdxtn7.mp3" type="audio/mpeg">
+    Seu navegador não suporta áudio HTML5.
+  </audio>
+
+  <!-- Morcegos animados -->
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Bat_icon_black.svg/64px-Bat_icon_black.svg.png" class="bat" style="top:10%; left:0%; animation-delay: 0s;">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Bat_icon_black.svg/64px-Bat_icon_black.svg.png" class="bat" style="top:30%; left:-50px; animation-delay: 2s;">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Bat_icon_black.svg/64px-Bat_icon_black.svg.png" class="bat" style="top:50%; left:-100px; animation-delay: 4s;">
+
   <header class="text-center mb-6">
     <h1 class="text-4xl font-bold">NosferatuGames</h1>
     <p class="text-green-400">Consoles e jogos direto das sombras</p>
