@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -38,16 +39,14 @@
   </style>
 </head>
 <body class="p-4">
-  <!-- Música de fundo -->
   <audio autoplay loop>
-    <source src="https://vgmsite.com/soundtracks/castlevania-nes/xnqptfqz/01%20-%20Vampire%20Killer.mp3" type="audio/mpeg">
+    <source src="https://files.catbox.moe/kdxtn7.mp3" type="audio/mpeg">
     Seu navegador não suporta áudio HTML5.
   </audio>
 
-  <!-- Morcegos animados -->
-  <img src="https://upload.wikimedia.org/wikipedia/commons/4/45/Simple_bat_icon.png" class="bat" style="top:10%; left:0%; animation-delay: 0s;">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/4/45/Simple_bat_icon.png" class="bat" style="top:30%; left:-50px; animation-delay: 2s;">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/4/45/Simple_bat_icon.png" class="bat" style="top:50%; left:-100px; animation-delay: 4s;">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Bat_icon_black.svg/64px-Bat_icon_black.svg.png" class="bat" style="top:10%; left:0%; animation-delay: 0s;">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Bat_icon_black.svg/64px-Bat_icon_black.svg.png" class="bat" style="top:30%; left:-50px; animation-delay: 2s;">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Bat_icon_black.svg/64px-Bat_icon_black.svg.png" class="bat" style="top:50%; left:-100px; animation-delay: 4s;">
 
   <header class="text-center mb-6">
     <h1 class="text-4xl font-bold">NosferatuGames</h1>
@@ -55,30 +54,20 @@
   </header>
 
   <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-    <!-- Painel lateral -->
     <aside class="col-span-1 bg-black/60 p-4 rounded-lg border border-green-500">
       <h2 class="text-2xl mb-2">Categorias</h2>
       <ul class="space-y-2">
-        <li><input type="checkbox"> Nintendo Switch</li>
-        <li><input type="checkbox"> Jogos</li>
-        <li><input type="checkbox"> Controles</li>
-        <li><input type="checkbox"> Acessórios</li>
-        <li><input type="checkbox"> Retro</li>
-      </ul>
-      <h2 class="text-2xl mt-4 mb-2">Preço</h2>
-      <ul class="space-y-2">
-        <li><input type="checkbox"> Até R$ 500</li>
-        <li><input type="checkbox"> R$ 501 a R$ 1000</li>
-        <li><input type="checkbox"> R$ 1001 a R$ 2000</li>
-        <li><input type="checkbox"> Acima de R$ 2000</li>
+        <li><a href="switch.html" class="text-green-400 hover:underline">Nintendo Switch</a></li>
+        <li><a href="#" class="text-green-400 hover:underline">Jogos</a></li>
+        <li><a href="#" class="text-green-400 hover:underline">Controles</a></li>
+        <li><a href="#" class="text-green-400 hover:underline">Acessórios</a></li>
+        <li><a href="#" class="text-green-400 hover:underline">Retro</a></li>
       </ul>
     </aside>
 
-    <!-- Produtos (carregados via JS) -->
     <section id="produtos" class="col-span-1 md:col-span-3 grid md:grid-cols-2 lg:grid-cols-3 gap-4"></section>
   </div>
 
-  <!-- Quem somos nós -->
   <section class="mt-10 text-center">
     <h2 class="text-3xl mb-4">Quem Somos Nós</h2>
     <p class="max-w-2xl mx-auto text-green-200">
@@ -86,11 +75,10 @@
     </p>
   </section>
 
-  <!-- Redes Sociais -->
   <footer class="mt-10 text-center space-x-4">
-    <a href="#" class="inline-block"><img src="https://cdn-icons-png.flaticon.com/24/733/733547.png" alt="Instagram"></a>
-    <a href="#" class="inline-block"><img src="https://cdn-icons-png.flaticon.com/24/733/733547.png" alt="Facebook"></a>
-    <a href="#" class="inline-block"><img src="https://cdn-icons-png.flaticon.com/24/733/733585.png" alt="WhatsApp"></a>
+    <a href="#"><img src="https://cdn-icons-png.flaticon.com/24/733/733547.png" alt="Instagram"></a>
+    <a href="#"><img src="https://cdn-icons-png.flaticon.com/24/733/733547.png" alt="Facebook"></a>
+    <a href="#"><img src="https://cdn-icons-png.flaticon.com/24/733/733585.png" alt="WhatsApp"></a>
     <p class="text-green-500 mt-4">© 2025 NosferatuGames. Todos os direitos reservados.</p>
   </footer>
 
@@ -116,8 +104,7 @@
           `;
           container.innerHTML += card;
         });
-      })
-      .catch(err => console.error('Erro ao carregar produtos:', err));
+      });
   </script>
 </body>
 </html>

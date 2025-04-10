@@ -1,0 +1,40 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nintendo Switch - NosferatuGames</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-black text-green-400 font-mono p-6">
+  <h1 class="text-3xl mb-4">Nintendo Switch</h1>
+  <div id="switch-produtos" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+  <script>
+    const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnfzK1-vczbB91KqmufKZfaeNdE0bx1NHinjdaymkUKvZShXusVoCL13TbIbrraGLullJbpDVqGWdH/pub?output=csv';
+
+    fetch(url)
+      .then(res => res.text())
+      .then(csv => {
+        const lines = csv.trim().split('\n');
+        const [header, ...rows] = lines;
+        const container = document.getElementById('switch-produtos');
+
+        rows.forEach(row => {
+          const [imagem, titulo, preco, categoria] = row.split(',');
+          if (categoria.trim().toLowerCase() === 'switch') {
+            const card = `
+              <div class="border border-green-500 p-4 rounded-lg bg-black/50 shadow-lg">
+                <img src="${imagem}" alt="${titulo}" class="w-full h-40 object-cover mb-2 rounded">
+                <h2 class="text-xl font-bold">${titulo}</h2>
+                <p class="text-green-300">${preco}</p>
+              </div>
+            `;
+            container.innerHTML += card;
+          }
+        });
+      });
+  </script>
+</body>
+</html>
