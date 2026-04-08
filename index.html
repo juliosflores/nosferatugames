@@ -1,0 +1,1690 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nosferatu Games — Jogos, Consoles e Acessórios</title>
+<meta name="description" content="Nosferatu Games: jogos, consoles e acessórios para PS4, PS5, Nintendo Switch, 3DS e retrô. Negocie direto pelo WhatsApp!">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --red: #CC1414;
+  --red-bright: #FF2222;
+  --red-dark: #8B0000;
+  --gold: #FFB800;
+  --gold-dim: #C8890A;
+  --purple: #6B21A8;
+  --purple-bright: #A855F7;
+  --purple-dim: #3B0764;
+  --bg: #050508;
+  --bg2: #0A0A12;
+  --bg3: #0F0F1A;
+  --surface: #12121E;
+  --surface2: #1A1A2E;
+  --border: #2A1A3A;
+  --border-red: #4A0A0A;
+  --text: #E8E0F0;
+  --text-dim: #9080A0;
+  --text-muted: #5A4A6A;
+  --pixel-size: 2px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-x: hidden;
+  cursor: default;
+}
+
+/* SCANLINES OVERLAY */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.08) 2px,
+    rgba(0,0,0,0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* GRID RETRO BACKGROUND */
+.retro-grid {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 45vh;
+  background:
+    linear-gradient(to bottom, var(--bg) 0%, transparent 40%),
+    linear-gradient(rgba(107,33,168,0.4) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(107,33,168,0.4) 1px, transparent 1px);
+  background-size: 100% 100%, 60px 60px, 60px 60px;
+  perspective: 400px;
+  transform: perspective(400px) rotateX(55deg);
+  transform-origin: bottom center;
+  pointer-events: none;
+  z-index: 0;
+  animation: gridPulse 4s ease-in-out infinite;
+}
+
+@keyframes gridPulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* ===== NAVBAR ===== */
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: rgba(5,5,8,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-red);
+  padding: 0 2rem;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.nav-logo img {
+  height: 44px;
+  width: auto;
+  image-rendering: pixelated;
+}
+
+.nav-brand {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  color: var(--red-bright);
+  text-shadow: 0 0 20px rgba(204,20,20,0.8);
+  line-height: 1.4;
+}
+
+.nav-brand span {
+  display: block;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gold);
+  letter-spacing: 0.2em;
+  text-shadow: none;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  list-style: none;
+}
+
+.nav-links a {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.2s;
+  position: relative;
+}
+
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0; right: 0;
+  height: 1px;
+  background: var(--red-bright);
+  transform: scaleX(0);
+  transition: transform 0.2s;
+}
+
+.nav-links a:hover { color: var(--red-bright); }
+.nav-links a:hover::after { transform: scaleX(1); }
+
+.nav-wpp {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #1a5c2a, #25D366);
+  color: #fff;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 8px 16px;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 0 12px rgba(37,211,102,0.3);
+}
+
+.nav-wpp:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(37,211,102,0.5);
+}
+
+.nav-wpp svg { width: 16px; height: 16px; fill: #fff; }
+
+/* HAMBURGER */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+  padding: 4px;
+}
+.hamburger span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: var(--text);
+  transition: all 0.3s;
+}
+
+/* ===== HERO ===== */
+#hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 100px 2rem 80px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 40%, rgba(139,0,0,0.15) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 20%, rgba(107,33,168,0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.bat {
+  position: absolute;
+  font-size: 20px;
+  animation: fly linear infinite;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.bat:nth-child(1) { top: 20%; left: 5%; animation-duration: 18s; animation-delay: 0s; }
+.bat:nth-child(2) { top: 35%; right: 8%; animation-duration: 22s; animation-delay: -7s; }
+.bat:nth-child(3) { top: 15%; left: 40%; animation-duration: 15s; animation-delay: -3s; font-size: 14px; }
+
+@keyframes fly {
+  0% { transform: translateX(0) translateY(0) rotate(0deg); }
+  25% { transform: translateX(30px) translateY(-20px) rotate(5deg); }
+  50% { transform: translateX(-10px) translateY(10px) rotate(-3deg); }
+  75% { transform: translateX(20px) translateY(-10px) rotate(4deg); }
+  100% { transform: translateX(0) translateY(0) rotate(0deg); }
+}
+
+.hero-logo-wrap {
+  margin-bottom: 2rem;
+  animation: fadeInDown 0.8s ease;
+}
+
+.hero-logo-wrap img {
+  width: min(380px, 80vw);
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 40px rgba(204,20,20,0.6)) drop-shadow(0 0 80px rgba(107,33,168,0.3));
+}
+
+.hero-tagline {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(10px, 2vw, 14px);
+  color: var(--gold);
+  letter-spacing: 0.1em;
+  margin-bottom: 1rem;
+  text-shadow: 0 0 20px rgba(255,184,0,0.6);
+  animation: fadeInUp 0.8s ease 0.2s both;
+}
+
+.hero-sub {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(16px, 3vw, 22px);
+  font-weight: 500;
+  color: var(--text-dim);
+  margin-bottom: 2.5rem;
+  animation: fadeInUp 0.8s ease 0.4s both;
+}
+
+.hero-ctas {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  animation: fadeInUp 0.8s ease 0.6s both;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--red);
+  color: #fff;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 14px 28px;
+  text-decoration: none;
+  border: 2px solid var(--red-bright);
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  transition: all 0.2s;
+  box-shadow: 0 0 20px rgba(204,20,20,0.4);
+}
+
+.btn-primary:hover {
+  background: var(--red-bright);
+  box-shadow: 0 0 40px rgba(255,34,34,0.6);
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--purple-bright);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 14px 28px;
+  text-decoration: none;
+  border: 2px solid var(--purple-bright);
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background: rgba(168,85,247,0.15);
+  box-shadow: 0 0 30px rgba(168,85,247,0.4);
+  transform: translateY(-2px);
+}
+
+.hero-stats {
+  display: flex;
+  gap: 3rem;
+  justify-content: center;
+  margin-top: 3rem;
+  animation: fadeInUp 0.8s ease 0.8s both;
+}
+
+.hero-stat {
+  text-align: center;
+}
+
+.hero-stat-num {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(18px, 3vw, 26px);
+  color: var(--red-bright);
+  text-shadow: 0 0 15px rgba(255,34,34,0.6);
+  display: block;
+}
+
+.hero-stat-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ===== SECTION HEADERS ===== */
+section { position: relative; z-index: 1; }
+
+.section-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.section-eyebrow {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--red-bright);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.section-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(14px, 2.5vw, 20px);
+  color: var(--text);
+  line-height: 1.4;
+  text-shadow: 0 0 30px rgba(204,20,20,0.3);
+}
+
+.section-title span { color: var(--red-bright); }
+
+.section-divider {
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--red), var(--purple-bright));
+  margin: 1rem auto 0;
+}
+
+/* ===== CATEGORIES GRID ===== */
+#catalogo {
+  padding: 80px 2rem;
+  background: var(--bg2);
+}
+
+.container { max-width: 1200px; margin: 0 auto; }
+
+.consoles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.console-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--red);
+  border-radius: 4px;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  cursor: pointer;
+  position: relative;
+}
+
+.console-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(204,20,20,0.05) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.console-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(204,20,20,0.2), 0 0 0 1px rgba(204,20,20,0.3);
+  border-color: rgba(204,20,20,0.5);
+}
+
+.console-card-header {
+  padding: 1.25rem 1.25rem 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.console-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  background: var(--surface2);
+  border-radius: 4px;
+  flex-shrink: 0;
+  image-rendering: pixelated;
+}
+
+.console-name {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.console-name span {
+  display: block;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  margin-top: 4px;
+}
+
+.console-categories {
+  padding: 0 1.25rem 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cat-tag {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 4px 10px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: all 0.15s;
+}
+
+.cat-tag:hover {
+  background: rgba(204,20,20,0.15);
+  border-color: var(--red);
+  color: var(--red-bright);
+}
+
+.console-card-footer {
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.footer-items {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.footer-cta {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--red-bright);
+  text-decoration: none;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: gap 0.15s;
+}
+
+.footer-cta:hover { gap: 8px; }
+
+/* ===== PRODUTOS DESTAQUE ===== */
+#produtos {
+  padding: 80px 2rem;
+  background: var(--bg);
+}
+
+.produtos-filter {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 2.5rem;
+}
+
+.filter-btn {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 2px;
+}
+
+.filter-btn.active, .filter-btn:hover {
+  background: var(--red-dark);
+  border-color: var(--red);
+  color: #fff;
+}
+
+.produtos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+
+.produto-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+}
+
+.produto-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(204,20,20,0.2);
+}
+
+.produto-img {
+  width: 100%;
+  aspect-ratio: 1;
+  background: var(--bg3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60px;
+  position: relative;
+  overflow: hidden;
+}
+
+.produto-img::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 40%;
+  background: linear-gradient(to top, var(--surface), transparent);
+}
+
+.produto-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 2px;
+  z-index: 1;
+}
+
+.badge-novo { background: #163a1e; color: #4ade80; border: 1px solid #166534; }
+.badge-usado { background: #1e1a10; color: var(--gold); border: 1px solid #713f12; }
+.badge-seminovo { background: #1a1030; color: var(--purple-bright); border: 1px solid #4c1d95; }
+
+.produto-info { padding: 1rem; }
+
+.produto-console {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--red-bright);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.produto-nome {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+
+.produto-preco {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 14px;
+  color: var(--gold);
+  text-shadow: 0 0 10px rgba(255,184,0,0.4);
+}
+
+.produto-preco span {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.produto-wpp {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: rgba(37,211,102,0.1);
+  border: 1px solid rgba(37,211,102,0.3);
+  border-radius: 2px;
+  color: #25D366;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  transition: all 0.2s;
+  width: 100%;
+  justify-content: center;
+}
+
+.produto-wpp:hover {
+  background: rgba(37,211,102,0.2);
+  box-shadow: 0 0 15px rgba(37,211,102,0.3);
+}
+
+.produto-wpp svg { width: 14px; height: 14px; fill: #25D366; }
+
+/* ===== RETRO SECTION ===== */
+#retro {
+  padding: 80px 2rem;
+  background: var(--bg2);
+}
+
+.retro-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.retro-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1.25rem;
+  text-align: center;
+  transition: all 0.2s;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.retro-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(107,33,168,0.08), transparent);
+  pointer-events: none;
+}
+
+.retro-card:hover {
+  border-color: var(--purple-bright);
+  box-shadow: 0 0 20px rgba(107,33,168,0.3);
+  transform: translateY(-3px);
+}
+
+.retro-icon { font-size: 40px; margin-bottom: 0.75rem; }
+
+.retro-name {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: var(--text);
+  line-height: 1.6;
+  margin-bottom: 0.5rem;
+}
+
+.retro-year {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--purple-bright);
+}
+
+/* ===== POKEMON ===== */
+#pokemon {
+  padding: 80px 2rem;
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
+}
+
+#pokemon::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -10%;
+  width: 120%;
+  height: 200%;
+  background: radial-gradient(ellipse at 50% 50%, rgba(255,184,0,0.04) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.pokemon-banner {
+  background: linear-gradient(135deg, var(--surface), var(--surface2));
+  border: 1px solid rgba(255,184,0,0.3);
+  border-radius: 8px;
+  padding: 3rem 2rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 40px rgba(255,184,0,0.1);
+}
+
+.pokemon-banner::before {
+  content: '⬟';
+  position: absolute;
+  top: -30px;
+  right: -30px;
+  font-size: 200px;
+  color: rgba(255,184,0,0.03);
+  pointer-events: none;
+  line-height: 1;
+}
+
+.pokemon-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(12px, 2vw, 18px);
+  color: var(--gold);
+  text-shadow: 0 0 20px rgba(255,184,0,0.5);
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.pokemon-desc {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text-dim);
+  max-width: 600px;
+  margin: 0 auto 2rem;
+}
+
+.pokemon-types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.type-badge {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 8px 20px;
+  border-radius: 999px;
+  letter-spacing: 0.1em;
+}
+
+.type-fire { background: rgba(255,68,0,0.2); border: 1px solid #ff4400; color: #ff6633; }
+.type-water { background: rgba(0,100,255,0.2); border: 1px solid #0064ff; color: #4499ff; }
+.type-grass { background: rgba(0,200,50,0.2); border: 1px solid #00c832; color: #33dd66; }
+.type-electric { background: rgba(255,184,0,0.2); border: 1px solid var(--gold); color: var(--gold); }
+.type-psychic { background: rgba(168,85,247,0.2); border: 1px solid var(--purple-bright); color: var(--purple-bright); }
+
+/* ===== SOBRE ===== */
+#sobre {
+  padding: 80px 2rem;
+  background: var(--bg2);
+}
+
+.sobre-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+}
+
+.sobre-text h3 {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(12px, 2vw, 16px);
+  color: var(--text);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.sobre-text h3 span { color: var(--red-bright); }
+
+.sobre-text p {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 17px;
+  font-weight: 400;
+  color: var(--text-dim);
+  line-height: 1.7;
+  margin-bottom: 1rem;
+}
+
+.sobre-features {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.feature-icon {
+  width: 36px;
+  height: 36px;
+  background: rgba(204,20,20,0.15);
+  border: 1px solid rgba(204,20,20,0.3);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.feature-text {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.sobre-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sobre-logo {
+  width: min(300px, 100%);
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 30px rgba(204,20,20,0.4));
+  animation: float 4s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+/* ===== CONTATO ===== */
+#contato {
+  padding: 80px 2rem;
+  background: var(--bg);
+}
+
+.contato-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+}
+
+.contato-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2rem;
+}
+
+.contato-card h3 {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  color: var(--text);
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.contact-item:last-child { border-bottom: none; }
+
+.contact-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.contact-icon.wpp { background: rgba(37,211,102,0.15); }
+.contact-icon.insta { background: rgba(225,48,108,0.15); }
+
+.contact-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.contact-value {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.contact-value:hover { color: var(--red-bright); }
+
+.wpp-cta-big {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #128C7E, #25D366);
+  color: #fff;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  line-height: 1.6;
+  padding: 1.5rem 2rem;
+  border-radius: 4px;
+  text-decoration: none;
+  margin-top: 1.5rem;
+  transition: all 0.2s;
+  box-shadow: 0 0 30px rgba(37,211,102,0.3);
+  text-align: center;
+}
+
+.wpp-cta-big:hover {
+  box-shadow: 0 0 50px rgba(37,211,102,0.5);
+  transform: translateY(-2px);
+}
+
+.wpp-cta-big svg { width: 28px; height: 28px; fill: #fff; flex-shrink: 0; }
+
+/* ===== FOOTER ===== */
+footer {
+  background: var(--bg2);
+  border-top: 1px solid var(--border-red);
+  padding: 2rem;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.footer-logo {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 12px;
+  color: var(--red-bright);
+  text-shadow: 0 0 15px rgba(204,20,20,0.6);
+  margin-bottom: 0.5rem;
+}
+
+.footer-sub {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+  .hamburger { display: flex; }
+  .nav-wpp span { display: none; }
+  .sobre-grid, .contato-grid { grid-template-columns: 1fr; }
+  .sobre-visual { order: -1; }
+  .sobre-logo { width: min(200px, 80vw); }
+  .hero-stats { gap: 1.5rem; }
+  .sobre-features { grid-template-columns: 1fr; }
+  nav { padding: 0 1rem; }
+}
+
+/* Mobile menu */
+.mobile-menu {
+  display: none;
+  position: fixed;
+  top: 64px;
+  left: 0;
+  right: 0;
+  background: rgba(5,5,8,0.98);
+  border-bottom: 1px solid var(--border-red);
+  padding: 1.5rem;
+  z-index: 999;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.mobile-menu.open { display: flex; }
+.mobile-menu a {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: color 0.2s;
+}
+.mobile-menu a:hover { color: var(--red-bright); }
+
+/* WPP FLOAT BUTTON */
+.wpp-float {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  background: #25D366;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(37,211,102,0.5);
+  z-index: 999;
+  transition: transform 0.2s, box-shadow 0.2s;
+  text-decoration: none;
+}
+
+.wpp-float:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 30px rgba(37,211,102,0.7);
+}
+
+.wpp-float svg { width: 30px; height: 30px; fill: #fff; }
+</style>
+</head>
+<body>
+
+<!-- RETRO GRID BG -->
+<div class="retro-grid"></div>
+
+<!-- WHATSAPP FLOAT -->
+<a href="https://wa.me/5551996979032?text=Olá! Vi o site da Nosferatu Games e quero saber mais sobre um produto." class="wpp-float" target="_blank" title="Falar no WhatsApp">
+  <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+</a>
+
+<!-- NAVBAR -->
+<nav>
+  <a href="#hero" class="nav-logo">
+    <img src="logo.png" alt="Nosferatu Games" onerror="this.style.display='none'">
+    <div class="nav-brand">
+      NOSFERATU
+      <span>GAMES</span>
+    </div>
+  </a>
+
+  <ul class="nav-links">
+    <li><a href="#catalogo">Catálogo</a></li>
+    <li><a href="#produtos">Produtos</a></li>
+    <li><a href="#retro">Retrô</a></li>
+    <li><a href="#pokemon">Pokémon</a></li>
+    <li><a href="#sobre">Sobre</a></li>
+    <li><a href="#contato">Contato</a></li>
+  </ul>
+
+  <a href="https://wa.me/5551996979032" class="nav-wpp" target="_blank">
+    <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+    <span>WhatsApp</span>
+  </a>
+
+  <div class="hamburger" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#catalogo" onclick="toggleMenu()">Catálogo</a>
+  <a href="#produtos" onclick="toggleMenu()">Produtos</a>
+  <a href="#retro" onclick="toggleMenu()">Retrô</a>
+  <a href="#pokemon" onclick="toggleMenu()">Pokémon</a>
+  <a href="#sobre" onclick="toggleMenu()">Sobre</a>
+  <a href="#contato" onclick="toggleMenu()">Contato</a>
+  <a href="https://wa.me/5551996979032" target="_blank" style="color:#25D366">📱 WhatsApp</a>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="bat">🦇</div>
+  <div class="bat">🦇</div>
+  <div class="bat">🦇</div>
+
+  <div style="position:relative; z-index:1;">
+    <div class="hero-logo-wrap">
+      <img src="logo.png" alt="Nosferatu Games" style="width:min(400px,80vw); image-rendering:pixelated; filter:drop-shadow(0 0 40px rgba(204,20,20,0.7)) drop-shadow(0 0 80px rgba(107,33,168,0.4));"
+        onerror="this.outerHTML='<div style=\'font-family:Press Start 2P,monospace;font-size:clamp(18px,4vw,36px);color:#CC1414;text-shadow:0 0 30px rgba(204,20,20,0.8);line-height:1.4;\'>NOSFERATU<br><span style=\'font-size:0.6em;color:#FFB800;\'>GAMES</span></div>'">
+    </div>
+
+    <p class="hero-tagline">Sua loja gamer dos sonhos</p>
+    <p class="hero-sub">Jogos · Consoles · Acessórios · Cards Pokémon<br>Entrega e retirada em Porto Alegre</p>
+
+    <div class="hero-ctas">
+      <a href="#catalogo" class="btn-primary">🎮 Ver Catálogo</a>
+      <a href="https://wa.me/5551996979032?text=Olá! Quero ver os produtos disponíveis!" class="btn-secondary" target="_blank">💬 Falar no WhatsApp</a>
+    </div>
+
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="hero-stat-num">PS5</span>
+        <span class="hero-stat-label">PlayStation</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-num">NSW</span>
+        <span class="hero-stat-label">Nintendo Switch</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-num">PKM</span>
+        <span class="hero-stat-label">Cards Pokémon</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-num">RTR</span>
+        <span class="hero-stat-label">Consoles Retrô</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CATÁLOGO POR CONSOLE -->
+<section id="catalogo">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-eyebrow">// Catálogo</span>
+      <h2 class="section-title">Escolha sua <span>plataforma</span></h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="consoles-grid">
+
+      <div class="console-card reveal">
+        <div class="console-card-header">
+          <div class="console-icon">🎮</div>
+          <div class="console-name">
+            PlayStation 5
+            <span>Sony · 2020</span>
+          </div>
+        </div>
+        <div class="console-categories">
+          <a href="https://wa.me/5551996979032?text=Quero ver jogos de PS5!" class="cat-tag" target="_blank">Jogos</a>
+          <a href="https://wa.me/5551996979032?text=Quero ver consoles PS5!" class="cat-tag" target="_blank">Consoles</a>
+          <a href="https://wa.me/5551996979032?text=Quero ver controles PS5!" class="cat-tag" target="_blank">Controles</a>
+          <a href="https://wa.me/5551996979032?text=Quero ver acessórios PS5!" class="cat-tag" target="_blank">Acessórios</a>
+        </div>
+        <div class="console-card-footer">
+          <span class="footer-items">Jogos, consoles, controles</span>
+          <a href="https://wa.me/5551996979032?text=Me mostra o que tem de PS5!" class="footer-cta" target="_blank">Ver tudo →</a>
+        </div>
+      </div>
+
+      <div class="console-card reveal">
+        <div class="console-card-header">
+          <div class="console-icon">🕹️</div>
+          <div class="console-name">
+            PlayStation 4
+            <span>Sony · 2013</span>
+          </div>
+        </div>
+        <div class="console-categories">
+          <a href="https://wa.me/5551996979032?text=Quero ver jogos de PS4!" class="cat-tag" target="_blank">Jogos</a>
+          <a href="https://wa.me/5551996979032?text=Quero ver consoles PS4!" class="cat-tag" target="_blank">Consoles</a>
+          <a href="https://wa.me/5551996979032?text=Quero ver controles PS4!" class="cat-tag" target="_blank">Controles</a>
+          <a href="https://wa.me/5551996979032?text=Quero ver acessórios PS4!" class="cat-tag" target="_blank">Acessórios</a>
+        </div>
+        <div class="console-card-footer">
+          <span class="footer-items">Jogos, consoles, controles</span>
+          <a href="https://wa.me/5551996979032?text=Me mostra o que tem de PS4!" class="footer-cta" target="_blank">Ver tudo →</a>
+        </div>
+      </div>
+
+      <div class="console-card reveal">
+        <div class="console-card-header">
+          <div class="console-icon">🔴</div>
+          <div class="console-name">
+            Nintendo Switch
+            <span>Nintendo · 2017</span>
+          </div>
+        </div>
+        <div class="console-categories">
+          <a href="https://wa.me/5551996979032?text=Quero ver jogos de Nintendo Switch!" class="cat-tag" target="_blank">Jogos</a>
+          <a href="https://wa.me/5551996979032?text=Quero ver consoles Switch!" class="cat-tag" target="_blank">Consoles</a>
+          <a href="https://wa.me/5551996979032?text=Quero ver Joy-Con e controles Switch!" class="cat-tag" target="_blank">Joy-Con</a>
+          <a href="https://wa.me/5551996979032?text=Quero ver acessórios Switch!" class="cat-tag" target="_blank">Acessórios</a>
+        </div>
+        <div class="console-card-footer">
+          <span class="footer-items">Jogos, consoles, Joy-Con</span>
+          <a href="https://wa.me/5551996979032?text=Me mostra o que tem de Switch!" class="footer-cta" target="_blank">Ver tudo →</a>
+        </div>
+      </div>
+
+      <div class="console-card reveal">
+        <div class="console-card-header">
+          <div class="console-icon">🔵</div>
+          <div class="console-name">
+            Nintendo 3DS
+            <span>Nintendo · 2011</span>
+          </div>
+        </div>
+        <div class="console-categories">
+          <a href="https://wa.me/5551996979032?text=Quero ver jogos de 3DS!" class="cat-tag" target="_blank">Jogos</a>
+          <a href="https://wa.me/5551996979032?text=Quero ver consoles 3DS!" class="cat-tag" target="_blank">Consoles</a>
+          <a href="https://wa.me/5551996979032?text=Quero ver acessórios 3DS!" class="cat-tag" target="_blank">Acessórios</a>
+        </div>
+        <div class="console-card-footer">
+          <span class="footer-items">3DS / 2DS / New 3DS XL</span>
+          <a href="https://wa.me/5551996979032?text=Me mostra o que tem de 3DS!" class="footer-cta" target="_blank">Ver tudo →</a>
+        </div>
+      </div>
+
+      <div class="console-card reveal" style="border-top-color: var(--purple-bright);">
+        <div class="console-card-header">
+          <div class="console-icon">👾</div>
+          <div class="console-name">
+            Consoles Retrô
+            <span>Clássicos · Vintage</span>
+          </div>
+        </div>
+        <div class="console-categories">
+          <a href="https://wa.me/5551996979032?text=Quero ver produtos de Super Nintendo!" class="cat-tag" target="_blank">Super Nintendo</a>
+          <a href="https://wa.me/5551996979032?text=Quero ver produtos de Nintendo 64!" class="cat-tag" target="_blank">Nintendo 64</a>
+          <a href="https://wa.me/5551996979032?text=Quero ver produtos de PlayStation 1!" class="cat-tag" target="_blank">PlayStation 1</a>
+          <a href="https://wa.me/5551996979032?text=Quero ver produtos de PlayStation 2!" class="cat-tag" target="_blank">PlayStation 2</a>
+          <a href="https://wa.me/5551996979032?text=Quero ver produtos de Game Boy!" class="cat-tag" target="_blank">Game Boy</a>
+          <a href="https://wa.me/5551996979032?text=Quero ver produtos de Mega Drive!" class="cat-tag" target="_blank">Mega Drive</a>
+        </div>
+        <div class="console-card-footer">
+          <span class="footer-items">SNES · N64 · PS1 · PS2 · GB</span>
+          <a href="https://wa.me/5551996979032?text=Me mostra os produtos retrô!" class="footer-cta" target="_blank">Ver tudo →</a>
+        </div>
+      </div>
+
+      <div class="console-card reveal" style="border-top-color: var(--gold);">
+        <div class="console-card-header">
+          <div class="console-icon">🃏</div>
+          <div class="console-name">
+            Cards Pokémon
+            <span>TCG · Colecionáveis</span>
+          </div>
+        </div>
+        <div class="console-categories">
+          <a href="https://wa.me/5551996979032?text=Quero ver cards Pokémon avulsos!" class="cat-tag" target="_blank">Avulsos</a>
+          <a href="https://wa.me/5551996979032?text=Quero ver pacotes Pokémon!" class="cat-tag" target="_blank">Pacotes</a>
+          <a href="https://wa.me/5551996979032?text=Quero ver decks Pokémon!" class="cat-tag" target="_blank">Decks</a>
+          <a href="https://wa.me/5551996979032?text=Quero ver cards raros Pokémon!" class="cat-tag" target="_blank">Raros</a>
+        </div>
+        <div class="console-card-footer">
+          <span class="footer-items">TCG · Colecionável · Competitivo</span>
+          <a href="https://wa.me/5551996979032?text=Me mostra os cards Pokémon!" class="footer-cta" target="_blank">Ver tudo →</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- PRODUTOS DESTAQUE -->
+<section id="produtos">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-eyebrow">// Produtos</span>
+      <h2 class="section-title">Destaques da <span>semana</span></h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="produtos-filter reveal">
+      <button class="filter-btn active" onclick="filterProdutos('todos', this)">Todos</button>
+      <button class="filter-btn" onclick="filterProdutos('ps5', this)">PS5</button>
+      <button class="filter-btn" onclick="filterProdutos('ps4', this)">PS4</button>
+      <button class="filter-btn" onclick="filterProdutos('switch', this)">Switch</button>
+      <button class="filter-btn" onclick="filterProdutos('3ds', this)">3DS</button>
+      <button class="filter-btn" onclick="filterProdutos('retro', this)">Retrô</button>
+      <button class="filter-btn" onclick="filterProdutos('pokemon', this)">Pokémon</button>
+    </div>
+
+    <div class="produtos-grid" id="produtosGrid">
+
+      <div class="produto-card" data-console="ps5">
+        <div class="produto-img">
+          🎮
+          <span class="produto-badge badge-novo">NOVO</span>
+        </div>
+        <div class="produto-info">
+          <div class="produto-console">PlayStation 5</div>
+          <div class="produto-nome">God of War Ragnarök</div>
+          <div class="produto-preco">R$ 199 <span>físico</span></div>
+          <a href="https://wa.me/5551996979032?text=Quero o God of War Ragnarök para PS5! Vi no site da Nosferatu Games." class="produto-wpp" target="_blank">
+            <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Quero esse!
+          </a>
+        </div>
+      </div>
+
+      <div class="produto-card" data-console="ps4">
+        <div class="produto-img">
+          🕹️
+          <span class="produto-badge badge-seminovo">SEMINOVO</span>
+        </div>
+        <div class="produto-info">
+          <div class="produto-console">PlayStation 4</div>
+          <div class="produto-nome">Console PS4 Slim 1TB</div>
+          <div class="produto-preco">R$ 1.299 <span>+ 1 jogo</span></div>
+          <a href="https://wa.me/5551996979032?text=Quero o Console PS4 Slim 1TB! Vi no site da Nosferatu Games." class="produto-wpp" target="_blank">
+            <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Quero esse!
+          </a>
+        </div>
+      </div>
+
+      <div class="produto-card" data-console="switch">
+        <div class="produto-img">
+          🔴
+          <span class="produto-badge badge-novo">NOVO</span>
+        </div>
+        <div class="produto-info">
+          <div class="produto-console">Nintendo Switch</div>
+          <div class="produto-nome">The Legend of Zelda: TOTK</div>
+          <div class="produto-preco">R$ 299 <span>físico</span></div>
+          <a href="https://wa.me/5551996979032?text=Quero Zelda Tears of the Kingdom! Vi no site da Nosferatu Games." class="produto-wpp" target="_blank">
+            <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Quero esse!
+          </a>
+        </div>
+      </div>
+
+      <div class="produto-card" data-console="3ds">
+        <div class="produto-img">
+          🔵
+          <span class="produto-badge badge-usado">USADO</span>
+        </div>
+        <div class="produto-info">
+          <div class="produto-console">Nintendo 3DS</div>
+          <div class="produto-nome">New 3DS XL + Pokémon X</div>
+          <div class="produto-preco">R$ 699 <span>combo</span></div>
+          <a href="https://wa.me/5551996979032?text=Quero o New 3DS XL com Pokémon X! Vi no site da Nosferatu Games." class="produto-wpp" target="_blank">
+            <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Quero esse!
+          </a>
+        </div>
+      </div>
+
+      <div class="produto-card" data-console="retro">
+        <div class="produto-img">
+          👾
+          <span class="produto-badge badge-usado">COLEÇÃO</span>
+        </div>
+        <div class="produto-info">
+          <div class="produto-console">Nintendo 64</div>
+          <div class="produto-nome">Console N64 + Controle</div>
+          <div class="produto-preco">R$ 899 <span>completo</span></div>
+          <a href="https://wa.me/5551996979032?text=Quero o Console N64! Vi no site da Nosferatu Games." class="produto-wpp" target="_blank">
+            <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Quero esse!
+          </a>
+        </div>
+      </div>
+
+      <div class="produto-card" data-console="pokemon">
+        <div class="produto-img">
+          🃏
+          <span class="produto-badge badge-novo">RARO</span>
+        </div>
+        <div class="produto-info">
+          <div class="produto-console">Cards Pokémon</div>
+          <div class="produto-nome">Deck Inicial + 3 Boosters</div>
+          <div class="produto-preco">R$ 149 <span>combo</span></div>
+          <a href="https://wa.me/5551996979032?text=Quero o Deck Inicial + Boosters Pokémon! Vi no site da Nosferatu Games." class="produto-wpp" target="_blank">
+            <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Quero esse!
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- RETRÔ -->
+<section id="retro">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-eyebrow">// Retrô Gaming</span>
+      <h2 class="section-title">Clássicos que <span>nunca morrem</span></h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="retro-grid">
+      <div class="retro-card reveal">
+        <div class="retro-icon">🎮</div>
+        <div class="retro-name">Super Nintendo</div>
+        <div class="retro-year">1990 · SNES</div>
+      </div>
+      <div class="retro-card reveal">
+        <div class="retro-icon">👾</div>
+        <div class="retro-name">Nintendo 64</div>
+        <div class="retro-year">1996 · N64</div>
+      </div>
+      <div class="retro-card reveal">
+        <div class="retro-icon">🕹️</div>
+        <div class="retro-name">PlayStation 1</div>
+        <div class="retro-year">1994 · PSX</div>
+      </div>
+      <div class="retro-card reveal">
+        <div class="retro-icon">💿</div>
+        <div class="retro-name">PlayStation 2</div>
+        <div class="retro-year">2000 · PS2</div>
+      </div>
+      <div class="retro-card reveal">
+        <div class="retro-icon">🔋</div>
+        <div class="retro-name">Game Boy / GBA</div>
+        <div class="retro-year">1989–2001</div>
+      </div>
+      <div class="retro-card reveal">
+        <div class="retro-icon">⚡</div>
+        <div class="retro-name">Mega Drive</div>
+        <div class="retro-year">1988 · Genesis</div>
+      </div>
+    </div>
+
+    <div style="text-align:center; margin-top:2.5rem;" class="reveal">
+      <a href="https://wa.me/5551996979032?text=Quero ver os produtos retrô da Nosferatu Games!" class="btn-secondary" target="_blank">
+        Ver toda a coleção retrô →
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- POKEMON -->
+<section id="pokemon">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-eyebrow">// Colecionáveis</span>
+      <h2 class="section-title">Cards <span>Pokémon</span> TCG</h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="pokemon-banner reveal">
+      <div class="pokemon-title">✦ Gotta Catch 'Em All ✦</div>
+      <p class="pokemon-desc">Cards avulsos, boosters, decks completos e itens raros para colecionadores e jogadores competitivos.</p>
+      <div class="pokemon-types">
+        <span class="type-badge type-fire">🔥 Fogo</span>
+        <span class="type-badge type-water">💧 Água</span>
+        <span class="type-badge type-grass">🌿 Planta</span>
+        <span class="type-badge type-electric">⚡ Elétrico</span>
+        <span class="type-badge type-psychic">🔮 Psíquico</span>
+      </div>
+      <a href="https://wa.me/5551996979032?text=Quero ver os cards Pokémon da Nosferatu Games!" class="btn-primary" target="_blank" style="display:inline-flex;">
+        🃏 Ver Cards Disponíveis
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- SOBRE -->
+<section id="sobre">
+  <div class="container">
+    <div class="sobre-grid">
+      <div class="sobre-text reveal">
+        <h3>A loja que os <span>gamers</span> merecem</h3>
+        <p>A Nosferatu Games nasceu da paixão pelos games. Aqui você encontra jogos, consoles e acessórios com procedência garantida, preços justos e atendimento direto pelo WhatsApp.</p>
+        <p>Trabalhamos com produtos novos, seminovos e usados — sempre com avaliação honesta da condição. Do clássico retrô ao lançamento mais recente.</p>
+
+        <div class="sobre-features">
+          <div class="feature-item">
+            <div class="feature-icon">✅</div>
+            <div class="feature-text">Produtos com procedência garantida</div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">💬</div>
+            <div class="feature-text">Atendimento direto no WhatsApp</div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">🚚</div>
+            <div class="feature-text">Entrega e retirada em POA</div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">💰</div>
+            <div class="feature-text">Preços justos e negociáveis</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sobre-visual reveal">
+        <img src="logo.png" class="sobre-logo" alt="Nosferatu Games"
+          onerror="this.outerHTML='<div style=\'font-family:Press Start 2P,monospace;font-size:48px;text-align:center;color:#CC1414;text-shadow:0 0 30px rgba(204,20,20,0.8);\'>🧛</div>'">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTATO -->
+<section id="contato">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-eyebrow">// Contato</span>
+      <h2 class="section-title">Fale com a <span>Nosferatu</span></h2>
+      <div class="section-divider"></div>
+    </div>
+
+    <div class="contato-grid">
+      <div class="contato-card reveal">
+        <h3>// Onde nos encontrar</h3>
+
+        <div class="contact-item">
+          <div class="contact-icon wpp">📱</div>
+          <div>
+            <div class="contact-label">WhatsApp</div>
+            <a href="https://wa.me/5551996979032" class="contact-value" target="_blank">(51) 9 9999-9999</a>
+          </div>
+        </div>
+
+        <div class="contact-item">
+          <div class="contact-icon insta">📸</div>
+          <div>
+            <div class="contact-label">Instagram</div>
+            <a href="https://instagram.com/nosferatu.games" class="contact-value" target="_blank">@nosferatu.games</a>
+          </div>
+        </div>
+
+        <div class="contact-item">
+          <div class="contact-icon" style="background:rgba(204,20,20,0.15);">📍</div>
+          <div>
+            <div class="contact-label">Localização</div>
+            <span class="contact-value">Porto Alegre, RS</span>
+          </div>
+        </div>
+
+        <div class="contact-item">
+          <div class="contact-icon" style="background:rgba(255,184,0,0.15);">🕐</div>
+          <div>
+            <div class="contact-label">Atendimento</div>
+            <span class="contact-value">Seg–Sáb · 9h–20h</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="contato-card reveal">
+        <h3>// Negocie agora</h3>
+        <p style="font-family:'Rajdhani',sans-serif;font-size:16px;color:var(--text-dim);line-height:1.6;margin-bottom:1rem;">
+          Viu algum produto que gostou? Tem dúvida sobre disponibilidade ou quer fazer uma oferta? Chame direto no WhatsApp — respondemos na hora!
+        </p>
+        <p style="font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--text-muted);margin-bottom:1rem;">
+          > Aceito PIX, transferência e dinheiro<br>
+          > Entrego via Motoboy ou Correios<br>
+          > Retira pessoalmente em POA
+        </p>
+
+        <a href="https://wa.me/5551996979032?text=Olá! Vim pelo site da Nosferatu Games e quero saber mais!" class="wpp-cta-big" target="_blank">
+          <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Chamar no WhatsApp agora
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">NOSFERATU GAMES</div>
+  <div class="footer-sub">© 2025 · Porto Alegre, RS · nosferatugames.com.br</div>
+</footer>
+
+<script>
+function toggleMenu() {
+  document.getElementById('mobileMenu').classList.toggle('open');
+}
+
+function filterProdutos(console, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  document.querySelectorAll('.produto-card').forEach(card => {
+    if (console === 'todos' || card.dataset.console === console) {
+      card.style.display = '';
+      card.style.animation = 'fadeInUp 0.3s ease forwards';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
+// Reveal on scroll
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), i * 60);
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// Close mobile menu on outside click
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('mobileMenu');
+  const ham = document.querySelector('.hamburger');
+  if (menu.classList.contains('open') && !menu.contains(e.target) && !ham.contains(e.target)) {
+    menu.classList.remove('open');
+  }
+});
+</script>
+</body>
+</html>
