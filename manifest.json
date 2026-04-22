@@ -1,0 +1,16 @@
+{
+  "name": "Nosferatu Games",
+  "short_name": "Nosferatu",
+  "description": "Jogos, consoles e acessórios para PS4, PS5, Nintendo Switch, 3DS e retrô.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050508",
+  "theme_color": "#CC1414",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "logo.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "categories": ["shopping", "games"],
+  "lang": "pt-BR"
+}

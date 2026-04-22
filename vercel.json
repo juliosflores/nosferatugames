@@ -1,0 +1,8 @@
+{
+  "functions": {
+    "api/create-preference.js": {
+      "memory": 128,
+      "maxDuration": 10
+    }
+  }
+}
