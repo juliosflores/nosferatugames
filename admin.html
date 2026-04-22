@@ -32,6 +32,10 @@ input,select,textarea,button{font-family:'Rajdhani',sans-serif}
 const { useState, useEffect, useCallback, useRef } = React;
 
 // ── Config ───────────────────────────────────────────────────
+// Cloudinary (pré-configurado)
+if (!localStorage.getItem('ng_cloud_name'))    localStorage.setItem('ng_cloud_name',    'ddadz8ut');
+if (!localStorage.getItem('ng_upload_preset')) localStorage.setItem('ng_upload_preset', 'ytsmjlb');
+
 const SUPA_URL  = 'https://jcnncmfbodglvoyytgok.supabase.co';
 const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impjbm5jbWZib2RnbHZveXl0Z29rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MTg0NDgsImV4cCI6MjA5MTE5NDQ0OH0.YpStoaxT86MQY06KiKVhUXdlcF-CVsu4DOFuUTLv4u0';
 const SENHA     = '96979032';
@@ -515,8 +519,8 @@ const Analytics = ({visitas}) => {
 
 // ── Config ────────────────────────────────────────────────────
 const Config = () => {
-  const [cloud,setCloud]   = useState(localStorage.getItem('ng_cloud_name')||'');
-  const [preset,setPreset] = useState(localStorage.getItem('ng_upload_preset')||'');
+  const [cloud,setCloud]   = useState(localStorage.getItem('ng_cloud_name')||'ddadz8ut');
+  const [preset,setPreset] = useState(localStorage.getItem('ng_upload_preset')||'ytsmjlb');
   const [saved,setSaved]   = useState(false);
 
   const salvar = () => {
@@ -576,7 +580,7 @@ const App = () => {
 
   const loadVisitas = useCallback(async () => {
     try { setVisitas(await supa('visitas?order=created_at.desc&limit=500')||[]); }
-    catch(e){ console.error(e); }
+    catch(e){ /* tabela ainda não existe — rode setup-supabase.sql */ }
   },[]);
 
   useEffect(()=>{
