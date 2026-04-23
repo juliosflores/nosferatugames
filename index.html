@@ -772,8 +772,7 @@ function atualizarTotal(frete) {
 
 async function consultarCEP(cep) {
   const c = cep.replace(/\D/g,'');
-  if (c.length !== 8 || c === lastCEP) return;
-  lastCEP = c;
+  if (c.length !== 8) return;
 
   const aviso = document.getElementById('aviso-poa');
   const shippingList = document.getElementById('shipping-list');
