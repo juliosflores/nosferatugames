@@ -534,16 +534,10 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
 
     <div class="produtos-grid" id="produtosGrid">
       <!-- Skeleton loading -->
-      ${Array(8).fill(0).map(()=>`
-      <div class="skeleton-card">
-        <div class="skeleton-img"></div>
-        <div class="skeleton-body">
-          <div class="skeleton-line xshort"></div>
-          <div class="skeleton-line"></div>
-          <div class="skeleton-line short"></div>
-          <div class="skeleton-line xshort"></div>
-        </div>
-      </div>`).join('')}
+      <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line xshort"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+      <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line xshort"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+      <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line xshort"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+      <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line xshort"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
     </div>
 
     <!-- Modal -->
@@ -993,7 +987,7 @@ async function processarPedido(e) {
     const payData = await payRes.json();
     if (payData.init_point) {
       // Limpar carrinho ao ir para o pagamento
-      // meuCarrinho = []; salvarCarrinho(); 
+      meuCarrinho = []; salvarCarrinho(); 
       // 🧛‍♂️ O TOQUE DO CONDE: Tocar 2 segundos de Bach antes de ir para o pagamento
       try {
         const audio = new Audio('https://archive.org/download/ToccataAndFugueInDMinorBWV565/Toccata%20and%20Fugue%20in%20D%20Minor%2C%20BWV%20565.mp3');
@@ -1439,7 +1433,7 @@ registrarVisita();
       <!-- RESUMO TOTAL -->
       <div style="background:var(--bg3); padding:1rem; border-radius:4px; margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center; border:1px solid var(--border);">
         <span style="font-family:'Share Tech Mono',monospace; font-size:12px; color:var(--text-muted);">TOTAL A PAGAR:</span>
-        <span id="final-total" style="font-family:'Press Start 2P',monospace; font-size:14px; color:var(--gold); text-shadow:0 0 10px rgba(255,184,0,0.3);">R$ 0,00</span>
+        <span id="checkoutTotal" style="font-family:'Press Start 2P',monospace; font-size:14px; color:var(--gold); text-shadow:0 0 10px rgba(255,184,0,0.3);">R$ 0,00</span>
       </div>
 
       <button type="submit" id="btnFinalizar" class="btn-primary" style="width:100%; justify-content:center; padding:14px; cursor:pointer;">Confirmar e Pagar 💳</button>
