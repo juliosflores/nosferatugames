@@ -718,11 +718,32 @@ function fecharCheckoutEntrega() {
   document.getElementById('checkoutModalEntrega').classList.remove('active');
 }
 
-function verificarPOA(cep) {
+function formatarCEP(el) {
+  let v = el.value.replace(/\D/g, '');
+  if (v.length > 5) v = v.substring(0, 5) + '-' + v.substring(5, 8);
+  el.value = v;
+}
+
+async function consultarCEP(cep) {
   const c = cep.replace(/\D/g,'');
+  if (c.length !== 8) return;
+
   const aviso = document.getElementById('aviso-poa');
   if (c.startsWith('90') || c.startsWith('91')) aviso.style.display = 'flex';
   else aviso.style.display = 'none';
+
+  try {
+    const res = await fetch(`https://viacep.com.br/ws/${c}/json/`);
+    const data = await res.json();
+    if (data.erro) {
+      showToast('erro', '✕ CEP não encontrado.');
+      return;
+    }
+    document.getElementById('chk-endereco').value = `${data.logradouro}, ${data.bairro} - ${data.localidade}/${data.uf}`;
+    document.getElementById('chk-numero').focus();
+  } catch (e) {
+    console.error('Erro ao buscar CEP');
+  }
 }
 
 async function processarPedido(e) {
@@ -737,13 +758,12 @@ async function processarPedido(e) {
     whatsapp_cliente: document.getElementById('chk-wpp').value,
     cpf_cliente: document.getElementById('chk-cpf').value,
     cep_cliente: document.getElementById('chk-cep').value,
-    endereco_completo: document.getElementById('chk-endereco').value,
+    endereco_completo: `${document.getElementById('chk-endereco').value}, nº ${document.getElementById('chk-numero').value}`,
     valor_total: produtoSelecionado.preco,
     status: 'pendente'
   };
 
   try {
-    // 1. Salvar no Supabase (tabela pedidos)
     const resSupa = await fetch(`${SUPA_URL}/rest/v1/pedidos`, {
       method: 'POST',
       headers: {
@@ -1090,10 +1110,21 @@ registrarVisita();
       <div id="checkoutResumo" style="font-family:'Rajdhani',sans-serif; font-size:14px; color:var(--gold);"></div>
     </div>
     <form id="formCheckout" onsubmit="processarPedido(event)">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+        <div>
+          <label class="checkout-label">CEP (DIGITE PRIMEIRO)</label>
+          <input type="text" id="chk-cep" class="checkout-input" required placeholder="00000-000" maxlength="9" oninput="formatarCEP(this)" onblur="consultarCEP(this.value)">
+        </div>
+        <div id="aviso-poa" style="display:none; align-items:center; color:#4ade80; font-family:'Rajdhani',sans-serif; font-size:11px; font-weight:700; line-height:1.2;">
+          🛵 Porto Alegre: Entrega via Motoboy disponível!
+        </div>
+      </div>
+
       <div class="checkout-form-group">
         <label class="checkout-label">NOME COMPLETO</label>
         <input type="text" id="chk-nome" class="checkout-input" required>
       </div>
+
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
         <div>
           <label class="checkout-label">WHATSAPP</label>
@@ -1104,19 +1135,17 @@ registrarVisita();
           <input type="text" id="chk-cpf" class="checkout-input" required placeholder="000.000.000-00">
         </div>
       </div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
-        <div>
-          <label class="checkout-label">CEP</label>
-          <input type="text" id="chk-cep" class="checkout-input" required placeholder="90000-000" oninput="verificarPOA(this.value)">
-        </div>
-        <div id="aviso-poa">
-          🛵 Porto Alegre: Entrega via Motoboy disponível!
-        </div>
+
+      <div class="checkout-form-group">
+        <label class="checkout-label">RUA / LOGRADOURO (AUTO)</label>
+        <input type="text" id="chk-endereco" class="checkout-input" required placeholder="Aguardando CEP...">
       </div>
+
       <div class="checkout-form-group" style="margin-bottom:1.5rem;">
-        <label class="checkout-label">ENDEREÇO COMPLETO</label>
-        <textarea id="chk-endereco" class="checkout-input" required placeholder="Rua, Número, Complemento, Bairro..." style="height:60px; resize:none;"></textarea>
+        <label class="checkout-label">NÚMERO E COMPLEMENTO</label>
+        <input type="text" id="chk-numero" class="checkout-input" required placeholder="Ex: 123, Apto 402">
       </div>
+
       <button type="submit" id="btnFinalizar" class="btn-primary" style="width:100%; justify-content:center; padding:14px; cursor:pointer;">Ir para o Pagamento 💳</button>
     </form>
   </div>
