@@ -196,7 +196,7 @@ section{position:relative;z-index:1}
 .badge-novo{background:#163a1e;color:#4ade80;border:1px solid #166534}
 .badge-usado{background:#1e1a10;color:var(--gold);border:1px solid #713f12}
 .badge-seminovo{background:#1a1030;color:var(--purple-bright);border:1px solid #4c1d95}
-.badge-vendido{background:#1a1010;color:var(--text-muted);border:1px solid #3a1010}
+.badge-vendido{background:#1a1010;color:var(--text-muted);border:1px solid #4a0a0a;width:auto !important;padding:4px 10px;white-space:nowrap}
 
 /* Botões de ação rápida no card */
 .card-quick-actions{position:absolute;top:8px;right:8px;display:flex;flex-direction:column;gap:5px;z-index:3}
@@ -1080,7 +1080,7 @@ function cardHtml(p) {
     <div class="produto-img">
       ${imgTag}
       ${isVendido
-        ? '<span class="produto-badge badge-vendido" style="z-index:3">VENDIDO</span>'
+        ? '<span class="produto-badge badge-vendido" style="z-index:3; font-size:10px; width:auto; padding:4px 8px; white-space:nowrap;">⚔️ Reivindicado por outro caçador</span>'
         : badgeHtml(p.condicao)}
       ${p.destaque&&!isVendido?'<span class="produto-badge" style="top:10px;right:10px;left:auto;background:rgba(255,184,0,.2);color:#FFB800;border:1px solid #713f12;z-index:1">⭐</span>':''}
     </div>
@@ -1205,7 +1205,8 @@ function abrirModal(p) {
 
   document.getElementById('modal-console').textContent = p.console||'';
   document.getElementById('modal-nome').textContent    = p.nome;
-  document.getElementById('modal-preco').textContent   = preco;
+  document.getElementById('modal-preco').textContent   = p.vendido ? '⚔️ Reivindicado por outro caçador' : preco;
+  document.getElementById('modal-preco').style.color   = p.vendido ? 'var(--text-muted)' : 'var(--gold)';
   document.getElementById('modal-descricao').textContent = p.descricao||'';
   document.getElementById('modal-wpp').href = `https://wa.me/5195108970?text=${wppMsg}`;
 
