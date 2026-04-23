@@ -811,7 +811,10 @@ async function consultarCEP(cep) {
         const resMoto = await fetch('/api/get-motoboy', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cep_destino: c })
+          body: JSON.stringify({ 
+            cep_destino: c,
+            endereco: `${data.logradouro}, ${data.localidade}, RS, Brasil`
+          })
         });
         const dataMoto = await resMoto.json();
         
