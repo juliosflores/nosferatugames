@@ -756,9 +756,18 @@ function fecharCheckoutEntrega() {
 }
 
 function formatarCEP(el) {
-  let v = el.value.replace(/\D/g, '');
+  let v = el.value.replace(/\D/g,'');
   if (v.length > 5) v = v.substring(0, 5) + '-' + v.substring(5, 8);
   el.value = v;
+
+  // Limpeza preventiva ao digitar
+  const end = document.getElementById('chk-endereco');
+  const ship = document.getElementById('shipping-list');
+  if (v.length < 9) {
+    if (end) end.value = '';
+    if (ship) ship.innerHTML = '<div style="font-size:11px; color:var(--text-muted);">Aguardando CEP completo...</div>';
+  }
+
   if (v.length === 9) consultarCEP(v);
 }
 
