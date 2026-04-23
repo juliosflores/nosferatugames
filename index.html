@@ -787,7 +787,16 @@ async function consultarCEP(cep) {
           body: JSON.stringify({ cep_destino: c })
         });
         const opcoes = await resFrete.json();
-        if (Array.isArray(opcoes)) {
+        
+        // Limpar opções anteriores e resetar para incluir apenas Retirada + Novas Opções
+        shippingList.innerHTML = `
+          <label style="display:flex; align-items:center; gap:10px; font-family:'Rajdhani',sans-serif; cursor:pointer; color:var(--text-dim);">
+            <input type="radio" name="shipping" value="0" checked onchange="atualizarTotal(0)" style="accent-color:var(--red-bright);"> 
+            <span>🤝 Retirada em Mãos (Grátis)</span>
+          </label>
+        `;
+
+        if (Array.isArray(opcoes) && opcoes.length > 0) {
           opcoes.forEach(opt => {
             shippingList.innerHTML += `
               <label style="display:flex; align-items:center; gap:10px; font-family:'Rajdhani',sans-serif; cursor:pointer; color:var(--text-dim);">
@@ -796,6 +805,8 @@ async function consultarCEP(cep) {
               </label>
             `;
           });
+        } else {
+          showToast('info', 'ℹ️ Apenas retirada disponível para este CEP.');
         }
       } catch (e) {
         console.error('Erro frete nacional', e);
