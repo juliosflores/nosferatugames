@@ -200,14 +200,15 @@ section{position:relative;z-index:1}
 
 /* Botões de ação rápida no card */
 .card-quick-actions{position:absolute;top:8px;right:8px;display:flex;flex-direction:column;gap:5px;z-index:3}
-.quick-btn{width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,0.1);background:rgba(5,5,8,0.7);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);z-index:3;backdrop-filter:blur(4px);overflow:hidden;position:relative}
+.quick-btn{width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,0.1);background:rgba(5,5,8,0.7);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);z-index:3;backdrop-filter:blur(4px);overflow:hidden;position:relative;outline:none;user-select:none}
+.quick-btn:focus{outline:none}
 .quick-btn::before{content:'';position:absolute;inset:0;background:radial-gradient(circle,rgba(255,255,255,0.1),transparent);opacity:0;transition:opacity 0.3s}
-.quick-btn:hover{transform:scale(1.1);border-color:var(--red-bright);box-shadow:0 0 15px rgba(204,20,20,0.4)}
+.quick-btn:hover{transform:scale(1.1);border-color:var(--red-bright);box-shadow:0 0 15px rgba(204,20,20,0.3)}
 .quick-btn:hover::before{opacity:1}
 
-.quick-btn.fav-on{border-color:var(--purple-bright);background:rgba(168,85,247,0.15);box-shadow:0 0 15px rgba(168,85,247,0.4);color:var(--purple-bright)}
+.quick-btn.fav-on{border-color:var(--purple-bright);background:rgba(168,85,247,0.1);box-shadow:0 0 10px rgba(168,85,247,0.3);color:var(--purple-bright)}
 
-.btn-quick-cart.in-cart{border-color:var(--gold);background:rgba(255,184,0,0.15);box-shadow:0 0 15px rgba(255,184,0,0.5);color:var(--gold)}
+.btn-quick-cart.in-cart{border-color:var(--gold-dim);background:rgba(200,137,10,0.15);box-shadow:0 0 12px rgba(200,137,10,0.4);color:var(--gold)}
 .btn-quick-cart svg{transition:all 0.3s ease}
 .btn-quick-cart.in-cart svg{transform:scale(1.1)}
 
@@ -1043,20 +1044,28 @@ function isInCart(id) {
 function addAoCarrinho(p, event, abrirLogo = true) {
   if (event) event.stopPropagation();
   const index = meuCarrinho.findIndex(item => item.id === p.id);
+  const btn = (event && event.currentTarget && event.currentTarget.classList.contains('quick-btn')) ? event.currentTarget : null;
   
   if (index === -1) {
+    // Adicionar
     meuCarrinho.push(p);
-    salvarCarrinho();
-    if (event && event.currentTarget && event.currentTarget.classList.contains('quick-btn')) {
-      const btn = event.currentTarget;
+    if (btn) {
       btn.classList.add('in-cart');
-      btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:var(--gold)"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>';
+      btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:var(--gold)"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>';
       btn.title = 'No Caixão';
     }
   } else {
-    // Opcional: Remover se clicar de novo no +? Vamos manter apenas adicionar por enquanto.
+    // Remover (Toggle)
+    meuCarrinho.splice(index, 1);
+    if (btn) {
+      btn.classList.remove('in-cart');
+      btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:var(--text-dim)"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>';
+      btn.title = 'Adicionar ao Caixão';
+    }
   }
-  if (abrirLogo) abrirCheckout();
+  
+  salvarCarrinho();
+  if (abrirLogo && index === -1) abrirCheckout();
 }
 
 function removerDoCarrinho(id) {
