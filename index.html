@@ -815,6 +815,11 @@ async function processarPedido(e) {
   btn.textContent = 'Processando...';
 
   const totalFinal = Math.round((Number(produtoSelecionado.preco) + valorFreteAtivo) * 100) / 100;
+  
+  // Pegar o nome do método de envio selecionado
+  const radioSelected = document.querySelector('input[name="shipping"]:checked');
+  const metodoEnvio = radioSelected ? radioSelected.parentElement.innerText.trim() : 'Não selecionado';
+
   const dados = {
     produto_id: produtoSelecionado.id,
     nome_cliente: document.getElementById('chk-nome').value,
@@ -823,6 +828,7 @@ async function processarPedido(e) {
     cep_cliente: document.getElementById('chk-cep').value,
     endereco_completo: `${document.getElementById('chk-endereco').value}, nº ${document.getElementById('chk-numero').value}`,
     valor_total: totalFinal,
+    metodo_envio: metodoEnvio,
     status: 'pendente'
   };
 
