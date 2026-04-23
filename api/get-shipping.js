@@ -6,7 +6,7 @@ export default async function handler(req, res) {
   const token = process.env.SUPERFRETE_TOKEN || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NzY5MTY3MDEsInN1YiI6IjRpZ3hCS0prRE5aSEZpdnM4YnFXUEZ5VkFJYTIifQ.H3PmzB0KUOs-Ng_GhaxHRSlPfNKmeu3YZos5ED9djd8';
 
   try {
-    const response = await fetch('https://api.superfrete.com/v1/calculator', {
+    const response = await fetch('https://api.superfrete.com/api/v0/calculator', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -14,26 +14,31 @@ export default async function handler(req, res) {
         'User-Agent': 'NosferatuGames/1.0'
       },
       body: JSON.stringify({
-        "from": "90430100",
-        "to": cep_destino.replace(/\D/g, ''),
+        "from": {
+          "postal_code": "90430100"
+        },
+        "to": {
+          "postal_code": cep_destino.replace(/\D/g, '')
+        },
         "services": "1,2,17",
         "options": {
-          "width": 15,
-          "height": 4,
-          "length": 21,
-          "weight": 0.3,
-          "insurance": 0,
           "own_hand": false,
-          "receipt": false
+          "receipt": false,
+          "insurance_value": 0,
+          "use_insurance_value": false
+        },
+        "package": {
+          "height": 2,
+          "width": 11,
+          "length": 16,
+          "weight": 0.3
         }
       })
     });
 
     const data = await response.json();
     
-    // Se não for um array, o SuperFrete retornou erro
     if (!Array.isArray(data)) {
-       console.error('Erro SuperFrete API:', data);
        return res.status(400).json({ error: 'Erro na API do SuperFrete', details: data });
     }
 
