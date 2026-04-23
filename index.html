@@ -736,17 +736,16 @@ async function consultarCEP(cep) {
   if (c.length !== 8) return;
 
   const aviso = document.getElementById('aviso-poa');
-  const optMotoboy = document.getElementById('opt-motoboy');
+  const shippingList = document.getElementById('shipping-list');
+  const loading = document.getElementById('shipping-loading');
   
-  if (c.startsWith('90') || c.startsWith('91')) {
-    aviso.style.display = 'flex';
-    optMotoboy.style.display = 'flex';
-  } else {
-    aviso.style.display = 'none';
-    optMotoboy.style.display = 'none';
-    atualizarTotal(0);
-    document.getElementsByName('shipping')[0].checked = true;
-  }
+  // Resetar lista de frete (mantém apenas retirada)
+  shippingList.innerHTML = `
+    <label style="display:flex; align-items:center; gap:10px; font-family:'Rajdhani',sans-serif; cursor:pointer; color:var(--text-dim);">
+      <input type="radio" name="shipping" value="0" checked onchange="atualizarTotal(0)" style="accent-color:var(--red-bright);"> 
+      <span>🤝 Retirada em Mãos (Grátis)</span>
+    </label>
+  `;
 
   try {
     const res = await fetch(`https://viacep.com.br/ws/${c}/json/`);
@@ -757,6 +756,41 @@ async function consultarCEP(cep) {
     }
     document.getElementById('chk-endereco').value = `${data.logradouro}, ${data.bairro} - ${data.localidade}/${data.uf}`;
     document.getElementById('chk-numero').focus();
+
+    // Lógica de Porto Alegre vs Nacional
+    if (c.startsWith('90') || c.startsWith('91')) {
+      aviso.style.display = 'flex';
+      shippingList.innerHTML += `
+        <label style="display:flex; align-items:center; gap:10px; font-family:'Rajdhani',sans-serif; cursor:pointer; color:var(--text-dim);">
+          <input type="radio" name="shipping" value="15" onchange="atualizarTotal(15)" style="accent-color:var(--red-bright);"> 
+          <span>🏍️ Motoboy Porto Alegre (+ R$ 15,00)</span>
+        </label>
+      `;
+    } else {
+      aviso.style.display = 'none';
+      // Buscar Frete Nacional (SuperFrete)
+      loading.style.display = 'block';
+      try {
+        const resFrete = await fetch('/api/get-shipping', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cep_destino: c })
+        });
+        const opcoes = await resFrete.json();
+        opcoes.forEach(opt => {
+          shippingList.innerHTML += `
+            <label style="display:flex; align-items:center; gap:10px; font-family:'Rajdhani',sans-serif; cursor:pointer; color:var(--text-dim);">
+              <input type="radio" name="shipping" value="${opt.price}" onchange="atualizarTotal(${opt.price})" style="accent-color:var(--red-bright);"> 
+              <span>📦 ${opt.name} (+ R$ ${Number(opt.price).toLocaleString('pt-BR', {minimumFractionDigits:2})}) — ${opt.deadline} dias</span>
+            </label>
+          `;
+        });
+      } catch (e) {
+        console.error('Erro frete nacional');
+      } finally {
+        loading.style.display = 'none';
+      }
+    }
   } catch (e) {
     console.error('Erro ao buscar CEP');
   }
@@ -1166,15 +1200,15 @@ registrarVisita();
       <!-- OPÇÕES DE FRETE -->
       <div id="shipping-options" style="margin-bottom:1.5rem; border-top:1px solid var(--border); padding-top:1rem;">
         <label class="checkout-label">OPÇÃO DE ENTREGA</label>
-        <div style="display:flex; flex-direction:column; gap:10px;">
+        <div id="shipping-list" style="display:flex; flex-direction:column; gap:10px;">
           <label style="display:flex; align-items:center; gap:10px; font-family:'Rajdhani',sans-serif; cursor:pointer; color:var(--text-dim);">
             <input type="radio" name="shipping" value="0" checked onchange="atualizarTotal(0)" style="accent-color:var(--red-bright);"> 
             <span>🤝 Retirada em Mãos (Grátis)</span>
           </label>
-          <label id="opt-motoboy" style="display:none; align-items:center; gap:10px; font-family:'Rajdhani',sans-serif; cursor:pointer; color:var(--text-dim);">
-            <input type="radio" name="shipping" value="15" onchange="atualizarTotal(15)" style="accent-color:var(--red-bright);"> 
-            <span>🏍️ Motoboy Porto Alegre (+ R$ 15,00)</span>
-          </label>
+          <!-- Opções dinâmicas entrarão aqui -->
+        </div>
+        <div id="shipping-loading" style="display:none; font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--gold); margin-top:10px; animation: pulse 1s infinite;">
+          ⌛ Calculando frete para o Brasil...
         </div>
       </div>
 
