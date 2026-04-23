@@ -32,8 +32,8 @@ export default async function handler(req, res) {
 
     const distanciaKM = routeData.routes[0].summary.distance / 1000;
 
-    // FÓRMULA DE REVENDA: Mínimo R$ 18 ou (Base R$ 10 + KM * 1.70)
-    let precoFrete = Math.max(18, 10 + (distanciaKM * 1.70));
+    // FÓRMULA FINAL: Mínimo R$ 18 ou (Base R$ 7 + KM * 1.70)
+    let precoFrete = Math.max(18, 7 + (distanciaKM * 1.70));
     precoFrete = Math.ceil(precoFrete);
 
     return res.status(200).json({
