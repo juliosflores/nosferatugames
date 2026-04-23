@@ -1029,14 +1029,13 @@ function atualizarBadgeCarrinho() {
   }
 }
 
-function addAoCarrinho(p, event) {
+function addAoCarrinho(p, event, abrirLogo = true) {
   if (event) event.stopPropagation();
   if (!meuCarrinho.find(item => item.id === p.id)) {
     meuCarrinho.push(p);
     salvarCarrinho();
-    showToast('sucesso', `🦇 Relíquia guardada no caixão!`);
   }
-  abrirCheckout();
+  if (abrirLogo) abrirCheckout();
 }
 
 function removerDoCarrinho(id) {
@@ -1125,7 +1124,7 @@ function cardHtml(p) {
       ${p.destaque&&!isVendido?'<span class="produto-badge" style="top:10px;right:10px;left:auto;background:rgba(255,184,0,.2);color:#FFB800;border:1px solid #713f12;z-index:1">⭐</span>':''}
     </div>
     <div class="card-quick-actions" onclick="event.stopPropagation()">
-      <button class="quick-btn" title="Adicionar ao Caixão" onclick="addAoCarrinho(${pStr},event)" style="border-color:var(--gold); color:var(--gold); background:rgba(255,184,0,0.1)">+</button>
+      <button class="quick-btn" title="Adicionar ao Caixão" onclick="addAoCarrinho(${pStr},event,false)" style="border-color:var(--gold); color:var(--gold); background:rgba(255,184,0,0.1)">+</button>
       <button class="quick-btn${fav?' fav-on':''}" title="Favoritar" onclick="onFavClick(this,'${p.id}')">${fav?'♥':'♡'}</button>
       <button class="quick-btn" title="Compartilhar" onclick="compartilharProduto(${pStr},event)">⬆</button>
     </div>
