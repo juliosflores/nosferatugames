@@ -200,12 +200,16 @@ section{position:relative;z-index:1}
 
 /* Botões de ação rápida no card */
 .card-quick-actions{position:absolute;top:8px;right:8px;display:flex;flex-direction:column;gap:5px;z-index:3}
-.quick-btn{width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:rgba(10,10,18,0.85);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;font-size:14px;backdrop-filter:blur(4px);overflow:hidden}
-.quick-btn:hover{border-color:var(--red-bright);background:rgba(204,20,20,0.2)}
-.quick-btn.fav-on{border-color:var(--purple-bright);background:rgba(168,85,247,0.2);color:var(--purple-bright)}
-.btn-quick-cart.in-cart{border-color:var(--gold);background:rgba(255,184,0,0.35);color:var(--gold)}
-.btn-quick-cart:hover{border-color:var(--gold);background:rgba(255,184,0,0.2);transform:scale(1.1)}
-.btn-quick-cart svg{transition:transform 0.3s ease}
+.quick-btn{width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,0.1);background:rgba(5,5,8,0.7);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);z-index:3;backdrop-filter:blur(4px);overflow:hidden;position:relative}
+.quick-btn::before{content:'';position:absolute;inset:0;background:radial-gradient(circle,rgba(255,255,255,0.1),transparent);opacity:0;transition:opacity 0.3s}
+.quick-btn:hover{transform:scale(1.1);border-color:var(--red-bright);box-shadow:0 0 15px rgba(204,20,20,0.4)}
+.quick-btn:hover::before{opacity:1}
+
+.quick-btn.fav-on{border-color:var(--purple-bright);background:rgba(168,85,247,0.15);box-shadow:0 0 15px rgba(168,85,247,0.4);color:var(--purple-bright)}
+
+.btn-quick-cart.in-cart{border-color:var(--gold);background:rgba(255,184,0,0.15);box-shadow:0 0 15px rgba(255,184,0,0.5);color:var(--gold)}
+.btn-quick-cart svg{transition:all 0.3s ease}
+.btn-quick-cart.in-cart svg{transform:scale(1.1)}
 
 .produto-info{padding:1rem}
 .produto-console{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--red-bright);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:4px}
@@ -1143,11 +1147,10 @@ function cardHtml(p) {
     <div class="card-quick-actions" onclick="event.stopPropagation()">
       <button class="quick-btn btn-quick-cart${isInCart(p.id)?' in-cart':''}" 
               title="${isInCart(p.id)?'No Caixão':'Adicionar ao Caixão'}" 
-              onclick="addAoCarrinho(${pStr},event,false)" 
-              style="border-color:var(--gold); color:var(--gold);">
+              onclick="addAoCarrinho(${pStr},event,false)">
         ${isInCart(p.id) 
-          ? '<svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:var(--gold)"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>'
-          : '<svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:var(--gold)"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>'}
+          ? '<svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:var(--gold)"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>'
+          : '<svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:var(--text-dim)"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>'}
       </button>
       <button class="quick-btn${fav?' fav-on':''}" title="Favoritar" onclick="onFavClick(this,'${p.id}')">${fav?'♥':'♡'}</button>
       <button class="quick-btn" title="Compartilhar" onclick="compartilharProduto(${pStr},event)">⬆</button>
