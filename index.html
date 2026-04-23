@@ -723,12 +723,16 @@ function formatarCEP(el) {
   let v = el.value.replace(/\D/g, '');
   if (v.length > 5) v = v.substring(0, 5) + '-' + v.substring(5, 8);
   el.value = v;
+  // Dispara a consulta automaticamente ao completar os 8 dígitos
+  if (v.length === 9) consultarCEP(v);
 }
 
 function atualizarTotal(frete) {
+  if (!produtoSelecionado) return;
   valorFreteAtivo = Number(frete);
   const total = Number(produtoSelecionado.preco) + valorFreteAtivo;
-  document.getElementById('final-total').textContent = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+  const elTotal = document.getElementById('final-total');
+  if (elTotal) elTotal.textContent = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
 }
 
 async function consultarCEP(cep) {
@@ -739,6 +743,8 @@ async function consultarCEP(cep) {
   const shippingList = document.getElementById('shipping-list');
   const loading = document.getElementById('shipping-loading');
   
+  if (!shippingList) return;
+
   // Resetar lista de frete (mantém apenas retirada)
   shippingList.innerHTML = `
     <label style="display:flex; align-items:center; gap:10px; font-family:'Rajdhani',sans-serif; cursor:pointer; color:var(--text-dim);">
@@ -754,12 +760,15 @@ async function consultarCEP(cep) {
       showToast('erro', '✕ CEP não encontrado.');
       return;
     }
-    document.getElementById('chk-endereco').value = `${data.logradouro}, ${data.bairro} - ${data.localidade}/${data.uf}`;
-    document.getElementById('chk-numero').focus();
+    
+    const inputEnd = document.getElementById('chk-endereco');
+    const inputNum = document.getElementById('chk-numero');
+    if (inputEnd) inputEnd.value = `${data.logradouro}, ${data.bairro} - ${data.localidade}/${data.uf}`;
+    if (inputNum) inputNum.focus();
 
     // Lógica de Porto Alegre vs Nacional
     if (c.startsWith('90') || c.startsWith('91')) {
-      aviso.style.display = 'flex';
+      if (aviso) aviso.style.display = 'flex';
       shippingList.innerHTML += `
         <label style="display:flex; align-items:center; gap:10px; font-family:'Rajdhani',sans-serif; cursor:pointer; color:var(--text-dim);">
           <input type="radio" name="shipping" value="15" onchange="atualizarTotal(15)" style="accent-color:var(--red-bright);"> 
@@ -767,9 +776,9 @@ async function consultarCEP(cep) {
         </label>
       `;
     } else {
-      aviso.style.display = 'none';
+      if (aviso) aviso.style.display = 'none';
       // Buscar Frete Nacional (SuperFrete)
-      loading.style.display = 'block';
+      if (loading) loading.style.display = 'block';
       try {
         const resFrete = await fetch('/api/get-shipping', {
           method: 'POST',
@@ -777,22 +786,24 @@ async function consultarCEP(cep) {
           body: JSON.stringify({ cep_destino: c })
         });
         const opcoes = await resFrete.json();
-        opcoes.forEach(opt => {
-          shippingList.innerHTML += `
-            <label style="display:flex; align-items:center; gap:10px; font-family:'Rajdhani',sans-serif; cursor:pointer; color:var(--text-dim);">
-              <input type="radio" name="shipping" value="${opt.price}" onchange="atualizarTotal(${opt.price})" style="accent-color:var(--red-bright);"> 
-              <span>📦 ${opt.name} (+ R$ ${Number(opt.price).toLocaleString('pt-BR', {minimumFractionDigits:2})}) — ${opt.deadline} dias</span>
-            </label>
-          `;
-        });
+        if (Array.isArray(opcoes)) {
+          opcoes.forEach(opt => {
+            shippingList.innerHTML += `
+              <label style="display:flex; align-items:center; gap:10px; font-family:'Rajdhani',sans-serif; cursor:pointer; color:var(--text-dim);">
+                <input type="radio" name="shipping" value="${opt.price}" onchange="atualizarTotal(${opt.price})" style="accent-color:var(--red-bright);"> 
+                <span>📦 ${opt.name} (+ R$ ${Number(opt.price).toLocaleString('pt-BR', {minimumFractionDigits:2})}) — ${opt.deadline} dias</span>
+              </label>
+            `;
+          });
+        }
       } catch (e) {
-        console.error('Erro frete nacional');
+        console.error('Erro frete nacional', e);
       } finally {
-        loading.style.display = 'none';
+        if (loading) loading.style.display = 'none';
       }
     }
   } catch (e) {
-    console.error('Erro ao buscar CEP');
+    console.error('Erro ao buscar CEP', e);
   }
 }
 
