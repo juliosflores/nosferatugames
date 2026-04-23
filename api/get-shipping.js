@@ -45,7 +45,7 @@ export default async function handler(req, res) {
     const opcoes = data.map(servico => ({
       name: servico.name,
       price: servico.price,
-      deadline: servico.deadline,
+      deadline: servico.delivery_time, // Corrigido de deadline para delivery_time
       error: servico.error
     })).filter(s => !s.error);
 
