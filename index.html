@@ -805,7 +805,7 @@ async function consultarCEP(cep) {
     // Lógica de Porto Alegre (Dinâmica via OpenRouteService)
     if (c.startsWith('90') || c.startsWith('91')) {
       if (aviso) aviso.style.display = 'flex';
-      if (loading) loading.style.display = 'block';
+      shippingList.innerHTML += `<div id="moto-loading" style="font-size:12px; color:var(--gold); margin:5px 0;">🏍️ Calculando rota em tempo real...</div>`;
       
       try {
         const resMoto = await fetch('/api/get-motoboy', {
@@ -834,6 +834,8 @@ async function consultarCEP(cep) {
       } catch (e) {
         console.error('Erro motoboy dinâmico', e);
       } finally {
+        const mLoad = document.getElementById('moto-loading');
+        if (mLoad) mLoad.remove();
         if (loading) loading.style.display = 'none';
       }
     } else {
