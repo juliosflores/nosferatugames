@@ -929,14 +929,17 @@ async function processarPedido(e) {
 
     if (!resSupa.ok) throw new Error('Erro ao salvar pedido');
 
-    // 2. Mercado Pago
+    // 2. Mercado Pago (Enviando dados completos do produto)
     const payRes = await fetch('/api/create-preference', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        title: produtoSelecionado.nome,
-        price: totalFinal,
-        quantity: 1
+        id: produtoSelecionado.id,
+        nome: produtoSelecionado.nome,
+        preco: totalFinal,
+        descricao: produtoSelecionado.descricao || 'Produto Nosferatu Games',
+        console: produtoSelecionado.console || 'Geral',
+        imagem: (produtoSelecionado.imagens && produtoSelecionado.imagens[0]) || produtoSelecionado.imagem_url || ''
       })
     });
 
@@ -944,11 +947,11 @@ async function processarPedido(e) {
     if (payData.init_point) {
       window.location.href = payData.init_point;
     } else {
-      throw new Error('Erro ao gerar pagamento');
+      throw new Error('O servidor de pagamento recusou o pedido. Verifique os dados.');
     }
   } catch (err) {
     console.error('Erro checkout:', err);
-    showToast('erro', '✕ Erro ao processar. Tente novamente!');
+    showToast('erro', `✕ ${err.message || 'Erro ao processar'}. Tente novamente.`);
     btn.disabled = false;
     btn.textContent = originalText;
   }
