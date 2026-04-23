@@ -779,9 +779,12 @@ function atualizarTotal(frete) {
   if (elTotal) elTotal.textContent = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
 }
 
+let buscaAtualId = 0;
 async function consultarCEP(cep) {
   const c = cep.replace(/\D/g,'');
   if (c.length !== 8) return;
+  
+  const minhaBuscaId = ++buscaAtualId;
 
   const aviso = document.getElementById('aviso-poa');
   const shippingList = document.getElementById('shipping-list');
@@ -834,6 +837,9 @@ async function consultarCEP(cep) {
         });
         const dataMoto = await resMoto.json();
         
+        // SE UMA NOVA BUSCA COMEÇOU, ABORTA ESTA
+        if (minhaBuscaId !== buscaAtualId) return;
+
         // Remover carregamento antes de mostrar resultado
         const mLoad = document.getElementById('moto-loading');
         if (mLoad) mLoad.remove();
@@ -873,6 +879,9 @@ async function consultarCEP(cep) {
         });
         const opcoes = await resFrete.json();
         
+        // SE UMA NOVA BUSCA COMEÇOU, ABORTA ESTA
+        if (minhaBuscaId !== buscaAtualId) return;
+
         // Limpar opções anteriores e resetar para incluir apenas Retirada + Novas Opções
         shippingList.innerHTML = `
           <label style="display:flex; align-items:center; gap:10px; font-family:'Rajdhani',sans-serif; cursor:pointer; color:var(--text-dim);">
