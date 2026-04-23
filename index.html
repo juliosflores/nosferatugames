@@ -989,7 +989,7 @@ async function processarPedido(e) {
         audio.play();
         setTimeout(() => {
           window.location.href = payData.init_point;
-        }, 1800); // Pequeno delay para ouvir o "Tchan-tchan-tchaaan"
+        }, 7000); // 7 segundos de Bach para um ritual completo
       } catch (e) {
         // Se o áudio falhar (ex: bloqueio do navegador), redireciona direto
         window.location.href = payData.init_point;
