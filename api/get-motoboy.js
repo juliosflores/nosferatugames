@@ -3,7 +3,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { cep_destino } = req.body;
-  const ORS_KEY = process.env.ORS_KEY || 'eyJvcmciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NzY5MTY3MDEsInN1YiI6IjRpZ3hCS0prRE5aSEZpdnM4YnFXUEZ5VkFJYTIifQ.H3PmzB0KUOs-Ng_GhaxHRSlPfNKmeu3YZos5ED9djd8';
+  const ORS_KEY = process.env.ORS_KEY || 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjI5YjhiOTk0NzNlMDRkMGU5ZmRkNTAzNTljNWI0MWUyIiwiaCI6Im11cm11cjY0In0=';
   
   const ORIGEM = [-51.217743, -30.034608]; 
 
