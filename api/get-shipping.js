@@ -16,7 +16,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         "from": "90430100",
         "to": cep_destino.replace(/\D/g, ''),
-        "services": "1,2,17", // PAC, SEDEX, Mini Envios
+        "services": "1,2,17",
         "options": {
           "width": 15,
           "height": 4,
@@ -31,7 +31,12 @@ export default async function handler(req, res) {
 
     const data = await response.json();
     
-    // Filtrar apenas o que nos interessa
+    // Se não for um array, o SuperFrete retornou erro
+    if (!Array.isArray(data)) {
+       console.error('Erro SuperFrete API:', data);
+       return res.status(400).json({ error: 'Erro na API do SuperFrete', details: data });
+    }
+
     const opcoes = data.map(servico => ({
       name: servico.name,
       price: servico.price,
@@ -41,7 +46,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json(opcoes);
   } catch (error) {
-    console.error('Erro SuperFrete:', error);
-    return res.status(500).json({ error: 'Erro ao calcular frete' });
+    console.error('Erro interno na API de frete:', error);
+    return res.status(500).json({ error: 'Erro interno ao calcular frete' });
   }
 }
