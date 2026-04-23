@@ -979,7 +979,18 @@ async function processarPedido(e) {
 
     const payData = await payRes.json();
     if (payData.init_point) {
-      window.location.href = payData.init_point;
+      // 🧛‍♂️ O TOQUE DO CONDE: Tocar 2 segundos de Bach antes de ir para o pagamento
+      try {
+        const audio = new Audio('https://upload.wikimedia.org/wikipedia/commons/d/d1/Toccata_et_Fugue_en_R%C3%A9_Mineur_Organ.ogg');
+        audio.volume = 0.6;
+        audio.play();
+        setTimeout(() => {
+          window.location.href = payData.init_point;
+        }, 1800); // Pequeno delay para ouvir o "Tchan-tchan-tchaaan"
+      } catch (e) {
+        // Se o áudio falhar (ex: bloqueio do navegador), redireciona direto
+        window.location.href = payData.init_point;
+      }
     } else {
       throw new Error('O servidor de pagamento recusou o pedido. Verifique os dados.');
     }
