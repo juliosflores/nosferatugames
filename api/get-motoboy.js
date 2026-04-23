@@ -8,7 +8,6 @@ export default async function handler(req, res) {
   const ORIGEM = [-51.217743, -30.034608]; 
 
   try {
-    // Tenta geocodificar o endereço completo (mais preciso) ou o CEP
     const searchText = endereco || cep_destino;
     const geoRes = await fetch(`https://api.openrouteservice.org/geocode/search?api_key=${ORS_KEY}&text=${encodeURIComponent(searchText)}&boundary.country=BR&size=1`);
     const geoData = await geoRes.json();
@@ -33,8 +32,8 @@ export default async function handler(req, res) {
 
     const distanciaKM = routeData.routes[0].summary.distance / 1000;
 
-    // Mínimo de R$ 18 ou (10 + km * 1.90)
-    let precoFrete = Math.max(18, 10 + (distanciaKM * 1.90));
+    // FÓRMULA DE REVENDA: Mínimo R$ 18 ou (Base R$ 10 + KM * 1.70)
+    let precoFrete = Math.max(18, 10 + (distanciaKM * 1.70));
     precoFrete = Math.ceil(precoFrete);
 
     return res.status(200).json({
