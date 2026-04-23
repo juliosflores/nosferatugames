@@ -312,6 +312,15 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
 .wpp-float{position:fixed;bottom:24px;right:24px;width:56px;height:56px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(37,211,102,0.5);z-index:999;transition:transform 0.2s,box-shadow 0.2s;text-decoration:none}
 .wpp-float:hover{transform:scale(1.1);box-shadow:0 6px 30px rgba(37,211,102,0.7)}
 .wpp-float svg{width:30px;height:30px;fill:#fff}
+/* CHECKOUT ENTREGA MODAL */
+.modal-checkout { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:10001; align-items:center; justify-content:center; padding:1rem; }
+.modal-checkout.active { display:flex; }
+.checkout-box { background:var(--surface); border:1px solid var(--border); border-top:3px solid var(--red-bright); border-radius:8px; max-width:450px; width:100%; padding:2rem; position:relative; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+.checkout-form-group { margin-bottom:12px; }
+.checkout-label { display:block; font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--text-muted); margin-bottom:4px; text-transform:uppercase; }
+.checkout-input { width:100%; padding:10px; background:var(--bg3); border:1px solid var(--border); border-radius:4px; color:var(--text); font-family:'Rajdhani',sans-serif; outline:none; transition:border-color 0.2s; }
+.checkout-input:focus { border-color:var(--red-bright); }
+#aviso-poa { display:none; align-items:center; color:#4ade80; font-family:'Rajdhani',sans-serif; font-size:11px; font-weight:700; line-height:1.2; margin-top:5px; }
 </style>
 </head>
 <body>
@@ -457,7 +466,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
     <div class="search-sort-bar reveal">
       <div class="search-wrap">
         <svg viewBox="0 0 24 24"><path d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-        <input type="text" id="searchInput" placeholder="Buscar produto..." autocomplete="off" oninput="renderGrid()">
+        <input type="text" id="searchInput" placeholder="Buscar produto..." autocomplete="off" oninput="debouncedSearch()">
       </div>
       <select id="sortSelect" onchange="renderGrid()">
         <option value="destaque">⭐ Destaque</option>
@@ -625,6 +634,13 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
 const SUPA_URL  = 'https://jcnncmfbodglvoyytgok.supabase.co';
 const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impjbm5jbWZib2RnbHZveXl0Z29rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MTg0NDgsImV4cCI6MjA5MTE5NDQ0OH0.YpStoaxT86MQY06KiKVhUXdlcF-CVsu4DOFuUTLv4u0';
 
+// ── Busca Inteligente (Debounce) ───────────────────────────
+let searchDebounceTimer;
+function debouncedSearch() {
+  clearTimeout(searchDebounceTimer);
+  searchDebounceTimer = setTimeout(() => renderGrid(), 300);
+}
+
 const CONSOLE_MAP = {
   'ps5':'ps5','ps4':'ps4','switch':'switch','nintendo switch':'switch',
   '3ds':'3ds','new 3ds':'3ds','retro':'retro','retrô':'retro',
@@ -695,9 +711,75 @@ async function compartilharProduto(p, event) {
   }
 }
 
-// ── Checkout ─────────────────────────────────────────────────
+// ── Checkout Entrega ─────────────────────────────────────────
+let produtoSelecionado = null;
+
+function fecharCheckoutEntrega() {
+  document.getElementById('checkoutModalEntrega').classList.remove('active');
+}
+
+function verificarPOA(cep) {
+  const c = cep.replace(/\D/g,'');
+  const aviso = document.getElementById('aviso-poa');
+  if (c.startsWith('90') || c.startsWith('91')) aviso.style.display = 'flex';
+  else aviso.style.display = 'none';
+}
+
+async function processarPedido(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btnFinalizar');
+  btn.disabled = true;
+  btn.textContent = 'Salvando pedido...';
+
+  const dados = {
+    produto_id: produtoSelecionado.id,
+    nome_cliente: document.getElementById('chk-nome').value,
+    whatsapp_cliente: document.getElementById('chk-wpp').value,
+    cpf_cliente: document.getElementById('chk-cpf').value,
+    cep_cliente: document.getElementById('chk-cep').value,
+    endereco_completo: document.getElementById('chk-endereco').value,
+    valor_total: produtoSelecionado.preco,
+    status: 'pendente'
+  };
+
+  try {
+    // 1. Salvar no Supabase (tabela pedidos)
+    const resSupa = await fetch(`${SUPA_URL}/rest/v1/pedidos`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPA_ANON,
+        'Authorization': `Bearer ${SUPA_ANON}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(dados)
+    });
+
+    if (!resSupa.ok) throw new Error('Erro ao salvar pedido');
+
+    // 2. Chamar o Mercado Pago (Fluxo Original)
+    fecharCheckoutEntrega();
+    await comprarProduto(produtoSelecionado);
+  } catch (err) {
+    console.error(err);
+    showToast('erro', '✕ Erro ao processar. Tente pelo WhatsApp!');
+    btn.disabled = false;
+    btn.textContent = 'Ir para o Pagamento 💳';
+  }
+}
+
+// ── Checkout Original ────────────────────────────────────────
 async function comprarProduto(p, event) {
   if (event) event.stopPropagation();
+
+  // Se o formulário de entrega ainda não foi preenchido, abre ele primeiro
+  if (!document.getElementById('chk-nome').value) {
+    produtoSelecionado = p;
+    document.getElementById('checkoutResumo').textContent = `${p.nome} — R$ ${Number(p.preco).toLocaleString('pt-BR')}`;
+    document.getElementById('checkoutModalEntrega').classList.add('active');
+    return;
+  }
+
   const overlay = document.getElementById('checkoutOverlay');
   document.getElementById('checkoutProdNome').textContent = p.nome;
   overlay.classList.add('active');
@@ -999,5 +1081,46 @@ checkPaymentReturn();
 carregarProdutos();
 registrarVisita();
 </script>
+<!-- MODAL DE CHECKOUT (ENTREGA) -->
+<div id="checkoutModalEntrega" class="modal-checkout">
+  <div class="checkout-box">
+    <button onclick="fecharCheckoutEntrega()" style="position:absolute; top:12px; right:14px; background:none; border:none; color:var(--text-dim); font-size:22px; cursor:pointer;">✕</button>
+    <div style="text-align:center; margin-bottom:1.5rem;">
+      <div style="font-family:'Press Start 2P',monospace; font-size:12px; color:var(--text); margin-bottom:8px;">FINALIZAR PEDIDO</div>
+      <div id="checkoutResumo" style="font-family:'Rajdhani',sans-serif; font-size:14px; color:var(--gold);"></div>
+    </div>
+    <form id="formCheckout" onsubmit="processarPedido(event)">
+      <div class="checkout-form-group">
+        <label class="checkout-label">NOME COMPLETO</label>
+        <input type="text" id="chk-nome" class="checkout-input" required>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+        <div>
+          <label class="checkout-label">WHATSAPP</label>
+          <input type="text" id="chk-wpp" class="checkout-input" required placeholder="(51) 9....">
+        </div>
+        <div>
+          <label class="checkout-label">CPF</label>
+          <input type="text" id="chk-cpf" class="checkout-input" required placeholder="000.000.000-00">
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+        <div>
+          <label class="checkout-label">CEP</label>
+          <input type="text" id="chk-cep" class="checkout-input" required placeholder="90000-000" oninput="verificarPOA(this.value)">
+        </div>
+        <div id="aviso-poa">
+          🛵 Porto Alegre: Entrega via Motoboy disponível!
+        </div>
+      </div>
+      <div class="checkout-form-group" style="margin-bottom:1.5rem;">
+        <label class="checkout-label">ENDEREÇO COMPLETO</label>
+        <textarea id="chk-endereco" class="checkout-input" required placeholder="Rua, Número, Complemento, Bairro..." style="height:60px; resize:none;"></textarea>
+      </div>
+      <button type="submit" id="btnFinalizar" class="btn-primary" style="width:100%; justify-content:center; padding:14px; cursor:pointer;">Ir para o Pagamento 💳</button>
+    </form>
+  </div>
+</div>
+
 </body>
 </html>
