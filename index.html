@@ -713,6 +713,7 @@ async function compartilharProduto(p, event) {
 
 // ── Checkout Entrega ─────────────────────────────────────────
 let produtoSelecionado = null;
+let valorFreteAtivo = 0;
 
 function fecharCheckoutEntrega() {
   document.getElementById('checkoutModalEntrega').classList.remove('active');
@@ -724,13 +725,28 @@ function formatarCEP(el) {
   el.value = v;
 }
 
+function atualizarTotal(frete) {
+  valorFreteAtivo = Number(frete);
+  const total = Number(produtoSelecionado.preco) + valorFreteAtivo;
+  document.getElementById('final-total').textContent = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
+}
+
 async function consultarCEP(cep) {
   const c = cep.replace(/\D/g,'');
   if (c.length !== 8) return;
 
   const aviso = document.getElementById('aviso-poa');
-  if (c.startsWith('90') || c.startsWith('91')) aviso.style.display = 'flex';
-  else aviso.style.display = 'none';
+  const optMotoboy = document.getElementById('opt-motoboy');
+  
+  if (c.startsWith('90') || c.startsWith('91')) {
+    aviso.style.display = 'flex';
+    optMotoboy.style.display = 'flex';
+  } else {
+    aviso.style.display = 'none';
+    optMotoboy.style.display = 'none';
+    atualizarTotal(0);
+    document.getElementsByName('shipping')[0].checked = true;
+  }
 
   try {
     const res = await fetch(`https://viacep.com.br/ws/${c}/json/`);
@@ -750,8 +766,9 @@ async function processarPedido(e) {
   e.preventDefault();
   const btn = document.getElementById('btnFinalizar');
   btn.disabled = true;
-  btn.textContent = 'Salvando pedido...';
+  btn.textContent = 'Processando...';
 
+  const totalFinal = Number(produtoSelecionado.preco) + valorFreteAtivo;
   const dados = {
     produto_id: produtoSelecionado.id,
     nome_cliente: document.getElementById('chk-nome').value,
@@ -759,7 +776,7 @@ async function processarPedido(e) {
     cpf_cliente: document.getElementById('chk-cpf').value,
     cep_cliente: document.getElementById('chk-cep').value,
     endereco_completo: `${document.getElementById('chk-endereco').value}, nº ${document.getElementById('chk-numero').value}`,
-    valor_total: produtoSelecionado.preco,
+    valor_total: totalFinal,
     status: 'pendente'
   };
 
@@ -777,9 +794,8 @@ async function processarPedido(e) {
 
     if (!resSupa.ok) throw new Error('Erro ao salvar pedido');
 
-    // 2. Chamar o Mercado Pago (Fluxo Original)
     fecharCheckoutEntrega();
-    await comprarProduto(produtoSelecionado);
+    await comprarProduto({...produtoSelecionado, preco: totalFinal});
   } catch (err) {
     console.error(err);
     showToast('erro', '✕ Erro ao processar. Tente pelo WhatsApp!');
@@ -792,10 +808,11 @@ async function processarPedido(e) {
 async function comprarProduto(p, event) {
   if (event) event.stopPropagation();
 
-  // Se o formulário de entrega ainda não foi preenchido, abre ele primeiro
   if (!document.getElementById('chk-nome').value) {
     produtoSelecionado = p;
+    valorFreteAtivo = 0;
     document.getElementById('checkoutResumo').textContent = `${p.nome} — R$ ${Number(p.preco).toLocaleString('pt-BR')}`;
+    atualizarTotal(0);
     document.getElementById('checkoutModalEntrega').classList.add('active');
     return;
   }
@@ -1146,7 +1163,28 @@ registrarVisita();
         <input type="text" id="chk-numero" class="checkout-input" required placeholder="Ex: 123, Apto 402">
       </div>
 
-      <button type="submit" id="btnFinalizar" class="btn-primary" style="width:100%; justify-content:center; padding:14px; cursor:pointer;">Ir para o Pagamento 💳</button>
+      <!-- OPÇÕES DE FRETE -->
+      <div id="shipping-options" style="margin-bottom:1.5rem; border-top:1px solid var(--border); padding-top:1rem;">
+        <label class="checkout-label">OPÇÃO DE ENTREGA</label>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <label style="display:flex; align-items:center; gap:10px; font-family:'Rajdhani',sans-serif; cursor:pointer; color:var(--text-dim);">
+            <input type="radio" name="shipping" value="0" checked onchange="atualizarTotal(0)" style="accent-color:var(--red-bright);"> 
+            <span>🤝 Retirada em Mãos (Grátis)</span>
+          </label>
+          <label id="opt-motoboy" style="display:none; align-items:center; gap:10px; font-family:'Rajdhani',sans-serif; cursor:pointer; color:var(--text-dim);">
+            <input type="radio" name="shipping" value="15" onchange="atualizarTotal(15)" style="accent-color:var(--red-bright);"> 
+            <span>🏍️ Motoboy Porto Alegre (+ R$ 15,00)</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- RESUMO TOTAL -->
+      <div style="background:var(--bg3); padding:1rem; border-radius:4px; margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center; border:1px solid var(--border);">
+        <span style="font-family:'Share Tech Mono',monospace; font-size:12px; color:var(--text-muted);">TOTAL A PAGAR:</span>
+        <span id="final-total" style="font-family:'Press Start 2P',monospace; font-size:14px; color:var(--gold); text-shadow:0 0 10px rgba(255,184,0,0.3);">R$ 0,00</span>
+      </div>
+
+      <button type="submit" id="btnFinalizar" class="btn-primary" style="width:100%; justify-content:center; padding:14px; cursor:pointer;">Confirmar e Pagar 💳</button>
     </form>
   </div>
 </div>
