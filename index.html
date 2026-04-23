@@ -324,6 +324,13 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
 .wpp-float{position:fixed;bottom:24px;right:24px;width:56px;height:56px;background:#25D366;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(37,211,102,0.5);z-index:999;transition:transform 0.2s,box-shadow 0.2s;text-decoration:none}
 .wpp-float:hover{transform:scale(1.1);box-shadow:0 6px 30px rgba(37,211,102,0.7)}
 .wpp-float svg{width:30px;height:30px;fill:#fff}
+
+/* CARRINHO FLUTUANTE */
+.cart-float{position:fixed;bottom:90px;right:24px;width:56px;height:56px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(204,20,20,0.5);z-index:999;transition:transform 0.2s,box-shadow 0.2s;cursor:pointer;border:2px solid var(--red-bright)}
+.cart-float:hover{transform:scale(1.1);box-shadow:0 0 30px rgba(204,20,20,0.8)}
+.cart-badge{position:absolute;top:-5px;right:-5px;background:var(--gold);color:var(--bg);font-family:'Press Start 2P',monospace;font-size:10px;width:22px;height:22px;border-radius:50%;display:none;align-items:center;justify-content:center;box-shadow:0 0 10px rgba(255,184,0,0.5);font-weight:bold}
+.cart-badge.active{display:flex}
+
 /* CSS REFORÇADO DO MODAL */
 .modal-checkout { 
   display:none; position:fixed; inset:0; 
@@ -631,6 +638,11 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
   </div>
 </section>
 
+<div id="cartFloat" class="cart-float" onclick="abrirCheckout()">
+  <svg viewBox="0 0 24 24" style="width:28px;height:28px;fill:#fff"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
+  <div id="cartBadge" class="cart-badge">0</div>
+</div>
+
 <section id="contato">
   <div class="container">
     <div class="section-header reveal">
@@ -775,10 +787,10 @@ function formatarCEP(el) {
 }
 
 function atualizarTotal(frete) {
-  if (!produtoSelecionado) return;
-  valorFreteAtivo = Number(frete);
-  const total = Number(produtoSelecionado.preco) + valorFreteAtivo;
-  const elTotal = document.getElementById('final-total');
+  if (frete !== undefined) valorFreteAtivo = Number(frete);
+  const subtotal = meuCarrinho.reduce((acc, p) => acc + Number(p.preco || 0), 0);
+  const total = subtotal + valorFreteAtivo;
+  const elTotal = document.getElementById('checkoutTotal');
   if (elTotal) elTotal.textContent = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
 }
 
@@ -936,12 +948,12 @@ async function processarPedido(e) {
   btn.disabled = true;
   btn.textContent = '⏳ Processando...';
 
-  const totalFinal = Math.round((Number(produtoSelecionado.preco) + valorFreteAtivo) * 100) / 100;
+  const totalFinal = Math.round((meuCarrinho.reduce((acc,p)=>acc+Number(p.preco||0),0) + valorFreteAtivo) * 100) / 100;
   const radioSelected = document.querySelector('input[name="shipping"]:checked');
   const metodoEnvio = radioSelected ? radioSelected.parentElement.innerText.trim() : 'Não selecionado';
 
   const dados = {
-    produto_id: produtoSelecionado.id,
+    itens: meuCarrinho.map(p => ({ id: p.id, nome: p.nome, preco: p.preco })),
     nome_cliente: nome,
     whatsapp_cliente: wpp,
     cpf_cliente: document.getElementById('chk-cpf').value,
@@ -953,6 +965,7 @@ async function processarPedido(e) {
   };
 
   try {
+    // 1. Salvar no Supabase
     const resSupa = await fetch(`${SUPA_URL}/rest/v1/pedidos`, {
       method: 'POST',
       headers: {
@@ -966,22 +979,21 @@ async function processarPedido(e) {
 
     if (!resSupa.ok) throw new Error('Erro ao salvar pedido');
 
-    // 2. Mercado Pago (Enviando dados completos do produto)
+    // 2. Mercado Pago (Carrinho Multi-Item)
     const payRes = await fetch('/api/create-preference', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        id: produtoSelecionado.id,
-        nome: produtoSelecionado.nome,
-        preco: totalFinal,
-        descricao: produtoSelecionado.descricao || 'Produto Nosferatu Games',
-        console: produtoSelecionado.console || 'Geral',
-        imagem: (produtoSelecionado.imagens && produtoSelecionado.imagens[0]) || produtoSelecionado.imagem_url || ''
+        items: meuCarrinho,
+        shipping_cost: valorFreteAtivo,
+        shipping_name: metodoEnvio
       })
     });
 
     const payData = await payRes.json();
     if (payData.init_point) {
+      // Limpar carrinho ao ir para o pagamento
+      // meuCarrinho = []; salvarCarrinho(); 
       // 🧛‍♂️ O TOQUE DO CONDE: Tocar 2 segundos de Bach antes de ir para o pagamento
       try {
         const audio = new Audio('https://archive.org/download/ToccataAndFugueInDMinorBWV565/Toccata%20and%20Fugue%20in%20D%20Minor%2C%20BWV%20565.mp3');
@@ -1006,33 +1018,75 @@ async function processarPedido(e) {
 }
 
 // ── Checkout Original ────────────────────────────────────────
-async function comprarProduto(p, event) {
-  if (event) event.stopPropagation();
+// ── Carrinho Inteligente ──────────────────────────────────────
+let meuCarrinho = [];
+try { meuCarrinho = JSON.parse(localStorage.getItem('ng_cart') || '[]'); } catch(e) {}
 
-  if (!document.getElementById('chk-nome').value) {
-    produtoSelecionado = p;
-    valorFreteAtivo = 0;
-    lastCEP = ''; // Resetar memória de CEP para nova compra
-    document.getElementById('checkoutResumo').textContent = `${p.nome} — R$ ${Number(p.preco).toLocaleString('pt-BR')}`;
+function salvarCarrinho() {
+  localStorage.setItem('ng_cart', JSON.stringify(meuCarrinho));
+  atualizarBadgeCarrinho();
+}
+
+function atualizarBadgeCarrinho() {
+  const badge = document.getElementById('cartBadge');
+  if (badge) {
+    badge.textContent = meuCarrinho.length;
+    badge.classList.toggle('active', meuCarrinho.length > 0);
+  }
+}
+
+function addAoCarrinho(p, event) {
+  if (event) event.stopPropagation();
+  if (!meuCarrinho.find(item => item.id === p.id)) {
+    meuCarrinho.push(p);
+    salvarCarrinho();
+    showToast('sucesso', `🦇 Relíquia guardada no caixão!`);
+  }
+  abrirCheckout();
+}
+
+function removerDoCarrinho(id) {
+  meuCarrinho = meuCarrinho.filter(item => item.id !== id);
+  salvarCarrinho();
+  renderizarResumoCheckout();
+}
+
+function renderizarResumoCheckout() {
+  const resumo = document.getElementById('checkoutResumo');
+  if (meuCarrinho.length === 0) {
+    resumo.innerHTML = '<div style="color:var(--text-muted); font-size:12px;">⚰️ O caixão está vazio...</div>';
     atualizarTotal(0);
-    document.getElementById('checkoutModalEntrega').classList.add('active');
     return;
   }
+  
+  let html = '<div style="display:flex; flex-direction:column; gap:8px; margin-bottom:15px;">';
+  let subtotal = 0;
+  meuCarrinho.forEach(p => {
+    subtotal += Number(p.preco || 0);
+    html += `
+      <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:8px; border-radius:4px; border-left:2px solid var(--red);">
+        <div style="font-size:12px; max-width:70%;">${p.nome}</div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="font-size:11px; color:var(--gold);">R$ ${Number(p.preco).toLocaleString('pt-BR')}</div>
+          <button onclick="removerDoCarrinho('${p.id}')" style="background:none; border:none; color:var(--red-bright); cursor:pointer; font-size:14px;">✕</button>
+        </div>
+      </div>
+    `;
+  });
+  html += '</div>';
+  resumo.innerHTML = html;
+  atualizarTotal(valorFreteAtivo);
+}
 
-  const overlay = document.getElementById('checkoutOverlay');
-  document.getElementById('checkoutProdNome').textContent = p.nome;
-  overlay.classList.add('active');
-  try {
-    const res = await fetch('/api/create-preference', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        id: p.id, nome: p.nome, preco: p.preco,
-        descricao: p.descricao||`${p.console||''} · Nosferatu Games`,
-        console: p.console,
-        imagem: (p.imagens&&p.imagens[0])||p.imagem_url||null,
-      }),
-    });
+function abrirCheckout() {
+  renderizarResumoCheckout();
+  document.getElementById('checkoutModalEntrega').classList.add('active');
+}
+
+// Manter compatibilidade com chamadas antigas se houver
+async function comprarProduto(p, event) {
+  addAoCarrinho(p, event);
+}
     const data = await res.json();
     if (!res.ok) throw new Error(data.error||'Erro MP');
     window.location.href = data.init_point||data.sandbox_init_point;
@@ -1164,6 +1218,7 @@ async function carregarProdutos() {
     if (!res.ok) throw new Error('Erro '+res.status);
     todosOsProdutos = await res.json();
     renderGrid();
+    atualizarBadgeCarrinho();
   } catch(e) {
     console.error(e);
     document.getElementById('produtosGrid').innerHTML =
