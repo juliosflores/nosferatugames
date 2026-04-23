@@ -881,23 +881,35 @@ async function consultarCEP(cep) {
 
 async function processarPedido(e) {
   e.preventDefault();
+  
+  // Validações
+  const nome = document.getElementById('chk-nome').value.trim();
+  const wpp = document.getElementById('chk-wpp').value.trim();
+  const cep = document.getElementById('chk-cep').value.trim();
+  const end = document.getElementById('chk-endereco').value.trim();
+  const num = document.getElementById('chk-numero').value.trim();
+
+  if (!nome || !wpp || !cep || !end || !num) {
+    showToast('erro', '✕ Preencha todos os campos obrigatórios.');
+    return;
+  }
+
   const btn = document.getElementById('btnFinalizar');
+  const originalText = btn.textContent;
   btn.disabled = true;
-  btn.textContent = 'Processando...';
+  btn.textContent = '⏳ Processando...';
 
   const totalFinal = Math.round((Number(produtoSelecionado.preco) + valorFreteAtivo) * 100) / 100;
-  
-  // Pegar o nome do método de envio selecionado
   const radioSelected = document.querySelector('input[name="shipping"]:checked');
   const metodoEnvio = radioSelected ? radioSelected.parentElement.innerText.trim() : 'Não selecionado';
 
   const dados = {
     produto_id: produtoSelecionado.id,
-    nome_cliente: document.getElementById('chk-nome').value,
-    whatsapp_cliente: document.getElementById('chk-wpp').value,
+    nome_cliente: nome,
+    whatsapp_cliente: wpp,
     cpf_cliente: document.getElementById('chk-cpf').value,
-    cep_cliente: document.getElementById('chk-cep').value,
-    endereco_completo: `${document.getElementById('chk-endereco').value}, nº ${document.getElementById('chk-numero').value}`,
+    cep_cliente: cep,
+    endereco_completo: `${end}, nº ${num}`,
     valor_total: totalFinal,
     metodo_envio: metodoEnvio,
     status: 'pendente'
@@ -917,13 +929,28 @@ async function processarPedido(e) {
 
     if (!resSupa.ok) throw new Error('Erro ao salvar pedido');
 
-    fecharCheckoutEntrega();
-    await comprarProduto({...produtoSelecionado, preco: totalFinal});
+    // 2. Mercado Pago
+    const payRes = await fetch('/api/create-preference', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: produtoSelecionado.nome,
+        price: totalFinal,
+        quantity: 1
+      })
+    });
+
+    const payData = await payRes.json();
+    if (payData.init_point) {
+      window.location.href = payData.init_point;
+    } else {
+      throw new Error('Erro ao gerar pagamento');
+    }
   } catch (err) {
-    console.error(err);
-    showToast('erro', '✕ Erro ao processar. Tente pelo WhatsApp!');
+    console.error('Erro checkout:', err);
+    showToast('erro', '✕ Erro ao processar. Tente novamente!');
     btn.disabled = false;
-    btn.textContent = 'Ir para o Pagamento 💳';
+    btn.textContent = originalText;
   }
 }
 
