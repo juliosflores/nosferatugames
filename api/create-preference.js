@@ -1,73 +1,64 @@
+
+const mercadopago = require('mercadopago');
+
+mercadopago.configure({
+  access_token: process.env.MP_ACCESS_TOKEN || 'APP_USR-8415715568393521-120516-724838634e2c842103565f3f0196236b-12345678' 
+});
+
 export default async function handler(req, res) {
-  // CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { nome, preco, descricao, console: consoleName, id, imagem } = req.body;
-
-  if (!nome || !preco) {
-    return res.status(400).json({ error: 'nome e preco são obrigatórios' });
-  }
-
-  const ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
-  if (!ACCESS_TOKEN) {
-    return res.status(500).json({ error: 'MP_ACCESS_TOKEN não configurado' });
-  }
-
-  const baseUrl = process.env.SITE_URL || 'https://nosferatugames.com.br';
-
-  const preference = {
-    items: [
-      {
-        id: id || String(Date.now()),
-        title: nome,
-        description: descricao || `${consoleName ? consoleName + ' · ' : ''}Nosferatu Games`,
-        quantity: 1,
-        currency_id: 'BRL',
-        unit_price: Number(preco),
-        ...(imagem ? { picture_url: imagem } : {}),
-      },
-    ],
-    back_urls: {
-      success: `${baseUrl}/?pagamento=sucesso&produto=${encodeURIComponent(nome)}`,
-      failure: `${baseUrl}/?pagamento=erro`,
-      pending: `${baseUrl}/?pagamento=pendente`,
-    },
-    auto_return: 'approved',
-    statement_descriptor: 'NOSFERATU GAMES',
-    metadata: {
-      produto_id: id,
-      produto_nome: nome,
-    },
-  };
-
   try {
-    const mpRes = await fetch('https://api.mercadopago.com/checkout/preferences', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${ACCESS_TOKEN}`,
-      },
-      body: JSON.stringify(preference),
-    });
+    const { items, shipping_cost, shipping_name } = req.body;
 
-    const data = await mpRes.json();
-
-    if (!mpRes.ok) {
-      console.error('MP error:', data);
-      return res.status(mpRes.status).json({ error: data.message || 'Erro no Mercado Pago' });
+    if (!items || items.length === 0) {
+      return res.status(400).json({ error: 'Carrinho vazio' });
     }
 
-    return res.status(200).json({
-      init_point: data.init_point,           // produção
-      sandbox_init_point: data.sandbox_init_point, // testes
-      id: data.id,
+    // Converter itens do carrinho para formato MP
+    const mp_items = items.map(item => ({
+      id: item.id,
+      title: item.nome,
+      description: item.descricao || `${item.console || ''} · Nosferatu Games`,
+      picture_url: (item.imagens && item.imagens[0]) || item.imagem_url || '',
+      category_id: 'games',
+      quantity: 1,
+      currency_id: 'BRL',
+      unit_price: Number(item.preco)
+    }));
+
+    // Adicionar frete como um item se existir
+    if (shipping_cost > 0) {
+      mp_items.push({
+        id: 'shipping',
+        title: `🚚 Frete: ${shipping_name || 'Entrega'}`,
+        quantity: 1,
+        currency_id: 'BRL',
+        unit_price: Number(shipping_cost)
+      });
+    }
+
+    const preference = {
+      items: mp_items,
+      back_urls: {
+        success: 'https://nosferatugames.com.br/?pagamento=sucesso',
+        failure: 'https://nosferatugames.com.br/?pagamento=erro',
+        pending: 'https://nosferatugames.com.br/?pagamento=pendente'
+      },
+      auto_return: 'approved',
+      statement_descriptor: 'NOSFERATU GAMES',
+      notification_url: 'https://nosferatugames.com.br/api/mp-webhook'
+    };
+
+    const response = await mercadopago.preferences.create(preference);
+    
+    res.status(200).json({
+      id: response.body.id,
+      init_point: response.body.init_point
     });
-  } catch (err) {
-    console.error('Fetch error:', err);
-    return res.status(500).json({ error: 'Erro interno ao criar preferência' });
+
+  } catch (error) {
+    console.error('Erro MP:', error);
+    res.status(500).json({ error: 'Erro ao criar preferência de pagamento' });
   }
 }
