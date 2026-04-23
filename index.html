@@ -1049,6 +1049,7 @@ function addAoCarrinho(p, event, abrirLogo = true) {
   if (index === -1) {
     // Adicionar
     meuCarrinho.push(p);
+    showToast('sucesso', `🦇 Guardado no Caixão`);
     if (btn) {
       btn.classList.add('in-cart');
       btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:var(--gold)"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>';
@@ -1057,6 +1058,7 @@ function addAoCarrinho(p, event, abrirLogo = true) {
   } else {
     // Remover (Toggle)
     meuCarrinho.splice(index, 1);
+    showToast('pendente', `⚰️ Removido do Caixão`);
     if (btn) {
       btn.classList.remove('in-cart');
       btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:var(--text-dim)"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>';
