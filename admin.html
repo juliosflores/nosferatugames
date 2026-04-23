@@ -38,7 +38,7 @@ if (!localStorage.getItem('ng_upload_preset')) localStorage.setItem('ng_upload_p
 
 const SUPA_URL  = 'https://jcnncmfbodglvoyytgok.supabase.co';
 const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impjbm5jbWZib2RnbHZveXl0Z29rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MTg0NDgsImV4cCI6MjA5MTE5NDQ0OH0.YpStoaxT86MQY06KiKVhUXdlcF-CVsu4DOFuUTLv4u0';
-// Senha removida do frontend por segurança (validada via API)
+// Senha validada via API segura
 const HEADERS   = { apikey: SUPA_ANON, Authorization: `Bearer ${SUPA_ANON}`, 'Content-Type': 'application/json', Prefer: 'return=representation' };
 
 const supa = async (path, opts={}) => {
@@ -128,7 +128,7 @@ const StatCard = ({label, value, sub, color='var(--red-b)', icon}) => (
   </div>
 );
 
-// ── Login Seguro via API ─────────────────────────────────────
+// ── Login ────────────────────────────────────────────────────
 const Login = ({onLogin}) => {
   const [pwd,setPwd]   = useState('');
   const [err,setErr]   = useState('');
