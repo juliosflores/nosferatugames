@@ -1081,14 +1081,6 @@ function abrirCheckout() {
 async function comprarProduto(p, event) {
   addAoCarrinho(p, event);
 }
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error||'Erro MP');
-    window.location.href = data.init_point||data.sandbox_init_point;
-  } catch(err) {
-    overlay.classList.remove('active');
-    showToast('erro', '✕ Erro ao abrir pagamento. Use o WhatsApp!');
-  }
-}
 
 // ── Toast ────────────────────────────────────────────────────
 function showToast(tipo, msg) {
