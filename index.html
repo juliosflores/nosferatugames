@@ -663,7 +663,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
   <div class="footer-logo">NOSFERATU GAMES</div>
   <div class="footer-sub">
     © 2025 · Porto Alegre, RS · nosferatugames.com.br
-    <span onclick="new Audio('https://upload.wikimedia.org/wikipedia/commons/d/d1/Toccata_et_Fugue_en_R%C3%A9_Mineur_Organ.ogg').play()" style="cursor:pointer; margin-left:10px;" title="Ouvir o Ritual">🦇</span>
+    <span onclick="new Audio('https://archive.org/download/ToccataAndFugueInDMinorBWV565/Toccata%20and%20Fugue%20in%20D%20Minor%2C%20BWV%20565.mp3').play()" style="cursor:pointer; margin-left:10px; filter: drop-shadow(0 0 5px rgba(204,20,20,0.5));" title="Ouvir o Ritual">🦇</span>
   </div>
 </footer>
 
@@ -984,7 +984,7 @@ async function processarPedido(e) {
     if (payData.init_point) {
       // 🧛‍♂️ O TOQUE DO CONDE: Tocar 2 segundos de Bach antes de ir para o pagamento
       try {
-        const audio = new Audio('https://upload.wikimedia.org/wikipedia/commons/d/d1/Toccata_et_Fugue_en_R%C3%A9_Mineur_Organ.ogg');
+        const audio = new Audio('https://archive.org/download/ToccataAndFugueInDMinorBWV565/Toccata%20and%20Fugue%20in%20D%20Minor%2C%20BWV%20565.mp3');
         audio.volume = 0.6;
         audio.play();
         setTimeout(() => {
