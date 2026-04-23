@@ -785,15 +785,40 @@ async function consultarCEP(cep) {
     if (inputEnd) inputEnd.value = `${data.logradouro}, ${data.bairro} - ${data.localidade}/${data.uf}`;
     if (inputNum) inputNum.focus();
 
-    // Lógica de Porto Alegre vs Nacional
+    // Lógica de Porto Alegre (Dinâmica via OpenRouteService)
     if (c.startsWith('90') || c.startsWith('91')) {
       if (aviso) aviso.style.display = 'flex';
-      shippingList.innerHTML += `
-        <label style="display:flex; align-items:center; gap:10px; font-family:'Rajdhani',sans-serif; cursor:pointer; color:var(--text-dim);">
-          <input type="radio" name="shipping" value="15" onchange="atualizarTotal(15)" style="accent-color:var(--red-bright);"> 
-          <span>🏍️ Motoboy Porto Alegre (+ R$ 15,00)</span>
-        </label>
-      `;
+      if (loading) loading.style.display = 'block';
+      
+      try {
+        const resMoto = await fetch('/api/get-motoboy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cep_destino: c })
+        });
+        const dataMoto = await resMoto.json();
+        
+        if (dataMoto.preco) {
+          shippingList.innerHTML += `
+            <label style="display:flex; align-items:center; gap:10px; font-family:'Rajdhani',sans-serif; cursor:pointer; color:var(--text-dim);">
+              <input type="radio" name="shipping" value="${dataMoto.preco}" onchange="atualizarTotal(${dataMoto.preco})" style="accent-color:var(--red-bright);"> 
+              <span>🏍️ Motoboy (${dataMoto.distancia} km) — R$ ${Number(dataMoto.preco).toLocaleString('pt-BR', {minimumFractionDigits:2})}</span>
+            </label>
+          `;
+        } else {
+          // Fallback
+          shippingList.innerHTML += `
+            <label style="display:flex; align-items:center; gap:10px; font-family:'Rajdhani',sans-serif; cursor:pointer; color:var(--text-dim);">
+              <input type="radio" name="shipping" value="18" onchange="atualizarTotal(18)" style="accent-color:var(--red-bright);"> 
+              <span>🏍️ Motoboy Porto Alegre (Mínimo) — R$ 18,00</span>
+            </label>
+          `;
+        }
+      } catch (e) {
+        console.error('Erro motoboy dinâmico', e);
+      } finally {
+        if (loading) loading.style.display = 'none';
+      }
     } else {
       if (aviso) aviso.style.display = 'none';
       // Buscar Frete Nacional (SuperFrete)
