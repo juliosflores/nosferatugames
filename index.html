@@ -827,7 +827,7 @@ async function processarPedido(e) {
   };
 
   try {
-    const resSupa = await fetch(`${SUPA_URL}/rest/v1/pedidos_v2`, {
+    const resSupa = await fetch(`${SUPA_URL}/rest/v1/pedidos`, {
       method: 'POST',
       headers: {
         'apikey': SUPA_ANON,
