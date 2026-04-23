@@ -714,6 +714,7 @@ async function compartilharProduto(p, event) {
 // ── Checkout Entrega ─────────────────────────────────────────
 let produtoSelecionado = null;
 let valorFreteAtivo = 0;
+let lastCEP = '';
 
 function fecharCheckoutEntrega() {
   document.getElementById('checkoutModalEntrega').classList.remove('active');
@@ -723,7 +724,6 @@ function formatarCEP(el) {
   let v = el.value.replace(/\D/g, '');
   if (v.length > 5) v = v.substring(0, 5) + '-' + v.substring(5, 8);
   el.value = v;
-  // Dispara a consulta automaticamente ao completar os 8 dígitos
   if (v.length === 9) consultarCEP(v);
 }
 
@@ -737,7 +737,8 @@ function atualizarTotal(frete) {
 
 async function consultarCEP(cep) {
   const c = cep.replace(/\D/g,'');
-  if (c.length !== 8) return;
+  if (c.length !== 8 || c === lastCEP) return;
+  lastCEP = c;
 
   const aviso = document.getElementById('aviso-poa');
   const shippingList = document.getElementById('shipping-list');
@@ -856,6 +857,7 @@ async function comprarProduto(p, event) {
   if (!document.getElementById('chk-nome').value) {
     produtoSelecionado = p;
     valorFreteAtivo = 0;
+    lastCEP = ''; // Resetar memória de CEP para nova compra
     document.getElementById('checkoutResumo').textContent = `${p.nome} — R$ ${Number(p.preco).toLocaleString('pt-BR')}`;
     atualizarTotal(0);
     document.getElementById('checkoutModalEntrega').classList.add('active');
