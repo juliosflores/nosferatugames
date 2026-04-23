@@ -813,7 +813,15 @@ async function consultarCEP(cep) {
     // Lógica de Porto Alegre (Dinâmica via OpenRouteService)
     if (c.startsWith('90') || c.startsWith('91')) {
       if (aviso) aviso.style.display = 'flex';
-      shippingList.innerHTML += `<div id="moto-loading" style="font-size:12px; color:var(--gold); margin:5px 0;">🏍️ Calculando rota em tempo real...</div>`;
+      
+      // Limpar lista e colocar carregamento
+      shippingList.innerHTML = `
+        <label style="display:flex; align-items:center; gap:10px; font-family:'Rajdhani',sans-serif; cursor:pointer; color:var(--text-dim);">
+          <input type="radio" name="shipping" value="0" checked onchange="atualizarTotal(0)" style="accent-color:var(--red-bright);"> 
+          <span>🤝 Retirada em Mãos (Grátis)</span>
+        </label>
+        <div id="moto-loading" style="font-size:12px; color:var(--gold); margin:5px 0;">🏍️ Calculando rota real...</div>
+      `;
       
       try {
         const resMoto = await fetch('/api/get-motoboy', {
@@ -826,6 +834,10 @@ async function consultarCEP(cep) {
         });
         const dataMoto = await resMoto.json();
         
+        // Remover carregamento antes de mostrar resultado
+        const mLoad = document.getElementById('moto-loading');
+        if (mLoad) mLoad.remove();
+
         if (dataMoto.preco) {
           shippingList.innerHTML += `
             <label style="display:flex; align-items:center; gap:10px; font-family:'Rajdhani',sans-serif; cursor:pointer; color:var(--text-dim);">
