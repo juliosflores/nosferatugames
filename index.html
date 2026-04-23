@@ -814,7 +814,7 @@ async function processarPedido(e) {
   btn.disabled = true;
   btn.textContent = 'Processando...';
 
-  const totalFinal = Number(produtoSelecionado.preco) + valorFreteAtivo;
+  const totalFinal = Math.round((Number(produtoSelecionado.preco) + valorFreteAtivo) * 100) / 100;
   const dados = {
     produto_id: produtoSelecionado.id,
     nome_cliente: document.getElementById('chk-nome').value,
