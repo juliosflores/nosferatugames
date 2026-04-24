@@ -1500,18 +1500,21 @@ function renderGrid() {
 // ── Carregar do Supabase ─────────────────────────────────────
 async function carregarProdutos() {
   try {
-    const res = await fetch(
-      `${SUPA_URL}/rest/v1/produtos?order=destaque.desc,created_at.desc&limit=60`,
-      { headers:{ apikey:SUPA_ANON, Authorization:`Bearer ${SUPA_ANON}` } }
+    const ctrl = new AbortController();
+    const tid  = setTimeout(() => ctrl.abort(), 12000);
+    const res  = await fetch(
+      `${SUPA_URL}/rest/v1/produtos?select=*&order=destaque.desc,created_at.desc&limit=200`,
+      { headers:{ apikey:SUPA_ANON, Authorization:`Bearer ${SUPA_ANON}` }, signal: ctrl.signal }
     );
-    if (!res.ok) throw new Error('Erro '+res.status);
+    clearTimeout(tid);
+    if (!res.ok) throw new Error('Supabase erro ' + res.status);
     todosOsProdutos = await res.json();
     renderGrid();
     atualizarBadgeCarrinho();
   } catch(e) {
-    console.error(e);
+    console.error('[carregarProdutos]', e.message);
     document.getElementById('produtosGrid').innerHTML =
-      '<div class="no-results">> erro ao carregar. tente recarregar a página.</div>';
+      '<div class="no-results">> erro ao carregar produtos. verifique sua conexão e recarregue.</div>';
   }
 }
 
