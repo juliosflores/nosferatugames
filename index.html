@@ -939,8 +939,9 @@ async function consultarCEP(cep) {
     if (inputEnd) inputEnd.value = `${data.logradouro}, ${data.bairro} - ${data.localidade}/${data.uf}`;
     if (inputNum) inputNum.focus();
 
-    // Lógica de Porto Alegre (Dinâmica via OpenRouteService)
-    if (c.startsWith('90') || c.startsWith('91')) {
+    // Detecta POA pela cidade retornada pelo ViaCEP (mais confiável que prefixo)
+    const isPOA = data.localidade?.toLowerCase().includes('porto alegre');
+    if (isPOA) {
       if (aviso) aviso.style.display = 'flex';
       
       // Limpar lista e colocar carregamento
@@ -994,7 +995,6 @@ async function consultarCEP(cep) {
       }
     } else {
       if (aviso) aviso.style.display = 'none';
-      // Buscar Frete Nacional (SuperFrete)
       if (loading) loading.style.display = 'block';
       try {
         const resFrete = await fetch('/api/get-shipping', {
@@ -1099,22 +1099,30 @@ async function processarPedido(e) {
 
   try {
     // Mercado Pago (Carrinho Multi-Item)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
     const payRes = await fetch('/api/create-preference', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
       body: JSON.stringify({
         items: meuCarrinho,
         shipping_cost: valorFreteAtivo,
         shipping_name: metodoEnvio
       })
     });
+    clearTimeout(timeoutId);
 
     const payData = await payRes.json();
     if (payData.init_point) {
-      meuCarrinho = []; salvarCarrinho();
+      // Só limpa carrinho DEPOIS de confirmar redirect
+      btn.textContent = '✔ Redirecionando...';
+      meuCarrinho = [];
+      salvarCarrinho();
+      fecharCheckoutEntrega();
       window.location.href = payData.init_point;
     } else {
-      throw new Error('O servidor de pagamento recusou o pedido. Verifique os dados.');
+      throw new Error('Pagamento recusado. Tente novamente.');
     }
   } catch (err) {
     console.error('Erro checkout:', err);
@@ -1194,7 +1202,7 @@ function renderizarResumoCheckout() {
     subtotal += Number(p.preco || 0);
     html += `
       <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:8px; border-radius:4px; border-left:2px solid var(--red);">
-        <div style="font-size:12px; max-width:70%;">${p.nome}</div>
+        <div style="font-size:12px; max-width:70%;">${p.nome.replace(/</g,`"&lt;`").replace(/>/g,`"&gt;`")}</div>
         <div style="display:flex; align-items:center; gap:10px;">
           <div style="font-size:11px; color:var(--gold);">R$ ${Number(p.preco).toLocaleString('pt-BR')}</div>
           <button onclick="removerDoCarrinho('${p.id}')" style="background:none; border:none; color:var(--red-bright); cursor:pointer; font-size:14px;">✕</button>
@@ -1230,12 +1238,25 @@ function showToast(tipo, msg) {
 function checkPaymentReturn() {
   const params = new URLSearchParams(window.location.search);
   const status = params.get('pagamento');
-  const nome   = params.get('produto');
   if (!status) return;
   history.replaceState({}, '', window.location.pathname);
-  if (status==='sucesso') showToast('sucesso',`✔ Pagamento aprovado${nome?' — '+decodeURIComponent(nome):''}! Em breve entraremos em contato.`);
-  else if (status==='pendente') showToast('pendente','⏳ Pagamento pendente. Aguarde a confirmação.');
-  else if (status==='erro') showToast('erro','✕ Pagamento não concluído. Tente de novo ou use o WhatsApp.');
+
+  // Garantir que botão não ficou travado
+  const btn = document.getElementById('btnFinalizar');
+  if (btn) { btn.disabled = false; btn.textContent = '💳 Confirmar e Pagar'; }
+
+  // Fechar checkout se ainda aberto
+  fecharCheckoutEntrega();
+
+  if (status === 'sucesso') {
+    // Carrinho já foi limpo antes do redirect — só mostrar toast
+    showToast('sucesso', '✔ Pagamento aprovado! Em breve entraremos em contato.');
+  } else if (status === 'pendente') {
+    showToast('pendente', '⏳ Pagamento pendente. Aguarde a confirmação.');
+  } else if (status === 'erro') {
+    // Cliente voltou sem pagar — NÃO limpar carrinho, deixar ele tentar de novo
+    showToast('erro', '✕ Pagamento não concluído. Seu carrinho foi mantido.');
+  }
 }
 
 // ── Card HTML ────────────────────────────────────────────────
@@ -1249,7 +1270,7 @@ function cardHtml(p) {
     : `<span style="font-size:60px">${consoleEmoji(key)}</span>`;
   const isVendido = p.vendido === true;
   const fav       = isFav(p.id);
-  const pStr      = JSON.stringify(p).replace(/"/g,'&quot;');
+  const pStr      = JSON.stringify(p).replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 
   return `
   <div class="produto-card${isVendido?' vendido':''}" data-console="${key}" data-id="${p.id}" onclick="abrirModal(${pStr})">
@@ -1430,19 +1451,16 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')fecharModal()});
 
 // ── Utils ─────────────────────────────────────────────────────
 function tocarRitual() {
-  if (window.testAudio) { window.testAudio.pause(); window.testAudio.currentTime = 0; }
-  const audio = new Audio('/tocata.mp3');
-  audio.volume = 0.7;
-  audio.onerror = () => {
-    const fb = new Audio('https://archive.org/download/ToccataAndFugueInDMinorBWV565/Toccata%20and%20Fugue%20in%20D%20Minor%2C%20BWV%20565.mp3');
-    fb.volume = 0.7;
-    fb.play().catch(()=>{});
-    window.testAudio = fb;
-    setTimeout(() => { fb.pause(); fb.currentTime = 0; }, 12000);
-  };
-  audio.play().catch(() => audio.onerror());
-  window.testAudio = audio;
-  setTimeout(() => { audio.pause(); audio.currentTime = 0; }, 12000);
+  if (window.testAudio) { window.testAudio.pause(); window.testAudio.currentTime = 0; window.testAudio = null; }
+  function _play(url) {
+    const a = new Audio(url);
+    a.volume = 0.7;
+    window.testAudio = a;
+    a.play().catch(()=>{});
+    setTimeout(() => { a.pause(); a.currentTime = 0; }, 12000);
+  }
+  _play('/tocata.mp3');
+
 }
 
 function toggleMenu(){document.getElementById('mobileMenu').classList.toggle('open')}
@@ -1467,9 +1485,9 @@ document.addEventListener('click',e=>{
   if(menu.classList.contains('open')&&!menu.contains(e.target)&&!ham.contains(e.target))menu.classList.remove('open');
 });
 
-// ── Atalho secreto para o admin (Ctrl+Shift+A) ───────────────
+// ── Atalho admin (apenas localhost) ──────────────────────────
 document.addEventListener('keydown', e => {
-  if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+  if (e.ctrlKey && e.shiftKey && e.key === 'A' && location.hostname === 'localhost') {
     window.location.href = 'admin.html';
   }
 });
@@ -1522,7 +1540,7 @@ carregarProdutos();
 registrarVisita();
 </script>
 <!-- MODAL DE CHECKOUT (ENTREGA) -->
-<div id="checkoutModalEntrega" class="modal-checkout">
+<div id="checkoutModalEntrega" class="modal-checkout" onclick="if(event.target===this)fecharCheckoutEntrega()">
   <div class="checkout-box">
     <button class="checkout-close-btn" onclick="fecharCheckoutEntrega()">✕</button>
     <div style="text-align:center; margin-bottom:1.5rem;">
