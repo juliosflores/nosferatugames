@@ -1,16 +1,35 @@
-// api/create-preference.js — SDK Mercado Pago v2 (ESM)
+﻿// api/create-preference.js — SDK Mercado Pago v2 (ESM)
 import { MercadoPagoConfig, Preference } from 'mercadopago';
 
+const rateLimitMap = new Map();
+function rateLimit(ip, max = 10, windowMs = 60000) {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip) || { count: 0, start: now };
+  if (now - entry.start > windowMs) { entry.count = 0; entry.start = now; }
+  entry.count++;
+  rateLimitMap.set(ip, entry);
+  return entry.count > max;
+}
+
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const ALLOWED_ORIGIN = process.env.SITE_URL || 'https://nosferatugames.com.br';
+  res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
+  const ip = req.headers['x-forwarded-for']?.split(',')[0] || 'unknown';
+  if (rateLimit(ip)) return res.status(429).json({ error: 'Muitas requisicoes.' });
+
   try {
-    const { items, shipping_cost, shipping_name } = req.body;
+    const { items, shipping_cost, shipping_name } = req.body || {};
+    if (!items?.length) return res.status(400).json({ error: 'Carrinho vazio' });
+    for (const item of items) {
+      if (!item.nome || isNaN(Number(item.preco)) || Number(item.preco) <= 0)
+        return res.status(400).json({ error: 'Item invalido no carrinho.' });
+    }
 
     if (!items || items.length === 0) {
       return res.status(400).json({ error: 'Carrinho vazio' });

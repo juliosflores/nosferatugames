@@ -1,9 +1,30 @@
+// api/get-shipping.js
+const rateLimitMap = new Map();
+
+function rateLimit(ip, max = 20, windowMs = 60000) {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip) || { count: 0, start: now };
+  if (now - entry.start > windowMs) { entry.count = 0; entry.start = now; }
+  entry.count++;
+  rateLimitMap.set(ip, entry);
+  return entry.count > max;
+}
 
 export default async function handler(req, res) {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { cep_destino } = req.body;
-  const token = process.env.SUPERFRETE_TOKEN || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NzY5MTY3MDEsInN1YiI6IjRpZ3hCS0prRE5aSEZpdnM4YnFXUEZ5VkFJYTIifQ.H3PmzB0KUOs-Ng_GhaxHRSlPfNKmeu3YZos5ED9djd8';
+  const ip = req.headers['x-forwarded-for']?.split(',')[0] || 'unknown';
+  if (rateLimit(ip)) return res.status(429).json({ error: 'Muitas requisições. Tente novamente em 1 minuto.' });
+
+  const { cep_destino } = req.body || {};
+
+  // Validar CEP
+  const cepLimpo = String(cep_destino || '').replace(/\D/g, '');
+  if (cepLimpo.length !== 8) return res.status(400).json({ error: 'CEP inválido.' });
+
+  const token = process.env.SUPERFRETE_TOKEN;
+  if (!token) return res.status(500).json({ error: 'Serviço não configurado.' });
 
   try {
     const response = await fetch('https://api.superfrete.com/api/v0/calculator', {
@@ -14,44 +35,23 @@ export default async function handler(req, res) {
         'User-Agent': 'NosferatuGames/1.0'
       },
       body: JSON.stringify({
-        "from": {
-          "postal_code": "90430100"
-        },
-        "to": {
-          "postal_code": cep_destino.replace(/\D/g, '')
-        },
-        "services": "1,2,17",
-        "options": {
-          "own_hand": false,
-          "receipt": false,
-          "insurance_value": 0,
-          "use_insurance_value": false
-        },
-        "package": {
-          "height": 2,
-          "width": 11,
-          "length": 16,
-          "weight": 0.3
-        }
+        from: { postal_code: '90430100' },
+        to:   { postal_code: cepLimpo },
+        services: '1,2,17',
+        options: { own_hand: false, receipt: false, insurance_value: 0, use_insurance_value: false },
+        package: { height: 2, width: 11, length: 16, weight: 0.3 }
       })
     });
 
     const data = await response.json();
-    
-    if (!Array.isArray(data)) {
-       return res.status(400).json({ error: 'Erro na API do SuperFrete', details: data });
-    }
+    if (!Array.isArray(data)) return res.status(400).json({ error: 'Erro na API de frete.' });
 
-    const opcoes = data.map(servico => ({
-      name: servico.name,
-      price: servico.price,
-      deadline: servico.delivery_time, // Corrigido de deadline para delivery_time
-      error: servico.error
-    })).filter(s => !s.error);
+    const opcoes = data
+      .filter(s => !s.error && s.price > 0)
+      .map(s => ({ name: s.name, price: s.price, deadline: s.delivery_time }));
 
     return res.status(200).json(opcoes);
   } catch (error) {
-    console.error('Erro interno na API de frete:', error);
-    return res.status(500).json({ error: 'Erro interno ao calcular frete' });
+    return res.status(500).json({ error: 'Erro ao calcular frete.' });
   }
 }
