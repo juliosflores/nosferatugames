@@ -200,11 +200,9 @@ section{position:relative;z-index:1}
 
 /* Botões de ação rápida no card */
 .card-quick-actions{position:absolute;top:8px;right:8px;display:flex;flex-direction:column;gap:5px;z-index:3}
-.quick-btn{width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,0.1);background:rgba(5,5,8,0.7);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);z-index:3;backdrop-filter:blur(4px);overflow:hidden;position:relative;outline:none;user-select:none}
+.quick-btn{width:32px;height:32px;border-radius:4px;border:1px solid rgba(255,255,255,0.12);background:rgba(5,5,8,0.75);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;z-index:3;backdrop-filter:blur(4px);overflow:hidden;position:relative;outline:none;user-select:none;clip-path:polygon(3px 0%,100% 0%,calc(100% - 3px) 100%,0% 100%)}
 .quick-btn:focus{outline:none}
-.quick-btn::before{content:'';position:absolute;inset:0;background:radial-gradient(circle,rgba(255,255,255,0.1),transparent);opacity:0;transition:opacity 0.3s}
-.quick-btn:hover{transform:scale(1.1);border-color:var(--red-bright);box-shadow:0 0 15px rgba(204,20,20,0.3)}
-.quick-btn:hover::before{opacity:1}
+.quick-btn:hover{transform:scale(1.08);border-color:var(--red-bright);box-shadow:0 0 12px rgba(204,20,20,0.4)}
 
 .quick-btn.fav-on{border-color:var(--purple-bright);background:rgba(168,85,247,0.1);box-shadow:0 0 10px rgba(168,85,247,0.3);color:var(--purple-bright)}
 
@@ -349,27 +347,37 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
 .modal-checkout.active { display:flex; }
 .checkout-box { 
   background:var(--surface); border:1px solid var(--border-red); 
-  border-top:4px solid var(--red-bright); border-radius:12px; 
+  border-top:4px solid var(--red-bright); border-radius:6px; 
   max-width:480px; width:100%; max-height:85vh; 
   overflow-y:auto; padding:30px; position:relative; 
   box-shadow: 0 0 35px rgba(204,20,20,0.35), 0 30px 100px rgba(0,0,0,0.9); 
 }
 .checkout-box::-webkit-scrollbar { width: 6px; }
 .checkout-box::-webkit-scrollbar-thumb { background: var(--red-bright); border-radius: 10px; }
-.checkout-close-btn { 
-  position: sticky; top: -10px; right: -10px; float: right; 
-  background: var(--bg); border: 2px solid var(--red-bright); 
-  color: #fff; width: 34px; height: 34px; border-radius: 50%; 
-  cursor: pointer; display: flex; align-items: center; 
-  justify-content: center; z-index: 110; font-weight: 800; 
-  box-shadow: 0 0 20px rgba(204,20,20,0.6); 
+.checkout-close-btn {
+  position:sticky; top:-4px; right:-4px; float:right;
+  background:var(--bg3); border:1px solid rgba(204,20,20,0.4);
+  color:var(--text-dim); width:32px; height:32px;
+  border-radius:4px;
+  clip-path:polygon(4px 0%,100% 0%,calc(100% - 4px) 100%,0% 100%);
+  cursor:pointer; display:flex; align-items:center;
+  justify-content:center; z-index:110; font-size:18px; line-height:1;
+  transition:all 0.2s;
 }
-.checkout-close-btn:hover { background: var(--red-bright); transform: scale(1.1); }
+.checkout-close-btn:hover { background:var(--red-dark); border-color:var(--red-bright); color:#fff; }
 .checkout-form-group { margin-bottom:12px; }
 .checkout-label { display:block; font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--text-muted); margin-bottom:4px; text-transform:uppercase; }
-.checkout-input { width:100%; padding:10px; background:var(--bg3); border:1px solid var(--border); border-radius:4px; color:var(--text); font-family:'Rajdhani',sans-serif; outline:none; transition:border-color 0.2s; }
-.checkout-input:focus { border-color:var(--red-bright); }
+.checkout-input { width:100%; padding:10px 12px; background:var(--bg3); border:1px solid var(--border); border-radius:4px; color:var(--text); font-family:'Rajdhani',sans-serif; font-size:15px; font-weight:500; outline:none; transition:border-color 0.2s, box-shadow 0.2s; }
+.checkout-input::placeholder { color:var(--text-muted); }
+.checkout-input:focus { border-color:rgba(204,20,20,0.6); box-shadow:0 0 0 3px rgba(204,20,20,0.1); }
 #aviso-poa { display:none; align-items:center; color:#4ade80; font-family:'Rajdhani',sans-serif; font-size:11px; font-weight:700; line-height:1.2; margin-top:5px; }
+/* Botão finalizar — idêntico ao .btn-primary do site */
+#btnFinalizar{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;background:var(--red);color:#fff;font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:14px 28px;border:2px solid var(--red-bright);clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);transition:all 0.2s;box-shadow:0 0 20px rgba(204,20,20,0.4);cursor:pointer;}
+#btnFinalizar:hover:not(:disabled){background:var(--red-bright);box-shadow:0 0 40px rgba(255,34,34,0.6);transform:translateY(-2px);}
+#btnFinalizar:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+/* Opções de frete */
+.shipping-opt{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--border);border-radius:4px;background:var(--bg3);font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:500;color:var(--text-dim);cursor:pointer;transition:all 0.15s;}
+.shipping-opt:has(input:checked){border-color:rgba(204,20,20,0.5);background:rgba(204,20,20,0.07);color:var(--text);}
 </style>
 </head>
 <body>
@@ -811,9 +819,9 @@ async function consultarCEP(cep) {
 
   // Resetar lista de frete (mantém apenas retirada)
   shippingList.innerHTML = `
-    <label style="display:flex; align-items:center; gap:10px; font-family:'Rajdhani',sans-serif; cursor:pointer; color:var(--text-dim);">
-      <input type="radio" name="shipping" value="0" checked onchange="atualizarTotal(0)" style="accent-color:var(--red-bright);"> 
-      <span>🤝 Retirada em Mãos (Grátis)</span>
+    <label class="shipping-opt">
+      <input type="radio" name="shipping" value="0" checked onchange="atualizarTotal(0)" style="accent-color:var(--red-bright);">
+      🤝 Retirada em Mãos (Grátis)
     </label>
   `;
 
@@ -836,9 +844,9 @@ async function consultarCEP(cep) {
       
       // Limpar lista e colocar carregamento
       shippingList.innerHTML = `
-        <label style="display:flex; align-items:center; gap:10px; font-family:'Rajdhani',sans-serif; cursor:pointer; color:var(--text-dim);">
-          <input type="radio" name="shipping" value="0" checked onchange="atualizarTotal(0)" style="accent-color:var(--red-bright);"> 
-          <span>🤝 Retirada em Mãos (Grátis)</span>
+        <label class="shipping-opt">
+          <input type="radio" name="shipping" value="0" checked onchange="atualizarTotal(0)" style="accent-color:var(--red-bright);">
+          🤝 Retirada em Mãos (Grátis)
         </label>
         <div id="moto-loading" style="font-size:12px; color:var(--gold); margin:5px 0;">🏍️ Calculando rota real...</div>
       `;
@@ -863,17 +871,16 @@ async function consultarCEP(cep) {
 
         if (dataMoto.preco) {
           shippingList.innerHTML += `
-            <label style="display:flex; align-items:center; gap:10px; font-family:'Rajdhani',sans-serif; cursor:pointer; color:var(--text-dim);">
-              <input type="radio" name="shipping" value="${dataMoto.preco}" onchange="atualizarTotal(${dataMoto.preco})" style="accent-color:var(--red-bright);"> 
-              <span>🏍️ Motoboy (${dataMoto.distancia} km) — R$ ${Number(dataMoto.preco).toLocaleString('pt-BR', {minimumFractionDigits:2})}</span>
+            <label class="shipping-opt">
+              <input type="radio" name="shipping" value="${dataMoto.preco}" onchange="atualizarTotal(${dataMoto.preco})" style="accent-color:var(--red-bright);">
+              🏍️ Motoboy (${dataMoto.distancia} km) — R$ ${Number(dataMoto.preco).toLocaleString('pt-BR', {minimumFractionDigits:2})}
             </label>
           `;
         } else {
-          // Fallback
           shippingList.innerHTML += `
-            <label style="display:flex; align-items:center; gap:10px; font-family:'Rajdhani',sans-serif; cursor:pointer; color:var(--text-dim);">
-              <input type="radio" name="shipping" value="18" onchange="atualizarTotal(18)" style="accent-color:var(--red-bright);"> 
-              <span>🏍️ Motoboy Porto Alegre (Mínimo) — R$ 18,00</span>
+            <label class="shipping-opt">
+              <input type="radio" name="shipping" value="18" onchange="atualizarTotal(18)" style="accent-color:var(--red-bright);">
+              🏍️ Motoboy Porto Alegre (Mínimo) — R$ 18,00
             </label>
           `;
         }
@@ -901,18 +908,18 @@ async function consultarCEP(cep) {
 
         // Limpar opções anteriores e resetar para incluir apenas Retirada + Novas Opções
         shippingList.innerHTML = `
-          <label style="display:flex; align-items:center; gap:10px; font-family:'Rajdhani',sans-serif; cursor:pointer; color:var(--text-dim);">
-            <input type="radio" name="shipping" value="0" checked onchange="atualizarTotal(0)" style="accent-color:var(--red-bright);"> 
-            <span>🤝 Retirada em Mãos (Grátis)</span>
+          <label class="shipping-opt">
+            <input type="radio" name="shipping" value="0" checked onchange="atualizarTotal(0)" style="accent-color:var(--red-bright);">
+            🤝 Retirada em Mãos (Grátis)
           </label>
         `;
 
         if (Array.isArray(opcoes) && opcoes.length > 0) {
           opcoes.forEach(opt => {
             shippingList.innerHTML += `
-              <label style="display:flex; align-items:center; gap:10px; font-family:'Rajdhani',sans-serif; cursor:pointer; color:var(--text-dim);">
-                <input type="radio" name="shipping" value="${opt.price}" onchange="atualizarTotal(${opt.price})" style="accent-color:var(--red-bright);"> 
-                <span>📦 ${opt.name} (+ R$ ${Number(opt.price).toLocaleString('pt-BR', {minimumFractionDigits:2})}) — ${opt.deadline} dias</span>
+              <label class="shipping-opt">
+                <input type="radio" name="shipping" value="${opt.price}" onchange="atualizarTotal(${opt.price})" style="accent-color:var(--red-bright);">
+                📦 ${opt.name} (+ R$ ${Number(opt.price).toLocaleString('pt-BR', {minimumFractionDigits:2})}) — ${opt.deadline} dias
               </label>
             `;
           });
@@ -967,21 +974,7 @@ async function processarPedido(e) {
   };
 
   try {
-    // 1. Salvar no Supabase
-    const resSupa = await fetch(`${SUPA_URL}/rest/v1/pedidos`, {
-      method: 'POST',
-      headers: {
-        'apikey': SUPA_ANON,
-        'Authorization': `Bearer ${SUPA_ANON}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify(dados)
-    });
-
-    if (!resSupa.ok) throw new Error('Erro ao salvar pedido');
-
-    // 2. Mercado Pago (Carrinho Multi-Item)
+    // Mercado Pago (Carrinho Multi-Item)
     const payRes = await fetch('/api/create-preference', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1405,7 +1398,7 @@ registrarVisita();
   <div class="checkout-box">
     <button class="checkout-close-btn" onclick="fecharCheckoutEntrega()">✕</button>
     <div style="text-align:center; margin-bottom:1.5rem;">
-      <div style="font-family:'Press Start 2P',monospace; font-size:12px; color:var(--text); margin-bottom:8px;">FINALIZAR PEDIDO</div>
+      <div style="font-family:'Press Start 2P',monospace; font-size:11px; color:var(--red-bright); text-shadow:0 0 12px rgba(204,20,20,0.5); margin-bottom:8px;">⚰️ FINALIZAR PEDIDO</div>
       <div id="checkoutResumo" style="font-family:'Rajdhani',sans-serif; font-size:14px; color:var(--gold);"></div>
     </div>
     <form id="formCheckout" onsubmit="processarPedido(event)">
@@ -1414,7 +1407,7 @@ registrarVisita();
           <label class="checkout-label">CEP (DIGITE PRIMEIRO)</label>
           <input type="text" id="chk-cep" class="checkout-input" required placeholder="00000-000" maxlength="9" oninput="formatarCEP(this)" onblur="consultarCEP(this.value)">
         </div>
-        <div id="aviso-poa" style="display:none; align-items:center; color:#4ade80; font-family:'Rajdhani',sans-serif; font-size:11px; font-weight:700; line-height:1.2;">
+        <div id="aviso-poa">
           🛵 Porto Alegre: Entrega via Motoboy disponível!
         </div>
       </div>
@@ -1449,9 +1442,9 @@ registrarVisita();
       <div id="shipping-options" style="margin-bottom:1.5rem; border-top:1px solid var(--border); padding-top:1rem;">
         <label class="checkout-label">OPÇÃO DE ENTREGA</label>
         <div id="shipping-list" style="display:flex; flex-direction:column; gap:10px;">
-          <label style="display:flex; align-items:center; gap:10px; font-family:'Rajdhani',sans-serif; cursor:pointer; color:var(--text-dim);">
-            <input type="radio" name="shipping" value="0" checked onchange="atualizarTotal(0)" style="accent-color:var(--red-bright);"> 
-            <span>🤝 Retirada em Mãos (Grátis)</span>
+          <label class="shipping-opt">
+            <input type="radio" name="shipping" value="0" checked onchange="atualizarTotal(0)" style="accent-color:var(--red-bright);">
+            🤝 Retirada em Mãos (Grátis)
           </label>
           <!-- Opções dinâmicas entrarão aqui -->
         </div>
@@ -1466,7 +1459,7 @@ registrarVisita();
         <span id="checkoutTotal" style="font-family:'Press Start 2P',monospace; font-size:14px; color:var(--gold); text-shadow:0 0 10px rgba(255,184,0,0.3);">R$ 0,00</span>
       </div>
 
-      <button type="submit" id="btnFinalizar" class="btn-primary" style="width:100%; justify-content:center; padding:14px; cursor:pointer;">Confirmar e Pagar 💳</button>
+      <button type="submit" id="btnFinalizar">💳 Confirmar e Pagar</button>
     </form>
   </div>
 </div>

@@ -1,0 +1,8 @@
+{
+  "name": "nosferatu-games",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "mercadopago": "^2.4.0"
+  }
+}
