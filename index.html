@@ -726,7 +726,14 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
   <div class="footer-logo">NOSFERATU GAMES</div>
   <div class="footer-sub">
     © 2026 · Porto Alegre, RS · nosferatugames.com.br
-    <span onclick="if(window.testAudio){window.testAudio.pause(); window.testAudio.currentTime=0;} window.testAudio=new Audio('https://archive.org/download/ToccataAndFugueInDMinorBWV565/Toccata%20and%20Fugue%20in%20D%20Minor%2C%20BWV%20565.mp3'); window.testAudio.play();" style="cursor:pointer; margin-left:10px; filter: drop-shadow(0 0 5px rgba(204,20,20,0.5));" title="Ouvir o Ritual">🦇</span>
+    <span onclick="
+      if(window.testAudio){ window.testAudio.pause(); window.testAudio.currentTime=0; }
+      window.testAudio = new Audio('/tocata.mp3');
+      window.testAudio.volume = 0.7;
+      window.testAudio.currentTime = 0;
+      window.testAudio.play();
+      setTimeout(() => { if(window.testAudio){ window.testAudio.pause(); window.testAudio.currentTime=0; } }, 12000);
+    " style="cursor:pointer; margin-left:10px; filter: drop-shadow(0 0 5px rgba(204,20,20,0.5));" title="Ouvir o Ritual">🦇</span>
   </div>
 </footer>
 

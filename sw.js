@@ -1,9 +1,10 @@
-const CACHE = 'nosferatu-v1';
+const CACHE = 'nosferatu-v2';
 const STATIC = [
   '/',
   '/index.html',
   '/logo.png',
   '/banner.png',
+  '/tocata.mp3',
   'https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap'
 ];
 
