@@ -869,19 +869,39 @@ function formatarCPF(el) {
     el.style.boxShadow  = '';
   }
 }
-  let v = el.value.replace(/\D/g,'');
-  if (v.length > 5) v = v.substring(0, 5) + '-' + v.substring(5, 8);
-  el.value = v;
+// ── Validações e Máscaras ─────────────────────────────────────
 
-  // Limpeza preventiva ao digitar
-  const end = document.getElementById('chk-endereco');
+function formatarCEP(el) {
+  let v = el.value.replace(/\D/g,'');
+  if (v.length > 5) v = v.substring(0,5) + '-' + v.substring(5,8);
+  el.value = v;
+  const end  = document.getElementById('chk-endereco');
   const ship = document.getElementById('shipping-list');
   if (v.length < 9) {
-    if (end) end.value = '';
-    if (ship) ship.innerHTML = '<div style="font-size:11px; color:var(--text-muted);">Aguardando CEP completo...</div>';
+    if (end)  end.value = '';
+    if (ship) ship.innerHTML = `<label class="shipping-opt"><input type="radio" name="shipping" value="0" checked onchange="atualizarTotal(0)" style="accent-color:var(--red-bright);">🤝 Retirada em Mãos (Grátis)</label>`;
+    el.style.borderColor = ''; el.style.boxShadow = '';
+  } else {
+    el.style.borderColor = 'rgba(74,222,128,0.6)';
+    el.style.boxShadow   = '0 0 0 3px rgba(74,222,128,0.1)';
+    consultarCEP(v);
   }
+}
 
-  if (v.length === 9) consultarCEP(v);
+function formatarWPP(el) {
+  let v = el.value.replace(/\D/g,'').slice(0,11);
+  if (v.length > 10)      v = v.replace(/(\d{2})(\d{1})(\d{4})(\d{4})/, '($1) $2 $3-$4');
+  else if (v.length > 6)  v = v.replace(/(\d{2})(\d{4,5})(\d{0,4})/, '($1) $2-$3');
+  else if (v.length > 2)  v = v.replace(/(\d{2})(\d+)/, '($1) $2');
+  el.value = v;
+  const digits = el.value.replace(/\D/g,'');
+  const ok = digits.length >= 10 && digits.length <= 11;
+  el.style.borderColor = digits.length >= 10 ? (ok ? 'rgba(74,222,128,0.6)' : 'rgba(255,34,34,0.7)') : '';
+  el.style.boxShadow   = digits.length >= 10 ? (ok ? '0 0 0 3px rgba(74,222,128,0.1)' : '0 0 0 3px rgba(255,34,34,0.12)') : '';
+}
+
+function validarNome(nome) {
+  return nome.trim().length >= 3 && nome.trim().includes(' ');
 }
 
 function atualizarTotal(frete) {
@@ -1028,25 +1048,50 @@ async function consultarCEP(cep) {
 async function processarPedido(e) {
   e.preventDefault();
   
-  // Validações
-  const nome = document.getElementById('chk-nome').value.trim();
-  const wpp = document.getElementById('chk-wpp').value.trim();
-  const cep = document.getElementById('chk-cep').value.trim();
-  const end = document.getElementById('chk-endereco').value.trim();
-  const num = document.getElementById('chk-numero').value.trim();
-
-  if (!nome || !wpp || !cep || !end || !num) {
-    showToast('erro', '✕ Preencha todos os campos obrigatórios.');
+  // Validações completas
+  if (meuCarrinho.length === 0) {
+    showToast('erro', '✕ Seu caixão está vazio!');
+    fecharCheckoutEntrega();
     return;
   }
 
-  const cpf = document.getElementById('chk-cpf').value.trim();
+  const nome = document.getElementById('chk-nome').value.trim();
+  const wpp  = document.getElementById('chk-wpp').value.trim();
+  const cep  = document.getElementById('chk-cep').value.trim();
+  const end  = document.getElementById('chk-endereco').value.trim();
+  const num  = document.getElementById('chk-numero').value.trim();
+  const cpf  = document.getElementById('chk-cpf').value.trim();
+
+  if (!validarNome(nome)) {
+    showToast('erro', '✕ Digite o nome completo (nome e sobrenome).');
+    document.getElementById('chk-nome').focus();
+    return;
+  }
+  if (wpp.replace(/\D/g,'').length < 10) {
+    showToast('erro', '✕ WhatsApp inválido. Ex: (51) 9 9999-9999');
+    document.getElementById('chk-wpp').focus();
+    return;
+  }
   if (!validarCPF(cpf)) {
     showToast('erro', '✕ CPF inválido. Verifique e tente novamente.');
     const cpfEl = document.getElementById('chk-cpf');
     cpfEl.style.borderColor = 'rgba(255,34,34,0.7)';
     cpfEl.style.boxShadow   = '0 0 0 3px rgba(255,34,34,0.12)';
     cpfEl.focus();
+    return;
+  }
+  if (cep.replace(/\D/g,'').length !== 8) {
+    showToast('erro', '✕ CEP inválido.');
+    document.getElementById('chk-cep').focus();
+    return;
+  }
+  if (!end) {
+    showToast('erro', '✕ Endereço não encontrado. Verifique o CEP.');
+    return;
+  }
+  if (!num) {
+    showToast('erro', '✕ Informe o número do endereço.');
+    document.getElementById('chk-numero').focus();
     return;
   }
 
@@ -1058,18 +1103,6 @@ async function processarPedido(e) {
   const totalFinal = Math.round((meuCarrinho.reduce((acc,p)=>acc+Number(p.preco||0),0) + valorFreteAtivo) * 100) / 100;
   const radioSelected = document.querySelector('input[name="shipping"]:checked');
   const metodoEnvio = radioSelected ? radioSelected.parentElement.innerText.trim() : 'Não selecionado';
-
-  const dados = {
-    itens: meuCarrinho.map(p => ({ id: p.id, nome: p.nome, preco: p.preco })),
-    nome_cliente: nome,
-    whatsapp_cliente: wpp,
-    cpf_cliente: document.getElementById('chk-cpf').value,
-    cep_cliente: cep,
-    endereco_completo: `${end}, nº ${num}`,
-    valor_total: totalFinal,
-    metodo_envio: metodoEnvio,
-    status: 'pendente'
-  };
 
   try {
     // Mercado Pago (Carrinho Multi-Item)
@@ -1098,7 +1131,6 @@ async function processarPedido(e) {
   }
 }
 
-// ── Checkout Original ────────────────────────────────────────
 // ── Carrinho Inteligente ──────────────────────────────────────
 let meuCarrinho = [];
 try { meuCarrinho = JSON.parse(localStorage.getItem('ng_cart') || '[]'); } catch(e) {}
@@ -1492,7 +1524,7 @@ registrarVisita();
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
         <div>
           <label class="checkout-label">CEP (DIGITE PRIMEIRO)</label>
-          <input type="text" id="chk-cep" class="checkout-input" required placeholder="00000-000" maxlength="9" oninput="formatarCEP(this)" onblur="consultarCEP(this.value)">
+          <input type="text" id="chk-cep" class="checkout-input" required placeholder="00000-000" maxlength="9" oninput="formatarCEP(this)" inputmode="numeric">
         </div>
         <div id="aviso-poa">
           🛵 Porto Alegre: Entrega via Motoboy disponível!
@@ -1507,7 +1539,7 @@ registrarVisita();
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
         <div>
           <label class="checkout-label">WHATSAPP</label>
-          <input type="text" id="chk-wpp" class="checkout-input" required placeholder="(51) 9....">
+          <input type="text" id="chk-wpp" class="checkout-input" required placeholder="(51) 9 9999-9999" maxlength="16" oninput="formatarWPP(this)" inputmode="numeric">
         </div>
         <div>
           <label class="checkout-label">CPF</label>
