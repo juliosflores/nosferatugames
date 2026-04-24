@@ -1294,7 +1294,7 @@ function renderizarResumoCheckout() {
     subtotal += Number(p.preco || 0);
     html += `
       <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:8px; border-radius:4px; border-left:2px solid var(--red);">
-        <div style="font-size:12px; max-width:70%;">${p.nome.replace(/</g,`"&lt;`").replace(/>/g,`"&gt;`")}</div>
+        <div style="font-size:12px; max-width:70%;">${p.nome.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
         <div style="display:flex; align-items:center; gap:10px;">
           <div style="font-size:11px; color:var(--gold);">R$ ${Number(p.preco).toLocaleString('pt-BR')}</div>
           <button onclick="removerDoCarrinho('${p.id}')" style="background:none; border:none; color:var(--red-bright); cursor:pointer; font-size:14px;">✕</button>
