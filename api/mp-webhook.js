@@ -1,10 +1,26 @@
 // api/mp-webhook.js
-// Webhook do Mercado Pago → Notifica no WhatsApp e marca produto como VENDIDO no Supabase
+import crypto from 'crypto';
+
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // Não expor CORS aberto no webhook
+  res.setHeader('X-Content-Type-Options', 'nosniff');
 
   if (req.method !== 'POST') {
     return res.status(200).json({ ok: true, ignored: 'not post' });
+  }
+
+  // Validar assinatura do Mercado Pago
+  const MP_SECRET = process.env.MP_WEBHOOK_SECRET;
+  if (MP_SECRET) {
+    const xSignature  = req.headers['x-signature'] || '';
+    const xRequestId  = req.headers['x-request-id'] || '';
+    const dataId      = req.query?.['data.id'] || req.body?.data?.id || '';
+    const manifest    = `id:${dataId};request-id:${xRequestId};ts:${xSignature.split(',').find(p=>p.startsWith('ts='))?.split('=')[1]||''}`;
+    const parts       = Object.fromEntries(xSignature.split(',').map(p=>p.split('=')));
+    const expected    = crypto.createHmac('sha256', MP_SECRET).update(manifest).digest('hex');
+    if (parts.v1 !== expected) {
+      return res.status(401).json({ ok: false, error: 'Invalid signature' });
+    }
   }
 
   const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
