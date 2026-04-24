@@ -36,7 +36,7 @@
   "url": "https://nosferatugames.com.br",
   "logo": "https://nosferatugames.com.br/logo.png",
   "image": "https://nosferatugames.com.br/banner.png",
-  "telephone": "+5551999999999",
+  "telephone": "+555195108970",
   "priceRange": "$$",
   "address": {
     "@type": "PostalAddress",
@@ -287,6 +287,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
 .checkout-overlay.active{display:flex}
 .checkout-spinner{width:48px;height:48px;border:3px solid var(--border);border-top-color:var(--red-bright);border-radius:50%;animation:spin 0.8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 .checkout-overlay p{font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--text-dim)}
 .checkout-overlay strong{font-family:'Press Start 2P',monospace;font-size:10px;color:var(--text);display:block;margin-bottom:4px}
 
@@ -315,11 +316,52 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
   .sobre-grid,.contato-grid{grid-template-columns:1fr}
   .sobre-visual{order:-1}
   .sobre-logo{width:min(200px,80vw)}
-  .hero-stats{gap:1.5rem}
+  .hero-stats{gap:1rem;flex-wrap:wrap;justify-content:center}
+  .hero-stat-num{font-size:18px}
   .sobre-features{grid-template-columns:1fr}
   nav{padding:0 1rem}
   .search-sort-bar{flex-direction:column}
   #sortSelect{width:100%}
+  /* Catálogo — evitar overflow em tela pequena */
+  .consoles-grid{grid-template-columns:1fr}
+  /* Produtos — 2 colunas no mobile */
+  .produtos-grid{grid-template-columns:repeat(2,1fr);gap:0.75rem}
+  .produto-nome{font-size:14px}
+  .produto-preco{font-size:12px}
+  /* Filtros — scroll horizontal em vez de quebrar linha */
+  .produtos-filter{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;padding-bottom:4px}
+  .produtos-filter::-webkit-scrollbar{height:3px}
+  .produtos-filter::-webkit-scrollbar-thumb{background:var(--red);border-radius:2px}
+  .filter-btn{white-space:nowrap;flex-shrink:0;font-size:12px;padding:6px 12px}
+  /* Contato */
+  .contato-card{padding:1.25rem}
+  /* Modal produto */
+  #modal-overlay{padding:0;align-items:flex-end}
+  #modal-box{border-radius:12px 12px 0 0;max-height:90vh}
+  /* Botões flutuantes — subir quando checkout ativo */
+  .wpp-float{bottom:20px;width:48px;height:48px}
+  .cart-float{bottom:76px;width:48px;height:48px}
+  .cart-float svg{width:22px;height:22px}
+  /* Checkout mobile — bottom sheet */
+  .modal-checkout{padding:0;align-items:flex-end}
+  .checkout-box{
+    max-width:100%;width:100%;
+    max-height:92vh;
+    border-radius:12px 12px 0 0;
+    border-top:3px solid var(--red-bright);
+    padding:20px 16px 32px;
+  }
+  /* Grids de 2 colunas viram coluna única no mobile */
+  .checkout-box [style*="grid-template-columns:1fr 1fr"],
+  .checkout-box [style*="grid-template-columns: 1fr 1fr"]{
+    display:flex !important;
+    flex-direction:column;
+    gap:10px;
+  }
+  #aviso-poa{margin-top:0}
+  /* Seções com menos padding */
+  #catalogo,#produtos,#retro,#pokemon,#sobre,#contato{padding:60px 1rem}
+  .section-title{font-size:13px}
 }
 .mobile-menu{display:none;position:fixed;top:64px;left:0;right:0;background:rgba(5,5,8,0.98);border-bottom:1px solid var(--border-red);padding:1.5rem;z-index:999;flex-direction:column;gap:1.5rem}
 .mobile-menu.open{display:flex}
@@ -683,7 +725,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
 <footer>
   <div class="footer-logo">NOSFERATU GAMES</div>
   <div class="footer-sub">
-    © 2025 · Porto Alegre, RS · nosferatugames.com.br
+    © 2026 · Porto Alegre, RS · nosferatugames.com.br
     <span onclick="if(window.testAudio){window.testAudio.pause(); window.testAudio.currentTime=0;} window.testAudio=new Audio('https://archive.org/download/ToccataAndFugueInDMinorBWV565/Toccata%20and%20Fugue%20in%20D%20Minor%2C%20BWV%20565.mp3'); window.testAudio.play();" style="cursor:pointer; margin-left:10px; filter: drop-shadow(0 0 5px rgba(204,20,20,0.5));" title="Ouvir o Ritual">🦇</span>
   </div>
 </footer>
@@ -777,6 +819,7 @@ let lastCEP = '';
 
 function fecharCheckoutEntrega() {
   document.getElementById('checkoutModalEntrega').classList.remove('active');
+  document.body.style.overflow = '';
 }
 
 function formatarCEP(el) {
@@ -986,20 +1029,8 @@ async function processarPedido(e) {
 
     const payData = await payRes.json();
     if (payData.init_point) {
-      // Limpar carrinho ao ir para o pagamento
-      meuCarrinho = []; salvarCarrinho(); 
-      // 🧛‍♂️ O TOQUE DO CONDE: Tocar 2 segundos de Bach antes de ir para o pagamento
-      try {
-        const audio = new Audio('https://archive.org/download/ToccataAndFugueInDMinorBWV565/Toccata%20and%20Fugue%20in%20D%20Minor%2C%20BWV%20565.mp3');
-        audio.volume = 0.6;
-        audio.play();
-        setTimeout(() => {
-          window.location.href = payData.init_point;
-        }, 7000); // 7 segundos de Bach para um ritual completo
-      } catch (e) {
-        // Se o áudio falhar (ex: bloqueio do navegador), redireciona direto
-        window.location.href = payData.init_point;
-      }
+      meuCarrinho = []; salvarCarrinho();
+      window.location.href = payData.init_point;
     } else {
       throw new Error('O servidor de pagamento recusou o pedido. Verifique os dados.');
     }
@@ -1098,6 +1129,7 @@ function renderizarResumoCheckout() {
 function abrirCheckout() {
   renderizarResumoCheckout();
   document.getElementById('checkoutModalEntrega').classList.add('active');
+  document.body.style.overflow = 'hidden';
 }
 
 // Manter compatibilidade com chamadas antigas se houver
