@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nosferatu Games | Jogos de PS5, Switch e Retro em Porto Alegre</title>
-<meta name="description" content="Nosferatu Games: A elite dos games em Porto Alegre. Jogos de PS5, PS4, Nintendo Switch e Retro. Entrega via motoboy em POA e frete para todo o Brasil. Confira nosso estoque!">
+<title>Nosferatu Games | Compro e Vendo Jogos PS5, Switch e Retro em Porto Alegre</title>
+<meta name="description" content="Nosferatu Games em Porto Alegre: compro e vendo jogos de PS5, PS4, Nintendo Switch, 3DS e consoles retrô. Entrega via motoboy em POA e frete para todo o Brasil. Avaliação grátis!">
+<meta name="keywords" content="jogos usados porto alegre, comprar jogos ps5 porto alegre, vender jogos porto alegre, loja de games porto alegre, jogos nintendo switch usados, ps4 usado porto alegre, jogos retro porto alegre, nosferatu games">
 <meta name="theme-color" content="#CC1414">
 
 <!-- Open Graph / WhatsApp -->
@@ -34,12 +35,14 @@
   "@context": "https://schema.org",
   "@type": "Store",
   "name": "Nosferatu Games",
-  "description": "Loja especializada em jogos de PS5, PS4, Nintendo Switch e consoles retrô em Porto Alegre.",
+  "description": "Loja especializada em compra e venda de jogos de PS5, PS4, Nintendo Switch e consoles retrô em Porto Alegre. Avaliação gratuita, pagamento na hora.",
   "url": "https://nosferatugames.com.br",
   "logo": "https://nosferatugames.com.br/logo.png",
   "image": "https://nosferatugames.com.br/banner.png",
   "telephone": "+555195108970",
   "priceRange": "$$",
+  "currenciesAccepted": "BRL",
+  "paymentAccepted": "PIX, Cartão de Crédito, Dinheiro",
   "address": {
     "@type": "PostalAddress",
     "streetAddress": "Avenida Goethe, 71",
@@ -59,10 +62,32 @@
     "opens": "09:00",
     "closes": "20:00"
   },
-  "sameAs": ["https://instagram.com/nosferatu.games"]
+  "hasOfferCatalog": {
+    "@type": "OfferCatalog",
+    "name": "Jogos e Consoles",
+    "itemListElement": [
+      {"@type": "Offer", "itemOffered": {"@type": "Product", "name": "Jogos PS5"}},
+      {"@type": "Offer", "itemOffered": {"@type": "Product", "name": "Jogos PS4"}},
+      {"@type": "Offer", "itemOffered": {"@type": "Product", "name": "Nintendo Switch"}},
+      {"@type": "Offer", "itemOffered": {"@type": "Product", "name": "Consoles Retrô"}},
+      {"@type": "Offer", "itemOffered": {"@type": "Product", "name": "Cards Pokémon TCG"}}
+    ]
+  },
+  "sameAs": [
+    "https://instagram.com/nosferatu.games",
+    "https://wa.me/5195108970"
+  ]
 }
 </script>
 
+<!-- Google Analytics — troque G-XXXXXXXXXX pelo seu ID -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+window.dataLayer=window.dataLayer||[];
+function gtag(){dataLayer.push(arguments);}
+gtag('js',new Date());
+gtag('config','G-XXXXXXXXXX');
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -787,6 +812,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
 // ── Config ───────────────────────────────────────────────────
 const SUPA_URL  = 'https://jcnncmfbodglvoyytgok.supabase.co';
 const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impjbm5jbWZib2RnbHZveXl0Z29rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MTg0NDgsImV4cCI6MjA5MTE5NDQ0OH0.YpStoaxT86MQY06KiKVhUXdlcF-CVsu4DOFuUTLv4u0';
+const SESSION_ID = Math.random().toString(36).slice(2) + Date.now().toString(36);
 
 // ── Busca Inteligente (Debounce) ───────────────────────────
 let searchDebounceTimer;
@@ -852,16 +878,20 @@ function toggleFavFilter(btn) {
 async function compartilharProduto(p, event) {
   if (event) event.stopPropagation();
   const preco = p.preco ? `R$ ${Number(p.preco).toLocaleString('pt-BR')} — ` : '';
-  const texto = `${p.nome}\n${preco}Nosferatu Games · nosferatugames.com.br`;
+  const slug  = (p.nome||'produto').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,'');
+  const url   = `https://nosferatugames.com.br/produto/${p.id}`;
+  const texto = `${p.nome}\n${preco}Nosferatu Games\n${url}`;
+  // Google Analytics — evento de compartilhamento
+  if (typeof gtag !== 'undefined') gtag('event','share',{content_type:'produto',item_id:p.id,content_id:p.nome});
   try {
     if (navigator.share) {
-      await navigator.share({ title: p.nome, text: texto, url: 'https://nosferatugames.com.br' });
+      await navigator.share({ title: p.nome, text: `${p.nome} — ${preco}Nosferatu Games`, url });
     } else {
-      await navigator.clipboard.writeText(texto);
-      showToast('info', '📋 Link copiado!');
+      await navigator.clipboard.writeText(url);
+      showToast('info', '📋 Link do produto copiado!');
     }
   } catch(e) {
-    if (e.name !== 'AbortError') showToast('info', '📋 Link copiado!');
+    if (e.name !== 'AbortError') { await navigator.clipboard.writeText(url).catch(()=>{}); showToast('info', '📋 Link copiado!'); }
   }
 }
 
@@ -873,6 +903,14 @@ let lastCEP = '';
 function fecharCheckoutEntrega() {
   document.getElementById('checkoutModalEntrega').classList.remove('active');
   document.body.style.overflow = '';
+  // Liberar reservas se cliente fechou sem pagar
+  meuCarrinho.forEach(p => {
+    fetch('/api/reservar-produto', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ produtoId: p.id, sessionId: SESSION_ID, acao: 'liberar' })
+    }).catch(()=>{});
+  });
 }
 
 function validarCPF(cpf) {
@@ -1215,6 +1253,7 @@ function addAoCarrinho(p, event, abrirLogo = true) {
     // Adicionar
     meuCarrinho.push(p);
     showToast('sucesso', `🦇 Guardado no Caixão`);
+    if (typeof gtag !== 'undefined') gtag('event','add_to_cart',{currency:'BRL',value:Number(p.preco||0),items:[{item_id:p.id,item_name:p.nome,item_category:p.console,price:Number(p.preco||0)}]});
     if (btn) {
       btn.classList.add('in-cart');
       btn.innerHTML = '<svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:var(--gold)"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>';
@@ -1268,7 +1307,33 @@ function renderizarResumoCheckout() {
   atualizarTotal(valorFreteAtivo);
 }
 
-function abrirCheckout() {
+async function abrirCheckout() {
+  if (meuCarrinho.length === 0) return;
+
+  // Reservar todos os produtos do carrinho
+  const reservasFalhadas = [];
+  for (const p of meuCarrinho) {
+    try {
+      const r = await fetch('/api/reservar-produto', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ produtoId: p.id, sessionId: SESSION_ID, acao: 'reservar' })
+      });
+      const data = await r.json();
+      if (!data.ok && data.reservado) reservasFalhadas.push({ nome: p.nome, msg: data.mensagem });
+    } catch { /* silencioso — reserva falha graciosamente */ }
+  }
+
+  if (reservasFalhadas.length > 0) {
+    showToast('erro', `⚔️ ${reservasFalhadas[0].msg}`);
+    // Remover produto reservado do carrinho
+    const nomesReservados = reservasFalhadas.map(r => r.nome);
+    meuCarrinho = meuCarrinho.filter(p => !nomesReservados.includes(p.nome));
+    salvarCarrinho();
+    renderGrid();
+    return;
+  }
+
   renderizarResumoCheckout();
   document.getElementById('checkoutModalEntrega').classList.add('active');
   document.body.style.overflow = 'hidden';
@@ -1612,6 +1677,30 @@ window.abrirModal = async function(p) {
 checkPaymentReturn();
 carregarProdutos();
 registrarVisita();
+
+// Deep link — abre produto direto se URL tem ?produto=ID
+async function verificarDeepLink() {
+  const params = new URLSearchParams(window.location.search);
+  const prodId = params.get('produto');
+  if (!prodId) return;
+  // Aguardar produtos carregarem
+  const aguardar = () => new Promise(r => setTimeout(r, 800));
+  await aguardar();
+  const produto = todosOsProdutos.find(p => String(p.id) === String(prodId));
+  if (produto) {
+    abrirModal(produto);
+    document.getElementById('produtos').scrollIntoView({ behavior: 'smooth' });
+  } else {
+    // Buscar no Supabase se não estiver na lista local
+    try {
+      const r = await fetch(`${SUPA_URL}/rest/v1/produtos?id=eq.${prodId}&limit=1`,
+        { headers: { apikey: SUPA_ANON, Authorization: `Bearer ${SUPA_ANON}` } });
+      const dados = await r.json();
+      if (dados?.[0]) abrirModal(dados[0]);
+    } catch {}
+  }
+}
+verificarDeepLink();
 </script>
 <!-- MODAL DE CHECKOUT (ENTREGA) -->
 <div id="checkoutModalEntrega" class="modal-checkout" onclick="if(event.target===this)fecharCheckoutEntrega()">

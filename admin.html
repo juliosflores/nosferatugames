@@ -93,6 +93,28 @@ const cloudUpload = async (file) => {
   return d.secure_url;
 };
 
+// Precificação dinâmica via OLX
+const buscarPrecoOLX = async (nome, setPreco, setToast) => {
+  if (!nome || nome.length < 3) { setToast('✕ Digite o nome do produto primeiro.'); return; }
+  setToast('🔍 Consultando OLX...');
+  try {
+    const r = await fetch('/api/precificar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nomeProduto: nome })
+    });
+    const data = await r.json();
+    if (data.encontrado) {
+      setPreco(String(data.sugestaoCompra.generoso));
+      setToast(`💰 OLX: menor preço R$ ${data.menorPreco.toLocaleString('pt-BR')} em ${data.totalAnuncios} anúncios. Sugestão de compra: ${data.sugestaoCompra.texto}`);
+    } else {
+      setToast('⚠ ' + (data.mensagem || 'Não encontrado na OLX.'));
+    }
+  } catch {
+    setToast('✕ Erro ao consultar OLX.');
+  }
+};
+
 // ── UI primitives ────────────────────────────────────────────
 const S = {
   layout: { display:'flex', height:'100vh', overflow:'hidden' },
@@ -287,6 +309,7 @@ const ProductForm = ({initial, onSave, onClose}) => {
   const [uploading,setUploading] = useState(false);
   const [saving,setSaving]       = useState(false);
   const [toast,setToast]         = useState('');
+  const [buscandoOLX,setBuscandoOLX] = useState(false);
   const fileRef = useRef();
 
   const set = (k,v) => setP(prev=>({...prev,[k]:v}));
@@ -302,8 +325,16 @@ const ProductForm = ({initial, onSave, onClose}) => {
 
   const removerImg = (idx) => set('imagens', p.imagens.filter((_,i)=>i!==idx));
 
+  const consultarOLX = async () => {
+    setBuscandoOLX(true);
+    await buscarPrecoOLX(p.nome, (preco) => set('preco', preco), setToast);
+    setBuscandoOLX(false);
+  };
+
   const salvar = async () => {
     if (!p.nome.trim()) { setToast('✕ Nome é obrigatório'); return; }
+    if (!p.preco)       { setToast('✕ Preço é obrigatório'); return; }
+    if (!p.imagens || p.imagens.length === 0) { setToast('✕ Adicione pelo menos 1 foto'); return; }
     setSaving(true);
     try { await onSave(p); onClose(); }
     catch(e) { setToast('✕ '+e.message); setSaving(false); }
@@ -317,7 +348,15 @@ const ProductForm = ({initial, onSave, onClose}) => {
 
         <div style={S.grid2}>
           <Input label="Nome do produto" value={p.nome} onChange={e=>set('nome',e.target.value)} placeholder="Ex: God of War Ragnarök" />
-          <Input label="Preço (R$)" type="number" value={p.preco} onChange={e=>set('preco',e.target.value)} placeholder="299" />
+          <div style={{marginBottom:14}}>
+            <label style={S.label}>Preço (R$)</label>
+            <div style={{display:'flex',gap:6}}>
+              <input type="number" value={p.preco} onChange={e=>set('preco',e.target.value)} placeholder="299" style={{...S.input,flex:1}}/>
+              <button type="button" onClick={consultarOLX} disabled={buscandoOLX||!p.nome} title="Consultar preço na OLX" style={{...S.btn,padding:'9px 12px',background:'rgba(255,184,0,.15)',border:'1px solid rgba(255,184,0,.4)',color:'var(--gold)',fontSize:12,whiteSpace:'nowrap',opacity:(!p.nome||buscandoOLX)?.5:1}}>
+                {buscandoOLX ? '...' : '🔍 OLX'}
+              </button>
+            </div>
+          </div>
         </div>
         <div style={S.grid2}>
           <div style={{marginBottom:14}}>
@@ -390,8 +429,19 @@ const ProductsPage = ({produtos, reload}) => {
   const salvar = async (p) => {
     const { id, ...dados } = p;
     dados.preco = dados.preco ? Number(dados.preco) : null;
-    if (id) await supa(`produtos?id=eq.${id}`, { method:'PATCH', body: JSON.stringify(dados) });
-    else    await supa('produtos',              { method:'POST',  body: JSON.stringify(dados) });
+    let resultado;
+    if (id) resultado = await supa(`produtos?id=eq.${id}`, { method:'PATCH', body: JSON.stringify(dados) });
+    else    resultado = await supa('produtos',              { method:'POST',  body: JSON.stringify(dados) });
+
+    // Notificar WhatsApp via n8n quando produto novo for cadastrado
+    if (!id) {
+      const produtoSalvo = Array.isArray(resultado) ? resultado[0] : resultado;
+      fetch('https://juliosflores.app.n8n.cloud/webhook/novo-produto', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body: { ...dados, id: produtoSalvo?.id } })
+      }).catch(() => {});
+    }
     reload();
   };
 
