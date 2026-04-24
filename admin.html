@@ -1,12 +1,12 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin — Nosferatu Games</title>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Press+Start+2P&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -33,8 +33,8 @@ const { useState, useEffect, useCallback, useRef } = React;
 
 // ── Config ───────────────────────────────────────────────────
 // Cloudinary (pré-configurado)
-if (!localStorage.getItem('ng_cloud_name'))    localStorage.setItem('ng_cloud_name',    'ddadz8ut');
-if (!localStorage.getItem('ng_upload_preset')) localStorage.setItem('ng_upload_preset', 'ytsmjlb');
+if (!localStorage.getItem('ng_cloud_name'))    localStorage.setItem('ng_cloud_name',    'ddaadz8ut');
+if (!localStorage.getItem('ng_upload_preset')) localStorage.setItem('ng_upload_preset', 'ytsmjllb');
 
 const SUPA_URL  = 'https://jcnncmfbodglvoyytgok.supabase.co';
 const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impjbm5jbWZib2RnbHZveXl0Z29rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MTg0NDgsImV4cCI6MjA5MTE5NDQ0OH0.YpStoaxT86MQY06KiKVhUXdlcF-CVsu4DOFuUTLv4u0';
@@ -58,6 +58,25 @@ const fmtBRL  = v => v ? `R$ ${Number(v).toLocaleString('pt-BR')}` : '—';
 const fmtDate = d => new Date(d).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
 const CONSOLES = ['PS5','PS4','Nintendo Switch','Nintendo 3DS','Retrô','Pokémon TCG','Acessórios'];
 const CONDICOES= ['Novo','Seminovo','Usado'];
+
+// Exportar CSV do estoque
+const exportarCSV = (produtos) => {
+  const header = ['Nome','Console','Preço','Condição','Status','Views'];
+  const rows = produtos.map(p=>[
+    `"${(p.nome||'').replace(/"/g,'""')}"`,
+    p.console||'',
+    p.preco||'',
+    p.condicao||'',
+    p.vendido?'Vendido':p.ativo===false?'Inativo':'Ativo',
+    p.viewed_count||0
+  ]);
+  const csv = [header,...rows].map(r=>r.join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href=url; a.download=`nosferatu-estoque-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+};
 
 // Cloudinary upload
 const cloudUpload = async (file) => {
@@ -214,10 +233,10 @@ const Dashboard = ({produtos, visitas}) => {
       </div>
 
       <div style={S.grid4}>
-        <StatCard label="Produtos ativos"  value={ativos}       sub={`${produtos.length} total`}    color="var(--red-b)"   icon="🎮"/>
-        <StatCard label="Vendidos"          value={vendidos}     sub="marcados como vendido"          color="var(--muted)"   icon="✅"/>
-        <StatCard label="Em destaque"       value={destaque}     sub="aparecem primeiro"              color="var(--gold)"    icon="⭐"/>
-        <StatCard label="Visitas hoje"      value={visitasHoje}  sub={`${visitas.length} total`}      color="var(--purple)"  icon="👁"/>
+        <StatCard label="Produtos ativos"   value={ativos}       sub={`${produtos.length} total`}           color="var(--red-b)"   icon="🗡️"/>
+        <StatCard label="Vendidos"           value={vendidos}     sub={`R$ ${produtos.filter(p=>p.vendido&&p.preco).reduce((a,p)=>a+Number(p.preco),0).toLocaleString('pt-BR')} faturado`} color="var(--green)"   icon="🏆"/>
+        <StatCard label="Em destaque"        value={destaque}     sub="aparecem primeiro"                    color="var(--gold)"    icon="⭐"/>
+        <StatCard label="Visitas hoje"       value={visitasHoje}  sub={`${visitas.length} total`}            color="var(--purple)"  icon="🧛"/>
       </div>
 
       <div style={S.grid2}>
@@ -354,14 +373,19 @@ const ProductForm = ({initial, onSave, onClose}) => {
 
 // ── Página de Produtos ───────────────────────────────────────
 const ProductsPage = ({produtos, reload}) => {
-  const [busca,setBusca]     = useState('');
-  const [filtro,setFiltro]   = useState('todos');
-  const [editando,setEditando] = useState(null); // null=fechado, {}=novo, {id,...}=editar
+  const [busca,setBusca]       = useState('');
+  const [filtro,setFiltro]     = useState('todos');
+  const [precoMin,setPrecoMin] = useState('');
+  const [precoMax,setPrecoMax] = useState('');
+  const [editando,setEditando] = useState(null);
   const [deleting,setDeleting] = useState(null);
+  const [saving,setSaving]     = useState(null); // id do produto sendo salvo
 
   const filtrados = produtos
     .filter(p => filtro==='todos' || (filtro==='ativos'&&p.ativo!==false&&!p.vendido) || (filtro==='vendidos'&&p.vendido) || (filtro==='destaque'&&p.destaque))
-    .filter(p => !busca || p.nome.toLowerCase().includes(busca.toLowerCase()));
+    .filter(p => !busca || p.nome.toLowerCase().includes(busca.toLowerCase()))
+    .filter(p => !precoMin || (p.preco && Number(p.preco) >= Number(precoMin)))
+    .filter(p => !precoMax || (p.preco && Number(p.preco) <= Number(precoMax)));
 
   const salvar = async (p) => {
     const { id, ...dados } = p;
@@ -377,8 +401,16 @@ const ProductsPage = ({produtos, reload}) => {
   };
 
   const toggleField = async (p, field) => {
-    await supa(`produtos?id=eq.${p.id}`, { method:'PATCH', body: JSON.stringify({ [field]: !p[field] }) });
-    reload();
+    setSaving(p.id);
+    try {
+      await supa(`produtos?id=eq.${p.id}`, { method:'PATCH', body: JSON.stringify({ [field]: !p[field] }) });
+      reload();
+    } finally { setSaving(null); }
+  };
+
+  const duplicar = (p) => {
+    const { id, created_at, updated_at, viewed_count, ...dados } = p;
+    setEditando({ ...dados, nome: `${dados.nome} (cópia)`, vendido: false });
   };
 
   const imgs = (p) => (p.imagens&&p.imagens.length)?p.imagens:(p.imagem_url?[p.imagem_url]:[]);
@@ -390,12 +422,17 @@ const ProductsPage = ({produtos, reload}) => {
           <div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Produtos</div>
           <div style={{fontSize:14,color:'var(--muted)'}}>{filtrados.length} de {produtos.length} produtos</div>
         </div>
-        <Btn onClick={()=>setEditando({})}>+ Novo produto</Btn>
+        <div style={{display:'flex',gap:8}}>
+          <Btn color="ghost" onClick={()=>exportarCSV(filtrados)}>⬇ CSV</Btn>
+          <Btn onClick={()=>setEditando({})}>+ Novo produto</Btn>
+        </div>
       </div>
 
       {/* Filtros */}
-      <div style={{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap'}}>
-        <input value={busca} onChange={e=>setBusca(e.target.value)} placeholder="Buscar produto..." style={{...S.input,width:220,height:36}}/>
+      <div style={{display:'flex',gap:8,marginBottom:8,flexWrap:'wrap'}}>
+        <input value={busca} onChange={e=>setBusca(e.target.value)} placeholder="🗡️ Buscar produto..." style={{...S.input,width:200,height:36}}/>
+        <input value={precoMin} onChange={e=>setPrecoMin(e.target.value)} placeholder="R$ min" type="number" style={{...S.input,width:90,height:36}}/>
+        <input value={precoMax} onChange={e=>setPrecoMax(e.target.value)} placeholder="R$ max" type="number" style={{...S.input,width:90,height:36}}/>
         {['todos','ativos','vendidos','destaque'].map(f=>(
           <button key={f} onClick={()=>setFiltro(f)} style={{...S.btn,height:36,fontSize:12,background:filtro===f?'var(--red-dark)':'var(--surface)',border:`1px solid ${filtro===f?'var(--red)':'var(--border)'}`,color:filtro===f?'#fff':'var(--dim)'}}>
             {f.charAt(0).toUpperCase()+f.slice(1)}
@@ -443,8 +480,9 @@ const ProductsPage = ({produtos, reload}) => {
                   <td style={{padding:'10px 14px'}}>
                     <div style={{display:'flex',gap:6}}>
                       <button title="Editar" onClick={()=>setEditando(p)} style={{...S.btn,padding:'5px 10px',fontSize:13,background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--dim)'}}>✏</button>
-                      <button title={p.destaque?'Remover destaque':'Marcar destaque'} onClick={()=>toggleField(p,'destaque')} style={{...S.btn,padding:'5px 10px',fontSize:13,background:p.destaque?'rgba(255,184,0,.2)':'var(--surface2)',border:'1px solid var(--border)',color:p.destaque?'var(--gold)':'var(--dim)'}}>⭐</button>
-                      <button title={p.vendido?'Desmarcar vendido':'Marcar vendido'} onClick={()=>toggleField(p,'vendido')} style={{...S.btn,padding:'5px 10px',fontSize:13,background:p.vendido?'rgba(90,74,106,.4)':'var(--surface2)',border:'1px solid var(--border)',color:p.vendido?'var(--muted)':'var(--dim)'}}>✅</button>
+                      <button title="Duplicar" onClick={()=>duplicar(p)} style={{...S.btn,padding:'5px 10px',fontSize:13,background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--dim)'}}>⧉</button>
+                      <button title={p.destaque?'Remover destaque':'Marcar destaque'} onClick={()=>toggleField(p,'destaque')} disabled={saving===p.id} style={{...S.btn,padding:'5px 10px',fontSize:13,background:p.destaque?'rgba(255,184,0,.2)':'var(--surface2)',border:'1px solid var(--border)',color:p.destaque?'var(--gold)':'var(--dim)',opacity:saving===p.id?.5:1}}>⭐</button>
+                      <button title={p.vendido?'Desmarcar vendido':'Marcar vendido'} onClick={()=>toggleField(p,'vendido')} disabled={saving===p.id} style={{...S.btn,padding:'5px 10px',fontSize:13,background:p.vendido?'rgba(37,211,102,.2)':'var(--surface2)',border:'1px solid var(--border)',color:p.vendido?'var(--green)':'var(--dim)',opacity:saving===p.id?.5:1}}>{saving===p.id?'…':'✅'}</button>
                       <button title="Excluir" onClick={()=>setDeleting(p.id)} style={{...S.btn,padding:'5px 10px',fontSize:13,background:'rgba(204,20,20,.1)',border:'1px solid var(--border-r)',color:'var(--red-b)'}}>🗑</button>
                     </div>
                   </td>
@@ -543,8 +581,8 @@ const Analytics = ({visitas}) => {
 
 // ── Config ────────────────────────────────────────────────────
 const Config = () => {
-  const [cloud,setCloud]   = useState(localStorage.getItem('ng_cloud_name')||'ddadz8ut');
-  const [preset,setPreset] = useState(localStorage.getItem('ng_upload_preset')||'ytsmjlb');
+  const [cloud,setCloud]   = useState(localStorage.getItem('ng_cloud_name')||'ddaadz8ut');
+  const [preset,setPreset] = useState(localStorage.getItem('ng_upload_preset')||'ytsmjllb');
   const [saved,setSaved]   = useState(false);
 
   const salvar = () => {
@@ -565,7 +603,7 @@ const Config = () => {
         <div style={{fontSize:13,color:'var(--dim)',marginBottom:16,lineHeight:1.6}}>
           Acesse <strong style={{color:'var(--text)'}}>cloudinary.com → Settings → Upload → Upload presets</strong> e crie um preset do tipo <em>Unsigned</em>.
         </div>
-        <Input label="Cloud Name" value={cloud} onChange={e=>setCloud(e.target.value)} placeholder="ex: nosferatugames" />
+        <Input label="Cloud Name" value={cloud} onChange={e=>setCloud(e.target.value)} placeholder="ddaadz8ut" />
         <Input label="Upload Preset (unsigned)" value={preset} onChange={e=>setPreset(e.target.value)} placeholder="ex: produtos_unsigned" />
         <Btn color="gold" onClick={salvar}>{saved ? '✔ Salvo!' : 'Salvar'}</Btn>
       </div>
@@ -583,9 +621,9 @@ const Config = () => {
 
 // ── Sidebar nav ───────────────────────────────────────────────
 const NAV = [
-  { id:'dashboard', label:'Dashboard',  icon:'📊' },
-  { id:'produtos',  label:'Produtos',   icon:'🎮' },
-  { id:'analytics', label:'Analytics',  icon:'👁' },
+  { id:'dashboard', label:'Dashboard',  icon:'🏰' },
+  { id:'produtos',  label:'Produtos',   icon:'🗡️' },
+  { id:'analytics', label:'Analytics',  icon:'🧛' },
   { id:'config',    label:'Config',     icon:'⚙️' },
 ];
 
@@ -633,8 +671,8 @@ const App = () => {
       {/* Sidebar */}
       <div style={S.sidebar}>
         <div style={{padding:'20px 16px 16px',borderBottom:'1px solid var(--border)'}}>
-          <div style={{fontFamily:'Press Start 2P, monospace',fontSize:9,color:'var(--red-b)',lineHeight:1.8,textShadow:'0 0 10px rgba(204,20,20,.5)'}}>NOSFERATU</div>
-          <div style={{fontFamily:'Rajdhani, sans-serif',fontSize:11,color:'var(--gold)',letterSpacing:'0.2em'}}>ADMIN</div>
+          <div style={{fontFamily:'Press Start 2P, monospace',fontSize:9,color:'var(--red-b)',lineHeight:1.8,textShadow:'0 0 10px rgba(204,20,20,.5)'}}>🏰 CASTLEVANIA</div>
+          <div style={{fontFamily:'Rajdhani, sans-serif',fontSize:10,color:'var(--gold)',letterSpacing:'0.2em'}}>NOSFERATU · ADMIN</div>
         </div>
         <nav style={{flex:1,padding:12,display:'flex',flexDirection:'column',gap:4}}>
           {NAV.map(n=>(

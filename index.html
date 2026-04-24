@@ -25,6 +25,8 @@
 <!-- PWA -->
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/logo.png">
+<link rel="canonical" href="https://nosferatugames.com.br/">
+<meta name="robots" content="index, follow">
 
 <!-- Schema.org JSON-LD (Google Store Data) -->
 <script type="application/ld+json">
@@ -299,8 +301,17 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
 .payment-toast.erro{border-color:rgba(255,34,34,0.5);color:var(--red-bright)}
 .payment-toast.info{border-color:rgba(168,85,247,0.5);color:var(--purple-bright)}
 
-/* MODAL */
-#modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9000;align-items:center;justify-content:center;padding:1rem}
+/* Zoom de imagem no modal */
+#modal-imgs img{transition:transform 0.3s ease;cursor:zoom-in}
+#modal-imgs img.zoomed{transform:scale(1.8);cursor:zoom-out}
+/* Placeholder de loading nas imagens dos cards */
+.produto-img img{opacity:0;transition:opacity 0.3s ease}
+.produto-img img.loaded{opacity:1}
+.produto-img .img-placeholder{position:absolute;inset:0;background:linear-gradient(135deg,var(--surface2),var(--bg3));display:flex;align-items:center;justify-content:center;font-size:40px;animation:skeletonPulse 1.4s ease-in-out infinite}
+/* Botão carregar mais */
+.load-more-btn{display:none;margin:2rem auto 0;padding:12px 32px;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--text-dim);font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.2s}
+.load-more-btn:hover{border-color:var(--red);color:var(--red-bright)}
+.load-more-btn.visible{display:block}
 
 /* ANIMATIONS */
 @keyframes fadeInDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
@@ -451,6 +462,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
     <li><a href="#produtos">Produtos</a></li>
     <li><a href="#retro">Retrô</a></li>
     <li><a href="#pokemon">Pokémon</a></li>
+    <li><a href="#vender" style="color:var(--gold)">💰 Vender</a></li>
     <li><a href="#sobre">Sobre</a></li>
     <li><a href="#contato">Contato</a></li>
   </ul>
@@ -466,6 +478,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
   <a href="#produtos" onclick="toggleMenu()">Produtos</a>
   <a href="#retro" onclick="toggleMenu()">Retrô</a>
   <a href="#pokemon" onclick="toggleMenu()">Pokémon</a>
+  <a href="#vender" onclick="toggleMenu()" style="color:var(--gold)">💰 Vender</a>
   <a href="#sobre" onclick="toggleMenu()">Sobre</a>
   <a href="#contato" onclick="toggleMenu()">Contato</a>
   <a href="https://wa.me/5195108970" target="_blank" style="color:#25D366">📱 WhatsApp</a>
@@ -596,6 +609,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
       <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line xshort"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
       <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line xshort"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
     </div>
+    <button id="loadMoreBtn" class="load-more-btn" onclick="carregarMais()">⬇ Carregar mais produtos</button>
 
     <!-- Modal -->
     <div id="modal-overlay" onclick="fecharModal(event)">
@@ -663,6 +677,45 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
         <span class="type-badge type-psychic">🔮 Psíquico</span>
       </div>
       <a href="#produtos" class="btn-primary" onclick="irParaProdutos('pokemon')" style="display:inline-flex">🃏 Ver Cards Disponíveis</a>
+    </div>
+  </div>
+</section>
+
+<section id="vender" style="padding:80px 2rem;background:linear-gradient(135deg,var(--bg2),var(--bg));position:relative;overflow:hidden;">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,rgba(204,20,20,0.08),transparent 60%);pointer-events:none;"></div>
+  <div class="container" style="position:relative;z-index:1;">
+    <div class="section-header reveal">
+      <span class="section-eyebrow">// Quer Vender?</span>
+      <h2 class="section-title">A gente <span>compra</span> seu jogo</h2>
+      <div class="section-divider"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.5rem;margin-bottom:2.5rem;">
+      <div class="retro-card reveal" style="text-align:left;padding:1.5rem;">
+        <div style="font-size:32px;margin-bottom:1rem;">🎮</div>
+        <div style="font-family:'Press Start 2P',monospace;font-size:9px;color:var(--red-bright);margin-bottom:0.75rem;line-height:1.6;">Jogos</div>
+        <p style="font-family:'Rajdhani',sans-serif;font-size:15px;color:var(--text-dim);line-height:1.6;">PS5, PS4, Switch, 3DS, retrô e mais. Qualquer plataforma, qualquer geração.</p>
+      </div>
+      <div class="retro-card reveal" style="text-align:left;padding:1.5rem;">
+        <div style="font-size:32px;margin-bottom:1rem;">🕹️</div>
+        <div style="font-family:'Press Start 2P',monospace;font-size:9px;color:var(--red-bright);margin-bottom:0.75rem;line-height:1.6;">Consoles</div>
+        <p style="font-family:'Rajdhani',sans-serif;font-size:15px;color:var(--text-dim);line-height:1.6;">Compramos consoles funcionando ou com defeito. Faça seu orçamento sem compromisso.</p>
+      </div>
+      <div class="retro-card reveal" style="text-align:left;padding:1.5rem;">
+        <div style="font-size:32px;margin-bottom:1rem;">🃏</div>
+        <div style="font-family:'Press Start 2P',monospace;font-size:9px;color:var(--red-bright);margin-bottom:0.75rem;line-height:1.6;">Cards Pokémon</div>
+        <p style="font-family:'Rajdhani',sans-serif;font-size:15px;color:var(--text-dim);line-height:1.6;">Coleção encalhada? Avaliamos cartas avulsas, coleções completas e itens raros.</p>
+      </div>
+      <div class="retro-card reveal" style="text-align:left;padding:1.5rem;">
+        <div style="font-size:32px;margin-bottom:1rem;">🎧</div>
+        <div style="font-family:'Press Start 2P',monospace;font-size:9px;color:var(--red-bright);margin-bottom:0.75rem;line-height:1.6;">Acessórios</div>
+        <p style="font-family:'Rajdhani',sans-serif;font-size:15px;color:var(--text-dim);line-height:1.6;">Controles, headsets, volantes, câmeras e periféricos em geral.</p>
+      </div>
+    </div>
+    <div class="reveal" style="text-align:center;">
+      <p style="font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--text-muted);margin-bottom:1.5rem;">> Avaliação gratuita · Pagamento na hora · Sem burocracia</p>
+      <a href="https://wa.me/5195108970?text=Olá! Quero vender meus jogos/console. Pode me fazer uma avaliação?" class="btn-primary" target="_blank" style="display:inline-flex;">
+        💰 Quero vender meu jogo
+      </a>
     </div>
   </div>
 </section>
@@ -1266,7 +1319,7 @@ function cardHtml(p) {
   const wppMsg = encodeURIComponent(`Olá! Quero o ${p.nome}! Vi no site da Nosferatu Games.`);
   const imgs   = (p.imagens&&p.imagens.length)?p.imagens:(p.imagem_url?[p.imagem_url]:[]);
   const imgTag = imgs.length
-    ? `<img src="${imgs[0]}" alt="${p.nome}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">`
+    ? `<img src="${imgs[0]}" alt="${p.nome} - ${p.console||''} - Nosferatu Games" loading="lazy" style="width:100%;height:100%;object-fit:cover;" onload="this.classList.add('loaded')">`
     : `<span style="font-size:60px">${consoleEmoji(key)}</span>`;
   const isVendido = p.vendido === true;
   const fav       = isFav(p.id);
@@ -1315,7 +1368,30 @@ function onFavClick(btn, id) {
   if (mostrarFavs) renderGrid();
 }
 
-// ── Renderizar grid (busca + filtro + ordenação) ─────────────
+// ── Paginação ─────────────────────────────────────────────────
+const ITENS_POR_PAGINA = 24;
+let listaFiltrada = [];
+let paginaAtual   = 0;
+
+function carregarMais() {
+  paginaAtual++;
+  const inicio = paginaAtual * ITENS_POR_PAGINA;
+  const fim    = inicio + ITENS_POR_PAGINA;
+  const fatia  = listaFiltrada.slice(inicio, fim);
+  const grid   = document.getElementById('produtosGrid');
+  grid.insertAdjacentHTML('beforeend', fatia.map(cardHtml).join(''));
+  iniciarLazyImg();
+  const btn = document.getElementById('loadMoreBtn');
+  if (fim >= listaFiltrada.length) btn.classList.remove('visible');
+}
+
+function iniciarLazyImg() {
+  document.querySelectorAll('.produto-img img:not(.loaded)').forEach(img => {
+    if (img.complete) { img.classList.add('loaded'); return; }
+    img.addEventListener('load',  () => img.classList.add('loaded'), { once: true });
+    img.addEventListener('error', () => img.classList.add('loaded'), { once: true });
+  });
+}
 function renderGrid() {
   const query = document.getElementById('searchInput').value.trim().toLowerCase();
   const sort  = document.getElementById('sortSelect').value;
@@ -1323,38 +1399,36 @@ function renderGrid() {
   const grid  = document.getElementById('produtosGrid');
 
   let lista = [...todosOsProdutos];
-
-  // Filtro por console
   if (filtroAtivo !== 'todos') lista = lista.filter(p => consoleKey(p.console) === filtroAtivo);
-
-  // Filtro favoritos
   if (mostrarFavs) lista = lista.filter(p => favs.includes(String(p.id)));
-
-  // Busca
   if (query) lista = lista.filter(p =>
     p.nome.toLowerCase().includes(query) ||
     (p.console||'').toLowerCase().includes(query) ||
     (p.descricao||'').toLowerCase().includes(query)
   );
-
-  // Ordenação
   lista.sort((a,b) => {
     if (sort==='preco_asc')  return (a.preco||0) - (b.preco||0);
     if (sort==='preco_desc') return (b.preco||0) - (a.preco||0);
     if (sort==='nome_asc')   return a.nome.localeCompare(b.nome);
     if (sort==='recente')    return new Date(b.created_at||0) - new Date(a.created_at||0);
-    // destaque: destaque first, vendido last
     const da = a.destaque?-1:0, db = b.destaque?-1:0;
     const va = a.vendido?1:0,   vb = b.vendido?1:0;
     return (da+va) - (db+vb);
   });
 
+  listaFiltrada = lista;
+  paginaAtual   = 0;
+
+  const btn = document.getElementById('loadMoreBtn');
   if (!lista.length) {
     grid.innerHTML = `<div class="no-results">> ${mostrarFavs&&!query?'⚰️ Seu Caixão está vazio...':'nenhum produto encontrado nas criptas.'}</div>`;
+    btn.classList.remove('visible');
     return;
   }
-
-  grid.innerHTML = lista.map(cardHtml).join('');
+  grid.innerHTML = lista.slice(0, ITENS_POR_PAGINA).map(cardHtml).join('');
+  iniciarLazyImg();
+  if (lista.length > ITENS_POR_PAGINA) btn.classList.add('visible');
+  else btn.classList.remove('visible');
   document.querySelectorAll('#produtosGrid .reveal').forEach(el => observer.observe(el));
 }
 
