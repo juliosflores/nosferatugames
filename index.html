@@ -726,21 +726,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
   <div class="footer-logo">NOSFERATU GAMES</div>
   <div class="footer-sub">
     © 2026 · Porto Alegre, RS · nosferatugames.com.br
-    <span onclick="
-      if(window.testAudio){ window.testAudio.pause(); window.testAudio.currentTime=0; }
-      const audio = new Audio('/tocata.mp3');
-      audio.volume = 0.7;
-      audio.onerror = function() {
-        const fallback = new Audio('https://archive.org/download/ToccataAndFugueInDMinorBWV565/Toccata%20and%20Fugue%20in%20D%20Minor%2C%20BWV%20565.mp3');
-        fallback.volume = 0.7;
-        fallback.play();
-        window.testAudio = fallback;
-        setTimeout(()=>{ fallback.pause(); fallback.currentTime=0; }, 12000);
-      };
-      audio.play();
-      window.testAudio = audio;
-      setTimeout(()=>{ audio.pause(); audio.currentTime=0; }, 12000);
-    " style="cursor:pointer; margin-left:10px; filter: drop-shadow(0 0 5px rgba(204,20,20,0.5));" title="Ouvir o Ritual">🦇</span>
+    <span onclick="tocarRitual()" style="cursor:pointer; margin-left:10px; filter: drop-shadow(0 0 5px rgba(204,20,20,0.5));" title="Ouvir o Ritual">🦇</span>
   </div>
 </footer>
 
@@ -1443,6 +1429,22 @@ function fecharModal(event) {
 document.addEventListener('keydown',e=>{if(e.key==='Escape')fecharModal()});
 
 // ── Utils ─────────────────────────────────────────────────────
+function tocarRitual() {
+  if (window.testAudio) { window.testAudio.pause(); window.testAudio.currentTime = 0; }
+  const audio = new Audio('/tocata.mp3');
+  audio.volume = 0.7;
+  audio.onerror = () => {
+    const fb = new Audio('https://archive.org/download/ToccataAndFugueInDMinorBWV565/Toccata%20and%20Fugue%20in%20D%20Minor%2C%20BWV%20565.mp3');
+    fb.volume = 0.7;
+    fb.play().catch(()=>{});
+    window.testAudio = fb;
+    setTimeout(() => { fb.pause(); fb.currentTime = 0; }, 12000);
+  };
+  audio.play().catch(() => audio.onerror());
+  window.testAudio = audio;
+  setTimeout(() => { audio.pause(); audio.currentTime = 0; }, 12000);
+}
+
 function toggleMenu(){document.getElementById('mobileMenu').classList.toggle('open')}
 
 function irParaProdutos(filtro) {
