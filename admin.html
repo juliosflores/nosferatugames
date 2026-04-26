@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -17,6 +17,7 @@
   --border:#2A1A3A;--border-r:#4A0A0A;
   --text:#E8E0F0;--dim:#9080A0;--muted:#5A4A6A;
   --green:#25D366;--green-d:#1a5c2a;
+  --cyan:#00FFFF;--amber:#F5A800;
 }
 html,body,#root{height:100%}
 body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;overflow:hidden}
@@ -24,6 +25,9 @@ body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;ov
 ::-webkit-scrollbar-track{background:var(--bg2)}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 input,select,textarea,button{font-family:'Rajdhani',sans-serif}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
@@ -32,13 +36,11 @@ input,select,textarea,button{font-family:'Rajdhani',sans-serif}
 const { useState, useEffect, useCallback, useRef } = React;
 
 // ── Config ───────────────────────────────────────────────────
-// Cloudinary (pré-configurado)
 if (!localStorage.getItem('ng_cloud_name'))    localStorage.setItem('ng_cloud_name',    'ddaadz8ut');
 if (!localStorage.getItem('ng_upload_preset')) localStorage.setItem('ng_upload_preset', 'ytsmjllb');
 
 const SUPA_URL  = 'https://jcnncmfbodglvoyytgok.supabase.co';
 const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impjbm5jbWZib2RnbHZveXl0Z29rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MTg0NDgsImV4cCI6MjA5MTE5NDQ0OH0.YpStoaxT86MQY06KiKVhUXdlcF-CVsu4DOFuUTLv4u0';
-// Senha validada via API segura
 const HEADERS   = { apikey: SUPA_ANON, Authorization: `Bearer ${SUPA_ANON}`, 'Content-Type': 'application/json', Prefer: 'return=representation' };
 
 const supa = async (path, opts={}) => {
@@ -48,28 +50,22 @@ const supa = async (path, opts={}) => {
   return r.json();
 };
 
-const rpc = async (fn, params={}) => {
-  const r = await fetch(`${SUPA_URL}/rest/v1/rpc/${fn}`, { method:'POST', headers: HEADERS, body: JSON.stringify(params) });
-  return r.json();
-};
-
 // ── Helpers ──────────────────────────────────────────────────
 const fmtBRL  = v => v ? `R$ ${Number(v).toLocaleString('pt-BR')}` : '—';
 const fmtDate = d => new Date(d).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+const fmtDateFull = d => {
+  const diff = Math.floor((Date.now() - new Date(d)) / 60000);
+  if (diff < 1)  return 'agora';
+  if (diff < 60) return `${diff}min atrás`;
+  if (diff < 1440) return `${Math.floor(diff/60)}h atrás`;
+  return new Date(d).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+};
 const CONSOLES = ['PS5','PS4','Nintendo Switch','Nintendo 3DS','Retrô','Pokémon TCG','Acessórios'];
 const CONDICOES= ['Novo','Seminovo','Usado'];
 
-// Exportar CSV do estoque
 const exportarCSV = (produtos) => {
   const header = ['Nome','Console','Preço','Condição','Status','Views'];
-  const rows = produtos.map(p=>[
-    `"${(p.nome||'').replace(/"/g,'""')}"`,
-    p.console||'',
-    p.preco||'',
-    p.condicao||'',
-    p.vendido?'Vendido':p.ativo===false?'Inativo':'Ativo',
-    p.viewed_count||0
-  ]);
+  const rows = produtos.map(p=>[`"${(p.nome||'').replace(/"/g,'""')}"`,p.console||'',p.preco||'',p.condicao||'',p.vendido?'Vendido':p.ativo===false?'Inativo':'Ativo',p.viewed_count||0]);
   const csv = [header,...rows].map(r=>r.join(',')).join('\n');
   const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
   const url  = URL.createObjectURL(blob);
@@ -78,46 +74,34 @@ const exportarCSV = (produtos) => {
   a.click(); URL.revokeObjectURL(url);
 };
 
-// Cloudinary upload
 const cloudUpload = async (file) => {
   const cloud  = localStorage.getItem('ng_cloud_name');
   const preset = localStorage.getItem('ng_upload_preset');
   if (!cloud||!preset) throw new Error('Configure Cloudinary nas Configurações');
   const fd = new FormData();
-  fd.append('file', file);
-  fd.append('upload_preset', preset);
-  fd.append('folder', 'nosferatu-games');
+  fd.append('file', file); fd.append('upload_preset', preset); fd.append('folder', 'nosferatu-games');
   const r = await fetch(`https://api.cloudinary.com/v1_1/${cloud}/image/upload`, { method:'POST', body:fd });
   const d = await r.json();
   if (d.error) throw new Error(d.error.message);
   return d.secure_url;
 };
 
-// Precificação dinâmica via OLX
 const buscarPrecoOLX = async (nome, setPreco, setToast) => {
   if (!nome || nome.length < 3) { setToast('✕ Digite o nome do produto primeiro.'); return; }
   setToast('🔍 Consultando OLX...');
   try {
-    const r = await fetch('/api/precificar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nomeProduto: nome })
-    });
+    const r = await fetch('/api/precificar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ nomeProduto: nome }) });
     const data = await r.json();
     if (data.encontrado) {
       setPreco(String(data.sugestaoCompra.generoso));
-      setToast(`💰 OLX: menor preço R$ ${data.menorPreco.toLocaleString('pt-BR')} em ${data.totalAnuncios} anúncios. Sugestão de compra: ${data.sugestaoCompra.texto}`);
-    } else {
-      setToast('⚠ ' + (data.mensagem || 'Não encontrado na OLX.'));
-    }
-  } catch {
-    setToast('✕ Erro ao consultar OLX.');
-  }
+      setToast(`💰 OLX: menor preço R$ ${data.menorPreco.toLocaleString('pt-BR')} em ${data.totalAnuncios} anúncios.`);
+    } else { setToast('⚠ ' + (data.mensagem || 'Não encontrado na OLX.')); }
+  } catch { setToast('✕ Erro ao consultar OLX.'); }
 };
 
 // ── UI primitives ────────────────────────────────────────────
 const S = {
-  layout: { display:'flex', height:'100vh', overflow:'hidden' },
+  layout:  { display:'flex', height:'100vh', overflow:'hidden' },
   sidebar: { width:220, background:'var(--bg2)', borderRight:'1px solid var(--border-r)', display:'flex', flexDirection:'column', flexShrink:0 },
   main:    { flex:1, overflow:'auto', background:'var(--bg)', display:'flex', flexDirection:'column' },
   topbar:  { height:56, background:'var(--bg2)', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', padding:'0 24px', gap:12, flexShrink:0 },
@@ -125,15 +109,15 @@ const S = {
   card:    { background:'var(--surface)', border:'1px solid var(--border)', borderRadius:6, padding:20 },
   grid4:   { display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))', gap:16, marginBottom:24 },
   grid2:   { display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 },
+  grid3:   { display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:16, marginBottom:24 },
   label:   { display:'block', fontSize:12, fontWeight:600, letterSpacing:'0.1em', color:'var(--dim)', textTransform:'uppercase', marginBottom:6, fontFamily:'Share Tech Mono, monospace' },
   input:   { width:'100%', padding:'9px 12px', background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:4, color:'var(--text)', fontSize:15, outline:'none' },
   btn:     { padding:'9px 18px', borderRadius:4, border:'none', cursor:'pointer', fontWeight:700, fontSize:14, letterSpacing:'0.05em', display:'inline-flex', alignItems:'center', gap:6, transition:'all 0.15s' },
-  row:     { display:'flex', alignItems:'center', gap:10 },
   tag:     (c) => ({ padding:'2px 8px', borderRadius:2, fontSize:11, fontWeight:700, fontFamily:'Share Tech Mono, monospace', background:c==='Novo'?'rgba(74,222,128,.15)':c==='Seminovo'?'rgba(168,85,247,.15)':'rgba(255,184,0,.15)', color:c==='Novo'?'#4ade80':c==='Seminovo'?'var(--purple)':'var(--gold)', border:`1px solid ${c==='Novo'?'#166534':c==='Seminovo'?'#4c1d95':'#713f12'}` }),
 };
 
 const Btn = ({children, color='red', onClick, disabled, style={}}) => {
-  const colors = { red:{bg:'var(--red)',c:'#fff',hbg:'var(--red-b)'}, ghost:{bg:'transparent',c:'var(--dim)',hbg:'var(--surface2)'}, green:{bg:'rgba(37,211,102,.15)',c:'var(--green)',hbg:'rgba(37,211,102,.25)'}, purple:{bg:'rgba(168,85,247,.15)',c:'var(--purple)',hbg:'rgba(168,85,247,.25)'}, gold:{bg:'rgba(255,184,0,.15)',c:'var(--gold)',hbg:'rgba(255,184,0,.25)'}, danger:{bg:'rgba(204,20,20,.15)',c:'var(--red-b)',hbg:'rgba(204,20,20,.3)'} };
+  const colors = { red:{bg:'var(--red)',c:'#fff'}, ghost:{bg:'transparent',c:'var(--dim)'}, green:{bg:'rgba(37,211,102,.15)',c:'var(--green)'}, purple:{bg:'rgba(168,85,247,.15)',c:'var(--purple)'}, gold:{bg:'rgba(255,184,0,.15)',c:'var(--gold)'}, danger:{bg:'rgba(204,20,20,.15)',c:'var(--red-b)'}, cyan:{bg:'rgba(0,255,255,.1)',c:'var(--cyan)'} };
   const cv = colors[color]||colors.ghost;
   return <button disabled={disabled} onClick={onClick} style={{...S.btn, background:cv.bg, color:cv.c, opacity:disabled?.5:1, ...style}}>{children}</button>;
 };
@@ -169,6 +153,10 @@ const StatCard = ({label, value, sub, color='var(--red-b)', icon}) => (
   </div>
 );
 
+const MonoTag = ({children, color='var(--dim)', bg='var(--surface2)'}) => (
+  <span style={{fontFamily:'Share Tech Mono, monospace',fontSize:10,padding:'2px 8px',borderRadius:2,background:bg,color,letterSpacing:'0.1em'}}>{children}</span>
+);
+
 // ── Login ────────────────────────────────────────────────────
 const Login = ({onLogin}) => {
   const [pwd,setPwd]   = useState('');
@@ -179,28 +167,14 @@ const Login = ({onLogin}) => {
   const submit = async (e) => {
     e.preventDefault();
     if (loading) return;
-    setLoading(true);
-    setErr('');
-
+    setLoading(true); setErr('');
     try {
-      const res = await fetch('/api/admin-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: pwd })
-      });
+      const res = await fetch('/api/admin-login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ password: pwd }) });
       const data = await res.json();
-
-      if (data.success) {
-        sessionStorage.setItem('ng_admin_token', data.token);
-        onLogin();
-      } else {
-        setErr(data.message || 'Senha incorreta');
-      }
-    } catch (e) {
-      setErr('Erro ao conectar com o servidor');
-    } finally {
-      setLoading(false);
-    }
+      if (data.success) { sessionStorage.setItem('ng_admin_token', data.token); onLogin(); }
+      else setErr(data.message || 'Senha incorreta');
+    } catch { setErr('Erro ao conectar com o servidor'); }
+    finally { setLoading(false); }
   };
 
   return (
@@ -230,68 +204,43 @@ const Dashboard = ({produtos, visitas}) => {
   const destaque = produtos.filter(p=>p.destaque).length;
   const hoje     = new Date().toDateString();
   const visitasHoje = visitas.filter(v=>new Date(v.created_at).toDateString()===hoje).length;
-
-  // visitas dos últimos 7 dias
-  const dias = Array.from({length:7},(_,i)=>{
-    const d = new Date(); d.setDate(d.getDate()-6+i);
-    const label = d.toLocaleDateString('pt-BR',{weekday:'short'}).slice(0,3);
-    const count = visitas.filter(v=>new Date(v.created_at).toDateString()===d.toDateString()).length;
-    return {label,count};
-  });
+  const dias = Array.from({length:7},(_,i)=>{ const d=new Date(); d.setDate(d.getDate()-6+i); const label=d.toLocaleDateString('pt-BR',{weekday:'short'}).slice(0,3); const count=visitas.filter(v=>new Date(v.created_at).toDateString()===d.toDateString()).length; return {label,count}; });
   const maxV = Math.max(...dias.map(d=>d.count),1);
-
-  // mais vistos
   const topProd = [...produtos].sort((a,b)=>(b.viewed_count||0)-(a.viewed_count||0)).slice(0,5);
-
-  // mobile vs desktop
   const mobile  = visitas.filter(v=>v.dispositivo==='mobile').length;
   const desktop = visitas.length - mobile;
 
   return (
     <div>
-      <div style={{marginBottom:20}}>
-        <div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Dashboard</div>
-        <div style={{fontSize:14,color:'var(--muted)'}}>Visão geral da loja</div>
-      </div>
-
+      <div style={{marginBottom:20}}><div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Dashboard</div><div style={{fontSize:14,color:'var(--muted)'}}>Visão geral da loja</div></div>
       <div style={S.grid4}>
-        <StatCard label="Produtos ativos"   value={ativos}       sub={`${produtos.length} total`}           color="var(--red-b)"   icon="🗡️"/>
-        <StatCard label="Vendidos"           value={vendidos}     sub={`R$ ${produtos.filter(p=>p.vendido&&p.preco).reduce((a,p)=>a+Number(p.preco),0).toLocaleString('pt-BR')} faturado`} color="var(--green)"   icon="🏆"/>
-        <StatCard label="Em destaque"        value={destaque}     sub="aparecem primeiro"                    color="var(--gold)"    icon="⭐"/>
-        <StatCard label="Visitas hoje"       value={visitasHoje}  sub={`${visitas.length} total`}            color="var(--purple)"  icon="🧛"/>
+        <StatCard label="Produtos ativos" value={ativos} sub={`${produtos.length} total`} color="var(--red-b)" icon="🗡️"/>
+        <StatCard label="Vendidos" value={vendidos} sub={`R$ ${produtos.filter(p=>p.vendido&&p.preco).reduce((a,p)=>a+Number(p.preco),0).toLocaleString('pt-BR')} faturado`} color="var(--green)" icon="🏆"/>
+        <StatCard label="Em destaque" value={destaque} sub="aparecem primeiro" color="var(--gold)" icon="⭐"/>
+        <StatCard label="Visitas hoje" value={visitasHoje} sub={`${visitas.length} total`} color="var(--purple)" icon="🧛"/>
       </div>
-
       <div style={S.grid2}>
-        {/* Gráfico de visitas */}
         <div style={S.card}>
           <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:16}}>// Visitas — últimos 7 dias</div>
           <div style={{display:'flex',alignItems:'flex-end',gap:8,height:100}}>
             {dias.map(({label,count})=>(
               <div key={label} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
                 <div style={{fontSize:11,color:'var(--muted)'}}>{count||''}</div>
-                <div style={{width:'100%',background:'var(--red)',borderRadius:'2px 2px 0 0',height:`${Math.max((count/maxV)*80,count>0?4:0)}px`,opacity:.85,transition:'height 0.3s'}}/>
+                <div style={{width:'100%',background:'var(--red)',borderRadius:'2px 2px 0 0',height:`${Math.max((count/maxV)*80,count>0?4:0)}px`,opacity:.85}}/>
                 <div style={{fontSize:10,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>{label}</div>
               </div>
             ))}
           </div>
-          <div style={{marginTop:16,display:'flex',gap:16}}>
-            <div style={{fontSize:13,color:'var(--dim)'}}>📱 Mobile: <strong style={{color:'var(--text)'}}>{mobile}</strong></div>
-            <div style={{fontSize:13,color:'var(--dim)'}}>🖥 Desktop: <strong style={{color:'var(--text)'}}>{desktop}</strong></div>
-          </div>
+          <div style={{marginTop:16,display:'flex',gap:16}}><div style={{fontSize:13,color:'var(--dim)'}}>📱 Mobile: <strong style={{color:'var(--text)'}}>{mobile}</strong></div><div style={{fontSize:13,color:'var(--dim)'}}>🖥 Desktop: <strong style={{color:'var(--text)'}}>{desktop}</strong></div></div>
         </div>
-
-        {/* Mais vistos */}
         <div style={S.card}>
           <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:16}}>// Produtos mais vistos</div>
-          {topProd.length === 0
+          {topProd.length===0
             ? <div style={{fontSize:13,color:'var(--muted)'}}>Nenhum dado ainda</div>
             : topProd.map((p,i)=>(
               <div key={p.id} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 0',borderBottom:i<4?'1px solid var(--border)':'none'}}>
                 <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--muted)',width:16}}>#{i+1}</div>
-                <div style={{flex:1}}>
-                  <div style={{fontSize:14,fontWeight:700,color:'var(--text)',lineHeight:1.3}}>{p.nome}</div>
-                  <div style={{fontSize:12,color:'var(--muted)'}}>{p.console||'—'}</div>
-                </div>
+                <div style={{flex:1}}><div style={{fontSize:14,fontWeight:700,color:'var(--text)',lineHeight:1.3}}>{p.nome}</div><div style={{fontSize:12,color:'var(--muted)'}}>{p.console||'—'}</div></div>
                 <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--purple)'}}>{p.viewed_count||0} views</div>
               </div>
             ))}
@@ -301,7 +250,7 @@ const Dashboard = ({produtos, visitas}) => {
   );
 };
 
-// ── Formulário de produto ────────────────────────────────────
+// ── ProductForm ──────────────────────────────────────────────
 const EMPTY_PROD = { nome:'', preco:'', console:'PS5', condicao:'Novo', descricao:'', imagens:[], ativo:true, destaque:false, vendido:false };
 
 const ProductForm = ({initial, onSave, onClose}) => {
@@ -311,254 +260,121 @@ const ProductForm = ({initial, onSave, onClose}) => {
   const [toast,setToast]         = useState('');
   const [buscandoOLX,setBuscandoOLX] = useState(false);
   const fileRef = useRef();
-
   const set = (k,v) => setP(prev=>({...prev,[k]:v}));
-
-  const uploadFotos = async (files) => {
-    setUploading(true);
-    try {
-      const urls = await Promise.all([...files].map(cloudUpload));
-      set('imagens', [...(p.imagens||[]), ...urls]);
-    } catch(e) { setToast('✕ '+e.message); }
-    setUploading(false);
-  };
-
+  const uploadFotos = async (files) => { setUploading(true); try { const urls = await Promise.all([...files].map(cloudUpload)); set('imagens', [...(p.imagens||[]), ...urls]); } catch(e) { setToast('✕ '+e.message); } setUploading(false); };
   const removerImg = (idx) => set('imagens', p.imagens.filter((_,i)=>i!==idx));
-
-  const consultarOLX = async () => {
-    setBuscandoOLX(true);
-    await buscarPrecoOLX(p.nome, (preco) => set('preco', preco), setToast);
-    setBuscandoOLX(false);
-  };
-
+  const consultarOLX = async () => { setBuscandoOLX(true); await buscarPrecoOLX(p.nome, (preco) => set('preco', preco), setToast); setBuscandoOLX(false); };
   const salvar = async () => {
     if (!p.nome.trim()) { setToast('✕ Nome é obrigatório'); return; }
     if (!p.preco)       { setToast('✕ Preço é obrigatório'); return; }
     if (!p.imagens || p.imagens.length === 0) { setToast('✕ Adicione pelo menos 1 foto'); return; }
     setSaving(true);
-    try { await onSave(p); onClose(); }
-    catch(e) { setToast('✕ '+e.message); setSaving(false); }
+    try { await onSave(p); onClose(); } catch(e) { setToast('✕ '+e.message); setSaving(false); }
   };
-
   return (
     <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.85)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
       <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:8,width:'100%',maxWidth:600,maxHeight:'90vh',overflow:'auto',padding:24,position:'relative'}}>
         <button onClick={onClose} style={{position:'absolute',top:14,right:14,background:'none',border:'none',color:'var(--dim)',fontSize:20,cursor:'pointer'}}>✕</button>
         <div style={{fontFamily:'Press Start 2P, monospace',fontSize:11,color:'var(--text)',marginBottom:20}}>{initial?.id ? 'EDITAR PRODUTO' : 'NOVO PRODUTO'}</div>
-
         <div style={S.grid2}>
           <Input label="Nome do produto" value={p.nome} onChange={e=>set('nome',e.target.value)} placeholder="Ex: God of War Ragnarök" />
           <div style={{marginBottom:14}}>
             <label style={S.label}>Preço (R$)</label>
             <div style={{display:'flex',gap:6}}>
               <input type="number" value={p.preco} onChange={e=>set('preco',e.target.value)} placeholder="299" style={{...S.input,flex:1}}/>
-              <button type="button" onClick={consultarOLX} disabled={buscandoOLX||!p.nome} title="Consultar preço na OLX" style={{...S.btn,padding:'9px 12px',background:'rgba(255,184,0,.15)',border:'1px solid rgba(255,184,0,.4)',color:'var(--gold)',fontSize:12,whiteSpace:'nowrap',opacity:(!p.nome||buscandoOLX)?.5:1}}>
-                {buscandoOLX ? '...' : '🔍 OLX'}
-              </button>
+              <button type="button" onClick={consultarOLX} disabled={buscandoOLX||!p.nome} style={{...S.btn,padding:'9px 12px',background:'rgba(255,184,0,.15)',border:'1px solid rgba(255,184,0,.4)',color:'var(--gold)',fontSize:12,whiteSpace:'nowrap',opacity:(!p.nome||buscandoOLX)?.5:1}}>{buscandoOLX ? '...' : '🔍 OLX'}</button>
             </div>
           </div>
         </div>
         <div style={S.grid2}>
-          <div style={{marginBottom:14}}>
-            <label style={S.label}>Console / Plataforma</label>
-            <select value={p.console} onChange={e=>set('console',e.target.value)} style={{...S.input,cursor:'pointer'}}>
-              {CONSOLES.map(c=><option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-          <div style={{marginBottom:14}}>
-            <label style={S.label}>Condição</label>
-            <select value={p.condicao} onChange={e=>set('condicao',e.target.value)} style={{...S.input,cursor:'pointer'}}>
-              {CONDICOES.map(c=><option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
+          <div style={{marginBottom:14}}><label style={S.label}>Console</label><select value={p.console} onChange={e=>set('console',e.target.value)} style={{...S.input,cursor:'pointer'}}>{CONSOLES.map(c=><option key={c} value={c}>{c}</option>)}</select></div>
+          <div style={{marginBottom:14}}><label style={S.label}>Condição</label><select value={p.condicao} onChange={e=>set('condicao',e.target.value)} style={{...S.input,cursor:'pointer'}}>{CONDICOES.map(c=><option key={c} value={c}>{c}</option>)}</select></div>
         </div>
-        <Input label="Descrição" as="textarea" rows={3} value={p.descricao||''} onChange={e=>set('descricao',e.target.value)} placeholder="Detalhes do produto, acompanha embalagem, etc." />
-
-        {/* Fotos */}
+        <Input label="Descrição" as="textarea" rows={3} value={p.descricao||''} onChange={e=>set('descricao',e.target.value)} placeholder="Detalhes do produto..." />
         <div style={{marginBottom:14}}>
           <label style={S.label}>Fotos</label>
           <div style={{display:'flex',flexWrap:'wrap',gap:8,marginBottom:8}}>
-            {(p.imagens||[]).map((url,i)=>(
-              <div key={i} style={{position:'relative',width:72,height:72}}>
-                <img src={url} alt="" style={{width:72,height:72,objectFit:'cover',borderRadius:4,border:'1px solid var(--border)'}}/>
-                <button onClick={()=>removerImg(i)} style={{position:'absolute',top:-6,right:-6,width:18,height:18,borderRadius:'50%',background:'var(--red)',border:'none',color:'#fff',fontSize:10,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>✕</button>
-              </div>
-            ))}
-            <button onClick={()=>fileRef.current.click()} disabled={uploading} style={{width:72,height:72,borderRadius:4,border:'2px dashed var(--border)',background:'var(--bg3)',color:'var(--muted)',cursor:'pointer',fontSize:22,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:2}}>
-              {uploading ? <span style={{fontSize:11}}>...</span> : <>+<span style={{fontSize:10}}>foto</span></>}
-            </button>
+            {(p.imagens||[]).map((url,i)=>(<div key={i} style={{position:'relative',width:72,height:72}}><img src={url} alt="" style={{width:72,height:72,objectFit:'cover',borderRadius:4,border:'1px solid var(--border)'}}/><button onClick={()=>removerImg(i)} style={{position:'absolute',top:-6,right:-6,width:18,height:18,borderRadius:'50%',background:'var(--red)',border:'none',color:'#fff',fontSize:10,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button></div>))}
+            <button onClick={()=>fileRef.current.click()} disabled={uploading} style={{width:72,height:72,borderRadius:4,border:'2px dashed var(--border)',background:'var(--bg3)',color:'var(--muted)',cursor:'pointer',fontSize:22,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:2}}>{uploading ? <span style={{fontSize:11}}>...</span> : <>+<span style={{fontSize:10}}>foto</span></>}</button>
             <input ref={fileRef} type="file" accept="image/*" multiple style={{display:'none'}} onChange={e=>uploadFotos(e.target.files)}/>
           </div>
-          {!(localStorage.getItem('ng_cloud_name')) && <div style={{fontSize:12,color:'var(--gold)',fontFamily:'Share Tech Mono, monospace'}}>⚠ Configure o Cloudinary nas Configurações para habilitar upload</div>}
         </div>
-
-        {/* Toggles */}
         <div style={{display:'flex',gap:24,marginBottom:20,flexWrap:'wrap'}}>
-          <Toggle label="Ativo (visível no site)" checked={p.ativo!==false} onChange={()=>set('ativo',!p.ativo)} />
+          <Toggle label="Ativo" checked={p.ativo!==false} onChange={()=>set('ativo',!p.ativo)} />
           <Toggle label="Destaque" checked={!!p.destaque} onChange={()=>set('destaque',!p.destaque)} />
           <Toggle label="Vendido" checked={!!p.vendido} onChange={()=>set('vendido',!p.vendido)} />
         </div>
-
         {toast && <div style={{fontSize:13,color:'var(--red-b)',marginBottom:12,fontFamily:'Share Tech Mono, monospace'}}>{toast}</div>}
-
-        <div style={{display:'flex',gap:10,justifyContent:'flex-end'}}>
-          <Btn color="ghost" onClick={onClose}>Cancelar</Btn>
-          <Btn onClick={salvar} disabled={saving}>{saving?'Salvando...':'Salvar produto'}</Btn>
-        </div>
+        <div style={{display:'flex',gap:10,justifyContent:'flex-end'}}><Btn color="ghost" onClick={onClose}>Cancelar</Btn><Btn onClick={salvar} disabled={saving}>{saving?'Salvando...':'Salvar produto'}</Btn></div>
       </div>
     </div>
   );
 };
 
-// ── Página de Produtos ───────────────────────────────────────
+// ── Products Page ────────────────────────────────────────────
 const ProductsPage = ({produtos, reload}) => {
-  const [busca,setBusca]       = useState('');
-  const [filtro,setFiltro]     = useState('todos');
+  const [busca,setBusca]     = useState('');
+  const [filtro,setFiltro]   = useState('todos');
   const [precoMin,setPrecoMin] = useState('');
   const [precoMax,setPrecoMax] = useState('');
   const [editando,setEditando] = useState(null);
   const [deleting,setDeleting] = useState(null);
-  const [saving,setSaving]     = useState(null); // id do produto sendo salvo
-
-  const filtrados = produtos
-    .filter(p => filtro==='todos' || (filtro==='ativos'&&p.ativo!==false&&!p.vendido) || (filtro==='vendidos'&&p.vendido) || (filtro==='destaque'&&p.destaque))
-    .filter(p => !busca || p.nome.toLowerCase().includes(busca.toLowerCase()))
-    .filter(p => !precoMin || (p.preco && Number(p.preco) >= Number(precoMin)))
-    .filter(p => !precoMax || (p.preco && Number(p.preco) <= Number(precoMax)));
-
+  const [saving,setSaving]   = useState(null);
+  const filtrados = produtos.filter(p=>filtro==='todos'||(filtro==='ativos'&&p.ativo!==false&&!p.vendido)||(filtro==='vendidos'&&p.vendido)||(filtro==='destaque'&&p.destaque)).filter(p=>!busca||p.nome.toLowerCase().includes(busca.toLowerCase())).filter(p=>!precoMin||(p.preco&&Number(p.preco)>=Number(precoMin))).filter(p=>!precoMax||(p.preco&&Number(p.preco)<=Number(precoMax)));
   const salvar = async (p) => {
     const { id, ...dados } = p;
     dados.preco = dados.preco ? Number(dados.preco) : null;
     let resultado;
     if (id) resultado = await supa(`produtos?id=eq.${id}`, { method:'PATCH', body: JSON.stringify(dados) });
     else    resultado = await supa('produtos',              { method:'POST',  body: JSON.stringify(dados) });
-
-    // Notificar WhatsApp via n8n quando produto novo for cadastrado
-    if (!id) {
-      const produtoSalvo = Array.isArray(resultado) ? resultado[0] : resultado;
-      fetch('https://juliosflores.app.n8n.cloud/webhook/novo-produto', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ body: { ...dados, id: produtoSalvo?.id } })
-      }).catch(() => {});
-    }
+    if (!id) { const s = Array.isArray(resultado)?resultado[0]:resultado; fetch('https://juliosflores.app.n8n.cloud/webhook/novo-produto',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({body:{...dados,id:s?.id}})}).catch(()=>{}); }
     reload();
   };
-
-  const deletar = async (id) => {
-    await supa(`produtos?id=eq.${id}`, { method:'DELETE' });
-    setDeleting(null); reload();
-  };
-
-  const toggleField = async (p, field) => {
-    setSaving(p.id);
-    try {
-      await supa(`produtos?id=eq.${p.id}`, { method:'PATCH', body: JSON.stringify({ [field]: !p[field] }) });
-      reload();
-    } finally { setSaving(null); }
-  };
-
-  const duplicar = (p) => {
-    const { id, created_at, updated_at, viewed_count, ...dados } = p;
-    setEditando({ ...dados, nome: `${dados.nome} (cópia)`, vendido: false });
-  };
-
+  const deletar = async (id) => { await supa(`produtos?id=eq.${id}`, { method:'DELETE' }); setDeleting(null); reload(); };
+  const toggleField = async (p, field) => { setSaving(p.id); try { await supa(`produtos?id=eq.${p.id}`, { method:'PATCH', body: JSON.stringify({ [field]: !p[field] }) }); reload(); } finally { setSaving(null); } };
+  const duplicar = (p) => { const { id, created_at, updated_at, viewed_count, ...dados } = p; setEditando({ ...dados, nome: `${dados.nome} (cópia)`, vendido: false }); };
   const imgs = (p) => (p.imagens&&p.imagens.length)?p.imagens:(p.imagem_url?[p.imagem_url]:[]);
-
   return (
     <div>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20,flexWrap:'wrap',gap:12}}>
-        <div>
-          <div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Produtos</div>
-          <div style={{fontSize:14,color:'var(--muted)'}}>{filtrados.length} de {produtos.length} produtos</div>
-        </div>
-        <div style={{display:'flex',gap:8}}>
-          <Btn color="ghost" onClick={()=>exportarCSV(filtrados)}>⬇ CSV</Btn>
-          <Btn onClick={()=>setEditando({})}>+ Novo produto</Btn>
-        </div>
+        <div><div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Produtos</div><div style={{fontSize:14,color:'var(--muted)'}}>{filtrados.length} de {produtos.length} produtos</div></div>
+        <div style={{display:'flex',gap:8}}><Btn color="ghost" onClick={()=>exportarCSV(filtrados)}>⬇ CSV</Btn><Btn onClick={()=>setEditando({})}>+ Novo produto</Btn></div>
       </div>
-
-      {/* Filtros */}
       <div style={{display:'flex',gap:8,marginBottom:8,flexWrap:'wrap'}}>
         <input value={busca} onChange={e=>setBusca(e.target.value)} placeholder="🗡️ Buscar produto..." style={{...S.input,width:200,height:36}}/>
         <input value={precoMin} onChange={e=>setPrecoMin(e.target.value)} placeholder="R$ min" type="number" style={{...S.input,width:90,height:36}}/>
         <input value={precoMax} onChange={e=>setPrecoMax(e.target.value)} placeholder="R$ max" type="number" style={{...S.input,width:90,height:36}}/>
-        {['todos','ativos','vendidos','destaque'].map(f=>(
-          <button key={f} onClick={()=>setFiltro(f)} style={{...S.btn,height:36,fontSize:12,background:filtro===f?'var(--red-dark)':'var(--surface)',border:`1px solid ${filtro===f?'var(--red)':'var(--border)'}`,color:filtro===f?'#fff':'var(--dim)'}}>
-            {f.charAt(0).toUpperCase()+f.slice(1)}
-          </button>
-        ))}
+        {['todos','ativos','vendidos','destaque'].map(f=>(<button key={f} onClick={()=>setFiltro(f)} style={{...S.btn,height:36,fontSize:12,background:filtro===f?'rgba(204,20,20,.15)':'var(--surface)',border:`1px solid ${filtro===f?'var(--red)':'var(--border)'}`,color:filtro===f?'#fff':'var(--dim)'}}>{f.charAt(0).toUpperCase()+f.slice(1)}</button>))}
       </div>
-
-      {/* Tabela */}
       <div style={{...S.card,padding:0,overflow:'hidden'}}>
         <div style={{overflowX:'auto'}}>
           <table style={{width:'100%',borderCollapse:'collapse',minWidth:640}}>
-            <thead>
-              <tr style={{background:'var(--bg3)'}}>
-                {['Produto','Console','Preço','Cond.','Status','Views','Ações'].map(h=>(
-                  <th key={h} style={{padding:'10px 14px',textAlign:'left',fontFamily:'Share Tech Mono, monospace',fontSize:10,color:'var(--muted)',letterSpacing:'0.15em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>
-                ))}
-              </tr>
-            </thead>
+            <thead><tr style={{background:'var(--bg3)'}}>{['Produto','Console','Preço','Cond.','Status','Views','Ações'].map(h=>(<th key={h} style={{padding:'10px 14px',textAlign:'left',fontFamily:'Share Tech Mono, monospace',fontSize:10,color:'var(--muted)',letterSpacing:'0.15em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>))}</tr></thead>
             <tbody>
-              {filtrados.length === 0 && (
-                <tr><td colSpan={7} style={{padding:'2rem',textAlign:'center',color:'var(--muted)',fontFamily:'Share Tech Mono, monospace',fontSize:13}}>nenhum produto encontrado</td></tr>
-              )}
+              {filtrados.length===0&&(<tr><td colSpan={7} style={{padding:'2rem',textAlign:'center',color:'var(--muted)',fontFamily:'Share Tech Mono, monospace',fontSize:13}}>nenhum produto encontrado</td></tr>)}
               {filtrados.map(p=>(
                 <tr key={p.id} style={{borderTop:'1px solid var(--border)'}}>
-                  <td style={{padding:'10px 14px'}}>
-                    <div style={{display:'flex',alignItems:'center',gap:10}}>
-                      {imgs(p).length
-                        ? <img src={imgs(p)[0]} alt="" style={{width:40,height:40,objectFit:'cover',borderRadius:4,flexShrink:0}}/>
-                        : <div style={{width:40,height:40,background:'var(--bg3)',borderRadius:4,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}}>🎮</div>}
-                      <div style={{fontSize:14,fontWeight:700,color:'var(--text)',maxWidth:180,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.nome}</div>
-                    </div>
-                  </td>
+                  <td style={{padding:'10px 14px'}}><div style={{display:'flex',alignItems:'center',gap:10}}>{imgs(p).length?<img src={imgs(p)[0]} alt="" style={{width:40,height:40,objectFit:'cover',borderRadius:4,flexShrink:0}}/>:<div style={{width:40,height:40,background:'var(--bg3)',borderRadius:4,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}}>🎮</div>}<div style={{fontSize:14,fontWeight:700,color:'var(--text)',maxWidth:180,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.nome}</div></div></td>
                   <td style={{padding:'10px 14px',fontSize:13,color:'var(--dim)',whiteSpace:'nowrap'}}>{p.console||'—'}</td>
                   <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:13,color:'var(--gold)',whiteSpace:'nowrap'}}>{fmtBRL(p.preco)}</td>
                   <td style={{padding:'10px 14px'}}><span style={S.tag(p.condicao)}>{p.condicao||'—'}</span></td>
-                  <td style={{padding:'10px 14px'}}>
-                    <div style={{display:'flex',flexDirection:'column',gap:4}}>
-                      {p.vendido  && <span style={{fontSize:11,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>VENDIDO</span>}
-                      {p.destaque && <span style={{fontSize:11,color:'var(--gold)',fontFamily:'Share Tech Mono, monospace'}}>⭐ DESTAQUE</span>}
-                      {p.ativo===false && <span style={{fontSize:11,color:'var(--red-b)',fontFamily:'Share Tech Mono, monospace'}}>INATIVO</span>}
-                      {p.ativo!==false&&!p.vendido&&!p.destaque && <span style={{fontSize:11,color:'#4ade80',fontFamily:'Share Tech Mono, monospace'}}>ATIVO</span>}
-                    </div>
-                  </td>
+                  <td style={{padding:'10px 14px'}}><div style={{display:'flex',flexDirection:'column',gap:4}}>{p.vendido&&<span style={{fontSize:11,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>VENDIDO</span>}{p.destaque&&<span style={{fontSize:11,color:'var(--gold)',fontFamily:'Share Tech Mono, monospace'}}>⭐ DESTAQUE</span>}{p.ativo===false&&<span style={{fontSize:11,color:'var(--red-b)',fontFamily:'Share Tech Mono, monospace'}}>INATIVO</span>}{p.ativo!==false&&!p.vendido&&!p.destaque&&<span style={{fontSize:11,color:'#4ade80',fontFamily:'Share Tech Mono, monospace'}}>ATIVO</span>}</div></td>
                   <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--purple)'}}>{p.viewed_count||0}</td>
-                  <td style={{padding:'10px 14px'}}>
-                    <div style={{display:'flex',gap:6}}>
-                      <button title="Editar" onClick={()=>setEditando(p)} style={{...S.btn,padding:'5px 10px',fontSize:13,background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--dim)'}}>✏</button>
-                      <button title="Duplicar" onClick={()=>duplicar(p)} style={{...S.btn,padding:'5px 10px',fontSize:13,background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--dim)'}}>⧉</button>
-                      <button title={p.destaque?'Remover destaque':'Marcar destaque'} onClick={()=>toggleField(p,'destaque')} disabled={saving===p.id} style={{...S.btn,padding:'5px 10px',fontSize:13,background:p.destaque?'rgba(255,184,0,.2)':'var(--surface2)',border:'1px solid var(--border)',color:p.destaque?'var(--gold)':'var(--dim)',opacity:saving===p.id?.5:1}}>⭐</button>
-                      <button title={p.vendido?'Desmarcar vendido':'Marcar vendido'} onClick={()=>toggleField(p,'vendido')} disabled={saving===p.id} style={{...S.btn,padding:'5px 10px',fontSize:13,background:p.vendido?'rgba(37,211,102,.2)':'var(--surface2)',border:'1px solid var(--border)',color:p.vendido?'var(--green)':'var(--dim)',opacity:saving===p.id?.5:1}}>{saving===p.id?'…':'✅'}</button>
-                      <button title="Excluir" onClick={()=>setDeleting(p.id)} style={{...S.btn,padding:'5px 10px',fontSize:13,background:'rgba(204,20,20,.1)',border:'1px solid var(--border-r)',color:'var(--red-b)'}}>🗑</button>
-                    </div>
-                  </td>
+                  <td style={{padding:'10px 14px'}}><div style={{display:'flex',gap:6}}>
+                    <button title="Editar" onClick={()=>setEditando(p)} style={{...S.btn,padding:'5px 10px',fontSize:13,background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--dim)'}}>✏</button>
+                    <button title="Duplicar" onClick={()=>duplicar(p)} style={{...S.btn,padding:'5px 10px',fontSize:13,background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--dim)'}}>⧉</button>
+                    <button title={p.destaque?'Remover destaque':'Destaque'} onClick={()=>toggleField(p,'destaque')} disabled={saving===p.id} style={{...S.btn,padding:'5px 10px',fontSize:13,background:p.destaque?'rgba(255,184,0,.2)':'var(--surface2)',border:'1px solid var(--border)',color:p.destaque?'var(--gold)':'var(--dim)',opacity:saving===p.id?.5:1}}>⭐</button>
+                    <button title={p.vendido?'Desmarcar':'Vendido'} onClick={()=>toggleField(p,'vendido')} disabled={saving===p.id} style={{...S.btn,padding:'5px 10px',fontSize:13,background:p.vendido?'rgba(37,211,102,.2)':'var(--surface2)',border:'1px solid var(--border)',color:p.vendido?'var(--green)':'var(--dim)',opacity:saving===p.id?.5:1}}>{saving===p.id?'…':'✅'}</button>
+                    <button title="Excluir" onClick={()=>setDeleting(p.id)} style={{...S.btn,padding:'5px 10px',fontSize:13,background:'rgba(204,20,20,.1)',border:'1px solid var(--border-r)',color:'var(--red-b)'}}>🗑</button>
+                  </div></td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       </div>
-
-      {editando !== null && <ProductForm initial={editando?.id ? editando : null} onSave={salvar} onClose={()=>setEditando(null)} />}
-
-      {/* Confirmar exclusão */}
-      {deleting && (
-        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.85)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center'}}>
-          <div style={{...S.card,maxWidth:360,borderTop:'3px solid var(--red-b)',textAlign:'center',padding:28}}>
-            <div style={{fontSize:32,marginBottom:12}}>🗑</div>
-            <div style={{fontFamily:'Press Start 2P, monospace',fontSize:11,color:'var(--text)',marginBottom:8}}>Excluir produto?</div>
-            <div style={{fontSize:14,color:'var(--dim)',marginBottom:20}}>Esta ação não pode ser desfeita.</div>
-            <div style={{display:'flex',gap:10,justifyContent:'center'}}>
-              <Btn color="ghost" onClick={()=>setDeleting(null)}>Cancelar</Btn>
-              <Btn color="danger" onClick={()=>deletar(deleting)}>Excluir</Btn>
-            </div>
-          </div>
-        </div>
-      )}
+      {editando!==null && <ProductForm initial={editando?.id?editando:null} onSave={salvar} onClose={()=>setEditando(null)} />}
+      {deleting && (<div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.85)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{...S.card,maxWidth:360,borderTop:'3px solid var(--red-b)',textAlign:'center',padding:28}}><div style={{fontSize:32,marginBottom:12}}>🗑</div><div style={{fontFamily:'Press Start 2P, monospace',fontSize:11,color:'var(--text)',marginBottom:8}}>Excluir produto?</div><div style={{fontSize:14,color:'var(--dim)',marginBottom:20}}>Esta ação não pode ser desfeita.</div><div style={{display:'flex',gap:10,justifyContent:'center'}}><Btn color="ghost" onClick={()=>setDeleting(null)}>Cancelar</Btn><Btn color="danger" onClick={()=>deletar(deleting)}>Excluir</Btn></div></div></div>)}
     </div>
   );
 };
@@ -566,64 +382,23 @@ const ProductsPage = ({produtos, reload}) => {
 // ── Analytics ────────────────────────────────────────────────
 const Analytics = ({visitas}) => {
   const hoje   = new Date().toDateString();
-  const semana = visitas.filter(v=>{ const d=new Date(v.created_at); const s=new Date(); s.setDate(s.getDate()-7); return d>=s; });
+  const semana = visitas.filter(v=>{const d=new Date(v.created_at);const s=new Date();s.setDate(s.getDate()-7);return d>=s;});
   const mobile = visitas.filter(v=>v.dispositivo==='mobile').length;
-
-  const referrers = visitas.reduce((acc,v)=>{
-    const r = v.referrer||'Direto';
-    acc[r] = (acc[r]||0)+1;
-    return acc;
-  },{});
+  const referrers = visitas.reduce((acc,v)=>{const r=v.referrer||'Direto';acc[r]=(acc[r]||0)+1;return acc;},{});
   const topRef = Object.entries(referrers).sort((a,b)=>b[1]-a[1]).slice(0,5);
-
   const recent = [...visitas].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,20);
-
   return (
     <div>
-      <div style={{marginBottom:20}}>
-        <div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Analytics</div>
-        <div style={{fontSize:14,color:'var(--muted)'}}>Rastreamento de visitas via Supabase</div>
-      </div>
-
+      <div style={{marginBottom:20}}><div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Analytics</div><div style={{fontSize:14,color:'var(--muted)'}}>Rastreamento de visitas</div></div>
       <div style={S.grid4}>
-        <StatCard label="Total visitas"  value={visitas.length}  color="var(--purple)" icon="👁"/>
-        <StatCard label="Esta semana"    value={semana.length}   color="var(--red-b)"  icon="📅"/>
-        <StatCard label="Hoje"           value={visitas.filter(v=>new Date(v.created_at).toDateString()===hoje).length} color="var(--gold)" icon="☀️"/>
-        <StatCard label="Mobile"         value={`${visitas.length?Math.round(mobile/visitas.length*100):0}%`} sub={`${mobile} de ${visitas.length}`} color="var(--green)" icon="📱"/>
+        <StatCard label="Total visitas" value={visitas.length} color="var(--purple)" icon="👁"/>
+        <StatCard label="Esta semana" value={semana.length} color="var(--red-b)" icon="📅"/>
+        <StatCard label="Hoje" value={visitas.filter(v=>new Date(v.created_at).toDateString()===hoje).length} color="var(--gold)" icon="☀️"/>
+        <StatCard label="Mobile" value={`${visitas.length?Math.round(mobile/visitas.length*100):0}%`} sub={`${mobile} de ${visitas.length}`} color="var(--green)" icon="📱"/>
       </div>
-
       <div style={S.grid2}>
-        {/* Top referrers */}
-        <div style={S.card}>
-          <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:16}}>// Origem do tráfego</div>
-          {topRef.length===0
-            ? <div style={{fontSize:13,color:'var(--muted)'}}>Nenhum dado ainda</div>
-            : topRef.map(([ref,cnt])=>(
-              <div key={ref} style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
-                <div style={{flex:1,fontSize:13,color:'var(--dim)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{ref}</div>
-                <div style={{width:`${Math.round(cnt/topRef[0][1]*100)}%`,minWidth:4,height:4,background:'var(--purple)',borderRadius:2,maxWidth:80}}/>
-                <div style={{fontSize:12,color:'var(--text)',fontFamily:'Share Tech Mono, monospace',width:30,textAlign:'right'}}>{cnt}</div>
-              </div>
-            ))}
-        </div>
-
-        {/* Atividade recente */}
-        <div style={S.card}>
-          <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:16}}>// Atividade recente</div>
-          <div style={{maxHeight:200,overflow:'auto'}}>
-            {recent.length===0
-              ? <div style={{fontSize:13,color:'var(--muted)'}}>Nenhuma visita registrada ainda.<br/><br/>Execute o SQL em <code>setup-supabase.sql</code> para ativar o rastreamento.</div>
-              : recent.map((v,i)=>(
-                <div key={v.id||i} style={{display:'flex',gap:10,padding:'6px 0',borderBottom:i<recent.length-1?'1px solid var(--border)':'none',alignItems:'flex-start'}}>
-                  <div style={{fontSize:14}}>{v.dispositivo==='mobile'?'📱':'🖥'}</div>
-                  <div style={{flex:1}}>
-                    <div style={{fontSize:12,color:'var(--text)'}}>{v.produto_nome||v.pagina||'/'}</div>
-                    <div style={{fontSize:11,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>{fmtDate(v.created_at)}</div>
-                  </div>
-                </div>
-              ))}
-          </div>
-        </div>
+        <div style={S.card}><div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:16}}>// Origem do tráfego</div>{topRef.length===0?<div style={{fontSize:13,color:'var(--muted)'}}>Nenhum dado ainda</div>:topRef.map(([ref,cnt])=>(<div key={ref} style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}><div style={{flex:1,fontSize:13,color:'var(--dim)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{ref}</div><div style={{width:`${Math.round(cnt/topRef[0][1]*100)}%`,minWidth:4,height:4,background:'var(--purple)',borderRadius:2,maxWidth:80}}/><div style={{fontSize:12,color:'var(--text)',fontFamily:'Share Tech Mono, monospace',width:30,textAlign:'right'}}>{cnt}</div></div>))}</div>
+        <div style={S.card}><div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:16}}>// Atividade recente</div><div style={{maxHeight:200,overflow:'auto'}}>{recent.length===0?<div style={{fontSize:13,color:'var(--muted)'}}>Nenhuma visita registrada.</div>:recent.map((v,i)=>(<div key={v.id||i} style={{display:'flex',gap:10,padding:'6px 0',borderBottom:i<recent.length-1?'1px solid var(--border)':'none',alignItems:'flex-start'}}><div style={{fontSize:14}}>{v.dispositivo==='mobile'?'📱':'🖥'}</div><div style={{flex:1}}><div style={{fontSize:12,color:'var(--text)'}}>{v.produto_nome||v.pagina||'/'}</div><div style={{fontSize:11,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>{fmtDate(v.created_at)}</div></div></div>))}</div></div>
       </div>
     </div>
   );
@@ -634,50 +409,447 @@ const Config = () => {
   const [cloud,setCloud]   = useState(localStorage.getItem('ng_cloud_name')||'ddaadz8ut');
   const [preset,setPreset] = useState(localStorage.getItem('ng_upload_preset')||'ytsmjllb');
   const [saved,setSaved]   = useState(false);
-
-  const salvar = () => {
-    localStorage.setItem('ng_cloud_name', cloud);
-    localStorage.setItem('ng_upload_preset', preset);
-    setSaved(true);
-    setTimeout(()=>setSaved(false),2500);
-  };
-
+  const salvar = () => { localStorage.setItem('ng_cloud_name', cloud); localStorage.setItem('ng_upload_preset', preset); setSaved(true); setTimeout(()=>setSaved(false),2500); };
   return (
     <div style={{maxWidth:480}}>
-      <div style={{marginBottom:20}}>
-        <div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Configurações</div>
-        <div style={{fontSize:14,color:'var(--muted)'}}>Cloudinary e preferências</div>
-      </div>
+      <div style={{marginBottom:20}}><div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Configurações</div><div style={{fontSize:14,color:'var(--muted)'}}>Cloudinary e preferências</div></div>
       <div style={{...S.card,borderTop:'3px solid var(--gold)',marginBottom:16}}>
         <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--gold)',letterSpacing:'0.2em',marginBottom:16}}>// CLOUDINARY</div>
-        <div style={{fontSize:13,color:'var(--dim)',marginBottom:16,lineHeight:1.6}}>
-          Acesse <strong style={{color:'var(--text)'}}>cloudinary.com → Settings → Upload → Upload presets</strong> e crie um preset do tipo <em>Unsigned</em>.
-        </div>
+        <div style={{fontSize:13,color:'var(--dim)',marginBottom:16,lineHeight:1.6}}>Acesse <strong style={{color:'var(--text)'}}>cloudinary.com → Settings → Upload → Upload presets</strong> e crie um preset <em>Unsigned</em>.</div>
         <Input label="Cloud Name" value={cloud} onChange={e=>setCloud(e.target.value)} placeholder="ddaadz8ut" />
-        <Input label="Upload Preset (unsigned)" value={preset} onChange={e=>setPreset(e.target.value)} placeholder="ex: produtos_unsigned" />
+        <Input label="Upload Preset (unsigned)" value={preset} onChange={e=>setPreset(e.target.value)} placeholder="ytsmjllb" />
         <Btn color="gold" onClick={salvar}>{saved ? '✔ Salvo!' : 'Salvar'}</Btn>
-      </div>
-
-      <div style={{...S.card,borderTop:'3px solid var(--purple)'}}>
-        <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--purple)',letterSpacing:'0.2em',marginBottom:16}}>// ANALYTICS — SETUP</div>
-        <div style={{fontSize:13,color:'var(--dim)',lineHeight:1.8}}>
-          Para ativar o rastreamento de visitas, execute o arquivo <code style={{background:'var(--bg3)',padding:'1px 6px',borderRadius:3,color:'var(--text)'}}>setup-supabase.sql</code> no <strong style={{color:'var(--text)'}}>Supabase → SQL Editor</strong>.<br/><br/>
-          O site já inclui o código de rastreamento automático.
-        </div>
       </div>
     </div>
   );
 };
 
-// ── Sidebar nav ───────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════
+// ── GARIMPO PAGE ─────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════
+
+const GarimpoPage = () => {
+  const [sub, setSub]                 = useState('overview');
+  const [achados, setAchados]         = useState([]);
+  const [alvos, setAlvos]             = useState([]);
+  const [precos, setPrecos]           = useState([]);
+  const [logs, setLogs]               = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [erro403, setErro403]         = useState(0);
+  const [ultimoAchado, setUltimoAchado] = useState(null);
+  const [editAlvo, setEditAlvo]       = useState(null);
+  const [savingAlvo, setSavingAlvo]   = useState(false);
+  const [toast, setToast]             = useState('');
+
+  const showToast = (msg) => { setToast(msg); setTimeout(()=>setToast(''), 3500); };
+
+  const carregar = useCallback(async () => {
+    try {
+      const [a, al, p, l] = await Promise.all([
+        supa('garimpo_resultados?order=created_at.desc&limit=100'),
+        supa('garimpo_alvos?order=nome.asc&select=*'),
+        supa('precos_mercado?order=ultima_atualizacao.desc&select=*'),
+        supa('sistema_logs?order=criado_em.desc&limit=150&select=script,nivel,mensagem,criado_em'),
+      ]);
+      setAchados(a||[]);
+      setAlvos(al||[]);
+      setPrecos(p||[]);
+      setLogs(l||[]);
+      const bloqueios = (l||[]).filter(lg => lg.mensagem?.includes('403') && new Date(lg.criado_em) > new Date(Date.now()-3600000)).length;
+      setErro403(bloqueios);
+      const ultimo = (a||[]).find(r => r.created_at);
+      setUltimoAchado(ultimo ? new Date(ultimo.created_at) : null);
+    } catch(e) { console.error(e); }
+    finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => { carregar(); const t = setInterval(carregar, 30000); return ()=>clearInterval(t); }, [carregar]);
+
+  const statusIP = erro403 > 10 ? 'bloqueado' : erro403 > 3 ? 'instavel' : 'ok';
+  const tempoDesdeUltimoAchado = ultimoAchado ? Math.floor((Date.now() - ultimoAchado) / 60000) : null;
+
+  // Salvar alvo
+  const salvarAlvo = async (alvo) => {
+    setSavingAlvo(true);
+    try {
+      const { id, ...dados } = alvo;
+      if (id) await supa(`garimpo_alvos?id=eq.${id}`, { method:'PATCH', body: JSON.stringify(dados) });
+      else    await supa('garimpo_alvos', { method:'POST', body: JSON.stringify(dados) });
+      setEditAlvo(null);
+      showToast('✔ Alvo salvo!');
+      carregar();
+    } catch(e) { showToast('✕ '+e.message); }
+    finally { setSavingAlvo(false); }
+  };
+
+  const toggleAlvo = async (alvo) => {
+    try {
+      await supa(`garimpo_alvos?id=eq.${alvo.id}`, { method:'PATCH', body: JSON.stringify({ ativo: !alvo.ativo }) });
+      carregar();
+    } catch {}
+  };
+
+  const marcarComprado = async (achado) => {
+    try {
+      await supa(`garimpo_resultados?id=eq.${achado.id}`, { method:'PATCH', body: JSON.stringify({ status: 'comprado' }) });
+      showToast('✔ Marcado como comprado!');
+      carregar();
+    } catch {}
+  };
+
+  const marcarDescartado = async (achado) => {
+    try {
+      await supa(`garimpo_resultados?id=eq.${achado.id}`, { method:'PATCH', body: JSON.stringify({ status: 'descartado' }) });
+      carregar();
+    } catch {}
+  };
+
+  const EMPTY_ALVO = { nome:'', palavras_chave:[], preco_max:0, grupo:1, prioridade:2, ativo:true, aceita_defeito:false, preco_max_defeito:0, desconto_minimo:25 };
+
+  if (loading) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:300}}><div style={{fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--muted)'}}>Carregando garimpo...</div></div>;
+
+  const SUB_TABS = [
+    { id:'overview', label:'Visão Geral', icon:'📊' },
+    { id:'achados',  label:`Achados (${achados.filter(a=>a.status==='novo').length})`, icon:'💎' },
+    { id:'alvos',    label:`Alvos (${alvos.length})`, icon:'🎯' },
+    { id:'precos',   label:'Preços Base', icon:'💰' },
+    { id:'logs',     label:'Logs', icon:'📋' },
+  ];
+
+  return (
+    <div>
+      {/* Toast */}
+      {toast && (
+        <div style={{position:'fixed',top:70,right:24,zIndex:2000,background:'var(--surface2)',border:'1px solid var(--border)',padding:'10px 18px',borderRadius:4,fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--text)',animation:'slideIn .2s ease',maxWidth:320}}>
+          {toast}
+        </div>
+      )}
+
+      <div style={{marginBottom:20,display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
+        <div>
+          <div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Garimpo OLX</div>
+          <div style={{fontSize:14,color:'var(--muted)'}}>Monitor do raspador da Raspberry Pi</div>
+        </div>
+        <Btn color="ghost" onClick={carregar}>↻ Atualizar</Btn>
+      </div>
+
+      {/* Sub-tabs */}
+      <div style={{display:'flex',gap:2,borderBottom:'1px solid var(--border)',marginBottom:24,overflowX:'auto'}}>
+        {SUB_TABS.map(t=>(
+          <button key={t.id} onClick={()=>setSub(t.id)} style={{...S.btn,padding:'8px 14px',fontSize:11,background:'none',border:'none',borderBottom:`2px solid ${sub===t.id?'var(--red)':'transparent'}`,borderRadius:0,color:sub===t.id?'var(--red-b)':'var(--dim)',marginBottom:-1,whiteSpace:'nowrap',gap:6}}>
+            {t.icon} {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── OVERVIEW ── */}
+      {sub==='overview' && (
+        <div>
+          <div style={S.grid4}>
+            <StatCard
+              label="Status do IP"
+              value={statusIP==='ok'?'OK':statusIP==='instavel'?'⚠':' ✕'}
+              sub={statusIP==='ok'?'Sem bloqueios na última hora':statusIP==='instavel'?`${erro403} bloqueios/h`:`${erro403} bloqueios/h — IP queimado`}
+              color={statusIP==='ok'?'var(--green)':statusIP==='instavel'?'var(--amber)':'var(--red-b)'}
+              icon="🌐"
+            />
+            <StatCard
+              label="Último achado"
+              value={tempoDesdeUltimoAchado===null?'—':tempoDesdeUltimoAchado<60?`${tempoDesdeUltimoAchado}m`:`${Math.floor(tempoDesdeUltimoAchado/60)}h`}
+              sub={ultimoAchado?fmtDate(ultimoAchado):'Nenhum achado ainda'}
+              color={tempoDesdeUltimoAchado!==null&&tempoDesdeUltimoAchado>240?'var(--red-b)':tempoDesdeUltimoAchado!==null&&tempoDesdeUltimoAchado>60?'var(--amber)':'var(--green)'}
+              icon="⏰"
+            />
+            <StatCard
+              label="Pendentes"
+              value={achados.filter(a=>a.status==='novo').length}
+              sub={`${achados.filter(a=>a.status==='comprado').length} comprados`}
+              color="var(--purple)"
+              icon="💎"
+            />
+            <StatCard
+              label="Alvos ativos"
+              value={alvos.filter(a=>a.ativo).length}
+              sub={`de ${alvos.length} total`}
+              color="var(--gold)"
+              icon="🎯"
+            />
+          </div>
+
+          {/* Bloqueios 403 nos últimos logs */}
+          {statusIP !== 'ok' && (
+            <div style={{...S.card,borderLeft:'3px solid var(--red-b)',marginBottom:24,display:'flex',alignItems:'center',gap:16}}>
+              <div style={{fontSize:28}}>🚫</div>
+              <div>
+                <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--red-b)',marginBottom:4}}>IP BLOQUEADO PELA OLX</div>
+                <div style={{fontSize:13,color:'var(--dim)',lineHeight:1.6}}>
+                  {statusIP==='bloqueado'
+                    ? 'O garimpo levou muitos 403 na última hora. Reinicie o roteador para mudar o IP. Depois reinicie o script na Pi com: bash iniciar_garimpo.sh'
+                    : 'Alguns bloqueios detectados. O sistema continuará tentando automaticamente.'}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Últimos achados */}
+          <div style={S.card}>
+            <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:16}}>// Últimos 10 achados</div>
+            {achados.length===0
+              ? <div style={{fontSize:13,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>Nenhum achado ainda. O garimpo está rodando na Pi?</div>
+              : achados.slice(0,10).map(a=>(
+                <div key={a.id} style={{display:'flex',gap:12,padding:'10px 0',borderBottom:'1px solid var(--border)',alignItems:'flex-start',animation:'slideIn .3s ease'}}>
+                  <div style={{fontSize:20,flexShrink:0}}>{a.status==='comprado'?'✅':a.status==='descartado'?'🚫':'💎'}</div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:14,fontWeight:700,color:a.status==='comprado'?'var(--green)':a.status==='descartado'?'var(--muted)':'var(--text)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.titulo}</div>
+                    <div style={{display:'flex',gap:8,marginTop:4,flexWrap:'wrap'}}>
+                      <span style={{fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--gold)'}}>R$ {Number(a.preco).toLocaleString('pt-BR')}</span>
+                      {a.descricao && <span style={{fontSize:11,color:'var(--dim)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:200}}>{a.descricao}</span>}
+                    </div>
+                    <div style={{fontSize:11,color:'var(--muted)',marginTop:2,fontFamily:'Share Tech Mono, monospace'}}>{fmtDateFull(a.created_at)}</div>
+                  </div>
+                  <div style={{display:'flex',gap:6,flexShrink:0}}>
+                    {a.url && <a href={a.url} target="_blank" rel="noopener" style={{...S.btn,padding:'5px 10px',fontSize:11,background:'rgba(0,255,255,.1)',color:'var(--cyan)',textDecoration:'none',border:'1px solid rgba(0,255,255,.2)'}}>↗ OLX</a>}
+                    {a.status==='novo' && <>
+                      <button onClick={()=>marcarComprado(a)} style={{...S.btn,padding:'5px 10px',fontSize:11,background:'rgba(37,211,102,.12)',color:'var(--green)',border:'1px solid rgba(37,211,102,.3)'}}>✔ Comprei</button>
+                      <button onClick={()=>marcarDescartado(a)} style={{...S.btn,padding:'5px 10px',fontSize:11,background:'var(--surface2)',color:'var(--muted)',border:'1px solid var(--border)'}}>✕</button>
+                    </>}
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── ACHADOS ── */}
+      {sub==='achados' && (
+        <div>
+          <div style={{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap'}}>
+            {['novo','comprado','descartado'].map(s=>(
+              <MonoTag key={s} color={s==='novo'?'var(--purple)':s==='comprado'?'var(--green)':'var(--muted)'}>
+                {s.toUpperCase()}: {achados.filter(a=>a.status===s).length}
+              </MonoTag>
+            ))}
+          </div>
+          <div style={{...S.card,padding:0,overflow:'hidden'}}>
+            <div style={{overflowX:'auto'}}>
+              <table style={{width:'100%',borderCollapse:'collapse',minWidth:700}}>
+                <thead><tr style={{background:'var(--bg3)'}}>{['Status','Produto','Preço','Motivo','Quando','Ações'].map(h=><th key={h} style={{padding:'10px 14px',textAlign:'left',fontFamily:'Share Tech Mono, monospace',fontSize:10,color:'var(--muted)',letterSpacing:'0.15em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>)}</tr></thead>
+                <tbody>
+                  {achados.length===0&&<tr><td colSpan={6} style={{padding:'2rem',textAlign:'center',color:'var(--muted)',fontFamily:'Share Tech Mono, monospace',fontSize:13}}>nenhum achado no banco</td></tr>}
+                  {achados.map(a=>(
+                    <tr key={a.id} style={{borderTop:'1px solid var(--border)',opacity:a.status==='descartado'?.4:1}}>
+                      <td style={{padding:'10px 14px'}}>
+                        <span style={{fontFamily:'Share Tech Mono, monospace',fontSize:10,padding:'2px 8px',borderRadius:2,
+                          background:a.status==='comprado'?'rgba(37,211,102,.12)':a.status==='descartado'?'var(--surface2)':'rgba(168,85,247,.12)',
+                          color:a.status==='comprado'?'var(--green)':a.status==='descartado'?'var(--muted)':'var(--purple)',
+                          border:`1px solid ${a.status==='comprado'?'rgba(37,211,102,.3)':a.status==='descartado'?'var(--border)':'rgba(168,85,247,.3)'}`
+                        }}>{(a.status||'novo').toUpperCase()}</span>
+                      </td>
+                      <td style={{padding:'10px 14px',maxWidth:240}}><div style={{fontSize:13,fontWeight:700,color:'var(--text)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.titulo}</div></td>
+                      <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:13,color:'var(--gold)',whiteSpace:'nowrap'}}>R$ {Number(a.preco).toLocaleString('pt-BR')}</td>
+                      <td style={{padding:'10px 14px',fontSize:12,color:'var(--dim)',maxWidth:200,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.descricao||'—'}</td>
+                      <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--muted)',whiteSpace:'nowrap'}}>{fmtDateFull(a.created_at)}</td>
+                      <td style={{padding:'10px 14px'}}>
+                        <div style={{display:'flex',gap:4}}>
+                          {a.url&&<a href={a.url} target="_blank" rel="noopener" style={{...S.btn,padding:'4px 8px',fontSize:11,background:'rgba(0,255,255,.1)',color:'var(--cyan)',textDecoration:'none'}}>↗</a>}
+                          {a.status==='novo'&&<><button onClick={()=>marcarComprado(a)} style={{...S.btn,padding:'4px 8px',fontSize:11,background:'rgba(37,211,102,.1)',color:'var(--green)'}}>✔</button><button onClick={()=>marcarDescartado(a)} style={{...S.btn,padding:'4px 8px',fontSize:11,background:'var(--surface2)',color:'var(--muted)'}}>✕</button></>}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── ALVOS ── */}
+      {sub==='alvos' && (
+        <div>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
+            <div style={{fontSize:14,color:'var(--muted)'}}>{alvos.filter(a=>a.ativo).length} ativos de {alvos.length}</div>
+            <Btn onClick={()=>setEditAlvo(EMPTY_ALVO)}>+ Novo alvo</Btn>
+          </div>
+          <div style={{...S.card,padding:0,overflow:'hidden'}}>
+            <div style={{overflowX:'auto'}}>
+              <table style={{width:'100%',borderCollapse:'collapse',minWidth:700}}>
+                <thead><tr style={{background:'var(--bg3)'}}>{['Ativo','Nome','Busca','Preço max','Defeito','Grupo','Prioridade','Ações'].map(h=><th key={h} style={{padding:'10px 14px',textAlign:'left',fontFamily:'Share Tech Mono, monospace',fontSize:10,color:'var(--muted)',letterSpacing:'0.15em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>)}</tr></thead>
+                <tbody>
+                  {alvos.map(a=>(
+                    <tr key={a.id} style={{borderTop:'1px solid var(--border)',opacity:a.ativo?1:.4}}>
+                      <td style={{padding:'10px 14px'}}><button onClick={()=>toggleAlvo(a)} style={{...S.btn,padding:'4px 10px',fontSize:11,background:a.ativo?'rgba(37,211,102,.12)':'var(--surface2)',color:a.ativo?'var(--green)':'var(--muted)',border:`1px solid ${a.ativo?'rgba(37,211,102,.3)':'var(--border)'}`}}>{a.ativo?'ON':'OFF'}</button></td>
+                      <td style={{padding:'10px 14px',fontSize:14,fontWeight:700,color:'var(--text)'}}>{a.nome}</td>
+                      <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--dim)'}}>{Array.isArray(a.palavras_chave)?a.palavras_chave[0]:a.palavras_chave||a.nome}</td>
+                      <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:13,color:'var(--gold)'}}>R$ {Number(a.preco_max).toLocaleString('pt-BR')}</td>
+                      <td style={{padding:'10px 14px',fontSize:12,color:a.aceita_defeito?'var(--amber)':'var(--muted)'}}>{a.aceita_defeito?`✔ até R$${a.preco_max_defeito||0}`:'—'}</td>
+                      <td style={{padding:'10px 14px'}}><MonoTag>{a.grupo||1}</MonoTag></td>
+                      <td style={{padding:'10px 14px'}}><MonoTag color={a.prioridade===1?'var(--red-b)':a.prioridade===2?'var(--gold)':'var(--dim)'}>{a.prioridade===1?'🔥 TURBO':a.prioridade===2?'NORMAL':'LENTO'}</MonoTag></td>
+                      <td style={{padding:'10px 14px'}}><button onClick={()=>setEditAlvo(a)} style={{...S.btn,padding:'5px 10px',fontSize:13,background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--dim)'}}>✏</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Modal edição alvo */}
+          {editAlvo && (
+            <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.85)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
+              <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:8,width:'100%',maxWidth:520,maxHeight:'90vh',overflow:'auto',padding:24,position:'relative'}}>
+                <button onClick={()=>setEditAlvo(null)} style={{position:'absolute',top:14,right:14,background:'none',border:'none',color:'var(--dim)',fontSize:20,cursor:'pointer'}}>✕</button>
+                <div style={{fontFamily:'Press Start 2P, monospace',fontSize:11,color:'var(--text)',marginBottom:20}}>{editAlvo.id?'EDITAR ALVO':'NOVO ALVO'}</div>
+                <AlvoForm alvo={editAlvo} onSave={salvarAlvo} onClose={()=>setEditAlvo(null)} saving={savingAlvo} />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── PREÇOS BASE ── */}
+      {sub==='precos' && (
+        <div>
+          <div style={{marginBottom:16,display:'flex',alignItems:'center',gap:12}}>
+            <div style={{fontSize:14,color:'var(--muted)'}}>{precos.length} produtos com preço de mercado coletado</div>
+            {precos.length===0&&<MonoTag color="var(--amber)">⚠ Tabela vazia — aguardando primeira coleta do garimpo</MonoTag>}
+          </div>
+          {precos.length===0
+            ? (
+              <div style={{...S.card,borderLeft:'3px solid var(--amber)',padding:24}}>
+                <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--amber)',marginBottom:8}}>TABELA VAZIA</div>
+                <div style={{fontSize:13,color:'var(--dim)',lineHeight:1.8}}>
+                  A tabela <code style={{background:'var(--bg3)',padding:'1px 6px',borderRadius:3,color:'var(--text)'}}>precos_mercado</code> está vazia.<br/>
+                  Ela é preenchida automaticamente a cada 6h pelo <code style={{background:'var(--bg3)',padding:'1px 6px',borderRadius:3,color:'var(--text)'}}>garimpo_olx.py</code> quando encontra anúncios suficientes.<br/><br/>
+                  Certifique-se que o garimpo está rodando na Pi e que a OLX não está bloqueando o IP.
+                </div>
+              </div>
+            )
+            : (
+              <div style={{...S.card,padding:0,overflow:'hidden'}}>
+                <div style={{overflowX:'auto'}}>
+                  <table style={{width:'100%',borderCollapse:'collapse',minWidth:600}}>
+                    <thead><tr style={{background:'var(--bg3)'}}>{['Produto','Mín','Médio','Máx','Compra (50%)','Amostras','Atualizado'].map(h=><th key={h} style={{padding:'10px 14px',textAlign:'left',fontFamily:'Share Tech Mono, monospace',fontSize:10,color:'var(--muted)',letterSpacing:'0.15em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>)}</tr></thead>
+                    <tbody>
+                      {precos.map(p=>{
+                        // Verifica se o preço médio está suspeito comparando com alvo correspondente
+                        const alvo = alvos.find(a=>a.nome.toLowerCase()===p.produto.toLowerCase());
+                        const suspeito = alvo && p.preco_medio > alvo.preco_max * 3;
+                        return (
+                          <tr key={p.id||p.produto} style={{borderTop:'1px solid var(--border)'}}>
+                            <td style={{padding:'10px 14px',fontSize:14,fontWeight:700,color:'var(--text)'}}>{p.produto}{suspeito&&<span style={{marginLeft:6,fontFamily:'Share Tech Mono, monospace',fontSize:9,color:'var(--amber)'}}>⚠ SUSPEITO</span>}</td>
+                            <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--green)'}}>R$ {Number(p.preco_minimo||0).toLocaleString('pt-BR')}</td>
+                            <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:13,color:suspeito?'var(--amber)':'var(--gold)',fontWeight:700}}>R$ {Number(p.preco_medio||0).toLocaleString('pt-BR')}</td>
+                            <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--red-b)'}}>R$ {Number(p.preco_maximo||0).toLocaleString('pt-BR')}</td>
+                            <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--purple)'}}>R$ {Number(p.preco_sugerido_compra||0).toLocaleString('pt-BR')}</td>
+                            <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--dim)'}}>{p.total_anuncios||'—'}</td>
+                            <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--muted)'}}>{p.ultima_atualizacao?fmtDateFull(p.ultima_atualizacao):'—'}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )
+          }
+        </div>
+      )}
+
+      {/* ── LOGS ── */}
+      {sub==='logs' && (
+        <div>
+          <div style={{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap',alignItems:'center'}}>
+            {['ERROR','WARNING','INFO'].map(n=>(
+              <MonoTag key={n} color={n==='ERROR'?'var(--red-b)':n==='WARNING'?'var(--amber)':'var(--dim)'}>
+                {n}: {logs.filter(l=>l.nivel===n).length}
+              </MonoTag>
+            ))}
+            <div style={{fontSize:12,color:'var(--muted)',marginLeft:'auto',fontFamily:'Share Tech Mono, monospace'}}>
+              Atualiza a cada 30s · {logs.length} entradas
+            </div>
+          </div>
+          <div style={{background:'rgba(0,0,0,.5)',border:'1px solid var(--border)',borderRadius:4,padding:16,height:480,overflowY:'auto',fontFamily:'Share Tech Mono, monospace',fontSize:11,lineHeight:1.9}}>
+            {logs.length===0
+              ? <div style={{color:'var(--muted)'}}>Nenhum log registrado ainda.<br/>Os logs de WARNING e ERROR chegam aqui automaticamente quando o garimpo está rodando.</div>
+              : logs.map((l,i)=>(
+                <div key={i} style={{display:'flex',gap:10,borderBottom:i<logs.length-1?'1px solid rgba(255,255,255,.03)':'none',padding:'2px 0'}}>
+                  <span style={{color:'var(--muted)',flexShrink:0}}>{new Date(l.criado_em).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span>
+                  <span style={{flexShrink:0,width:16,textAlign:'center',color:l.nivel==='ERROR'?'var(--red-b)':l.nivel==='WARNING'?'var(--amber)':'var(--muted)'}}>{l.nivel==='ERROR'?'✕':l.nivel==='WARNING'?'⚠':' '}</span>
+                  <span style={{flexShrink:0,width:60,color:'var(--purple)',fontSize:10}}>{l.script||'?'}</span>
+                  <span style={{flex:1,color:l.nivel==='ERROR'?'var(--red-b)':l.nivel==='WARNING'?'var(--amber)':'var(--dim)',wordBreak:'break-all'}}>{l.mensagem}</span>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ── AlvoForm ─────────────────────────────────────────────────
+const AlvoForm = ({alvo, onSave, onClose, saving}) => {
+  const [f, setF] = useState({...alvo});
+  const [buscaStr, setBuscaStr] = useState(Array.isArray(alvo.palavras_chave)?alvo.palavras_chave.join(', '):(alvo.palavras_chave||''));
+  const set = (k,v) => setF(p=>({...p,[k]:v}));
+
+  const submit = () => {
+    const palavras = buscaStr.split(',').map(s=>s.trim()).filter(Boolean);
+    onSave({...f, palavras_chave: palavras, preco_max: Number(f.preco_max)||0, preco_max_defeito: Number(f.preco_max_defeito)||0, desconto_minimo: Number(f.desconto_minimo)||25 });
+  };
+
+  return (
+    <div>
+      <div style={S.grid2}>
+        <Input label="Nome do alvo" value={f.nome} onChange={e=>set('nome',e.target.value)} placeholder="Ex: PS4 Slim 500GB" />
+        <Input label="Preço máximo (R$)" type="number" value={f.preco_max} onChange={e=>set('preco_max',e.target.value)} placeholder="650" />
+      </div>
+      <Input label="Palavras de busca (separadas por vírgula)" value={buscaStr} onChange={e=>setBuscaStr(e.target.value)} placeholder="ps4 slim 500gb, playstation 4 slim" />
+      <div style={S.grid2}>
+        <div style={{marginBottom:14}}>
+          <label style={S.label}>Grupo (1=PlayStation, 2=Xbox, 3=Retrô)</label>
+          <select value={f.grupo} onChange={e=>set('grupo',Number(e.target.value))} style={{...S.input,cursor:'pointer'}}>
+            <option value={1}>1 — Grupo 1</option><option value={2}>2 — Grupo 2</option><option value={3}>3 — Grupo 3</option>
+          </select>
+        </div>
+        <div style={{marginBottom:14}}>
+          <label style={S.label}>Prioridade</label>
+          <select value={f.prioridade} onChange={e=>set('prioridade',Number(e.target.value))} style={{...S.input,cursor:'pointer'}}>
+            <option value={1}>🔥 1 — TURBO (45s)</option><option value={2}>2 — Normal (3min)</option><option value={3}>3 — Lento (5min)</option>
+          </select>
+        </div>
+      </div>
+      <div style={{marginBottom:14}}>
+        <label style={S.label}>Desconto mínimo para notificar (%)</label>
+        <input type="number" value={f.desconto_minimo} onChange={e=>set('desconto_minimo',e.target.value)} min="0" max="90" style={S.input} />
+      </div>
+      <div style={{display:'flex',gap:24,marginBottom:16,flexWrap:'wrap'}}>
+        <Toggle label="Ativo" checked={!!f.ativo} onChange={()=>set('ativo',!f.ativo)} />
+        <Toggle label="Aceita defeito" checked={!!f.aceita_defeito} onChange={()=>set('aceita_defeito',!f.aceita_defeito)} />
+      </div>
+      {f.aceita_defeito && (
+        <Input label="Preço máximo com defeito (R$)" type="number" value={f.preco_max_defeito||''} onChange={e=>set('preco_max_defeito',e.target.value)} placeholder="300" />
+      )}
+      <div style={{display:'flex',gap:10,justifyContent:'flex-end',marginTop:8}}>
+        <Btn color="ghost" onClick={onClose}>Cancelar</Btn>
+        <Btn onClick={submit} disabled={saving}>{saving?'Salvando...':'Salvar'}</Btn>
+      </div>
+    </div>
+  );
+};
+
+// ════════════════════════════════════════════════════════════
+// ── App ───────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════
+
 const NAV = [
   { id:'dashboard', label:'Dashboard',  icon:'🏰' },
   { id:'produtos',  label:'Produtos',   icon:'🗡️' },
+  { id:'garimpo',   label:'Garimpo',    icon:'🎮' },
   { id:'analytics', label:'Analytics',  icon:'🧛' },
   { id:'config',    label:'Config',     icon:'⚙️' },
 ];
 
-// ── App ───────────────────────────────────────────────────────
 const App = () => {
   const [auth,setAuth]       = useState(!!sessionStorage.getItem('ng_admin_token'));
   const [tab,setTab]         = useState('dashboard');
@@ -686,13 +858,10 @@ const App = () => {
   const [loading,setLoading]   = useState(true);
 
   const loadProdutos = useCallback(async () => {
-    try { setProdutos(await supa('produtos?order=created_at.desc&limit=200')||[]); }
-    catch(e){ console.error(e); }
+    try { setProdutos(await supa('produtos?order=created_at.desc&limit=200')||[]); } catch(e){ console.error(e); }
   },[]);
-
   const loadVisitas = useCallback(async () => {
-    try { setVisitas(await supa('visitas?order=created_at.desc&limit=500')||[]); }
-    catch(e){ /* tabela ainda não existe — rode setup-supabase.sql */ }
+    try { setVisitas(await supa('visitas?order=created_at.desc&limit=500')||[]); } catch {}
   },[]);
 
   useEffect(()=>{
@@ -712,7 +881,6 @@ const App = () => {
         <div style={{width:40,height:40,border:'3px solid var(--border)',borderTopColor:'var(--red-b)',borderRadius:'50%',animation:'spin 0.8s linear infinite',margin:'0 auto 16px'}}/>
         <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--muted)'}}>carregando...</div>
       </div>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 
@@ -721,8 +889,8 @@ const App = () => {
       {/* Sidebar */}
       <div style={S.sidebar}>
         <div style={{padding:'20px 16px 16px',borderBottom:'1px solid var(--border)'}}>
-          <div style={{fontFamily:'Press Start 2P, monospace',fontSize:9,color:'var(--red-b)',lineHeight:1.8,textShadow:'0 0 10px rgba(204,20,20,.5)'}}>🏰 CASTLEVANIA</div>
-          <div style={{fontFamily:'Rajdhani, sans-serif',fontSize:10,color:'var(--gold)',letterSpacing:'0.2em'}}>NOSFERATU · ADMIN</div>
+          <div style={{fontFamily:'Press Start 2P, monospace',fontSize:9,color:'var(--red-b)',lineHeight:1.8,textShadow:'0 0 10px rgba(204,20,20,.5)'}}>🏰 NOSFERATU</div>
+          <div style={{fontFamily:'Rajdhani, sans-serif',fontSize:10,color:'var(--gold)',letterSpacing:'0.2em'}}>ADMIN PANEL</div>
         </div>
         <nav style={{flex:1,padding:12,display:'flex',flexDirection:'column',gap:4}}>
           {NAV.map(n=>(
@@ -740,9 +908,7 @@ const App = () => {
       {/* Main */}
       <div style={S.main}>
         <div style={S.topbar}>
-          <div style={{flex:1,fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--muted)'}}>
-            {new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})}
-          </div>
+          <div style={{flex:1,fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--muted)'}}>{new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})}</div>
           <div style={{fontSize:13,color:'var(--dim)'}}>
             <span style={{color:'#4ade80',fontSize:10}}>●</span> {produtos.filter(p=>p.ativo!==false&&!p.vendido).length} ativos · {visitas.filter(v=>new Date(v.created_at).toDateString()===new Date().toDateString()).length} visitas hoje
           </div>
@@ -750,6 +916,7 @@ const App = () => {
         <div style={S.content}>
           {tab==='dashboard' && <Dashboard produtos={produtos} visitas={visitas} />}
           {tab==='produtos'  && <ProductsPage produtos={produtos} reload={loadProdutos} />}
+          {tab==='garimpo'   && <GarimpoPage />}
           {tab==='analytics' && <Analytics visitas={visitas} />}
           {tab==='config'    && <Config />}
         </div>
