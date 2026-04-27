@@ -531,7 +531,18 @@ const GarimpoPage = () => {
           <div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Garimpo OLX</div>
           <div style={{fontSize:14,color:'var(--muted)'}}>Monitor do raspador da Raspberry Pi</div>
         </div>
-        <Btn color="ghost" onClick={carregar}>↻ Atualizar</Btn>
+        <div style={{display:'flex',gap:8}}>
+          <Btn color="danger" onClick={async () => {
+            if(!confirm('Deseja resetar todos os processos do garimpo na Raspberry?')) return;
+            showToast('⏳ Enviando comando de reset...');
+            try {
+              const r = await fetch('https://juliosflores.app.n8n.cloud/webhook/reset-garimpo', { method:'POST' });
+              if(r.ok) showToast('✅ Comando enviado com sucesso!');
+              else showToast('✕ Erro ao enviar comando.');
+            } catch { showToast('✕ Erro de conexão.'); }
+          }}>⚡ Resetar Garimpo</Btn>
+          <Btn color="ghost" onClick={carregar}>↻ Atualizar</Btn>
+        </div>
       </div>
 
       {/* Sub-tabs */}
