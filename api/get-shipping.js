@@ -43,15 +43,27 @@ export default async function handler(req, res) {
       })
     });
 
+    if (!response.ok) {
+      console.error('[get-shipping] Superfrete HTTP', response.status, await response.text());
+      return res.status(200).json([]); // Retorna vazio ao invés de erro - permite retirada
+    }
+
     const data = await response.json();
-    if (!Array.isArray(data)) return res.status(400).json({ error: 'Erro na API de frete.' });
+    console.log('[get-shipping] Superfrete response:', JSON.stringify(data).slice(0,200));
+    
+    if (!Array.isArray(data)) {
+      console.error('[get-shipping] Resposta não é array:', typeof data);
+      return res.status(200).json([]);
+    }
 
     const opcoes = data
       .filter(s => !s.error && s.price > 0)
       .map(s => ({ name: s.name, price: s.price, deadline: s.delivery_time }));
 
+    console.log('[get-shipping] Opcoes filtradas:', opcoes.length);
     return res.status(200).json(opcoes);
   } catch (error) {
-    return res.status(500).json({ error: 'Erro ao calcular frete.' });
+    console.error('[get-shipping] Erro:', error.message);
+    return res.status(200).json([]); // Retorna vazio - permite retirada
   }
 }
