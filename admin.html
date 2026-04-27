@@ -1,13 +1,12 @@
 <!DOCTYPE html>
-<!-- Nosferatu Games Admin Panel v2.1 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin — Nosferatu Games</title>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Press+Start+2P&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" integrity="sha384-DGyLxAyjq0f9SPpVevD6IgztCFlnMF6oW/XQGmfe+IsZ8TqEiDrcHkMLKI6fiB/Z" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" integrity="sha384-gTGxhz21lVGYNMcdJOyq01Edg0jhn/c22nsx0kyqP0TxaV5WVdsSH1fSDUf5YJj1" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -511,7 +510,7 @@ const GarimpoPage = () => {
 
   const SUB_TABS = [
     { id:'overview', label:'Visão Geral', icon:'📊' },
-    { id:'achados',  label:`Achados (${achados.filter(a=>a.status==='novo').length})`, icon:'💎' },
+    { id:'achados',  label:`Achados (${achados.filter(a=>a.status==='pendente').length})`, icon:'💎' },
     { id:'alvos',    label:`Alvos (${alvos.length})`, icon:'🎯' },
     { id:'precos',   label:'Preços Base', icon:'💰' },
     { id:'logs',     label:'Logs', icon:'📋' },
@@ -531,18 +530,7 @@ const GarimpoPage = () => {
           <div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Garimpo OLX</div>
           <div style={{fontSize:14,color:'var(--muted)'}}>Monitor do raspador da Raspberry Pi</div>
         </div>
-        <div style={{display:'flex',gap:8}}>
-          <Btn color="danger" onClick={async () => {
-            if(!confirm('Deseja resetar todos os processos do garimpo na Raspberry?')) return;
-            showToast('⏳ Enviando comando de reset...');
-            try {
-              const r = await fetch('https://juliosflores.app.n8n.cloud/webhook/reset-garimpo', { method:'POST' });
-              if(r.ok) showToast('✅ Comando enviado com sucesso!');
-              else showToast('✕ Erro ao enviar comando.');
-            } catch { showToast('✕ Erro de conexão.'); }
-          }}>⚡ Resetar Garimpo</Btn>
-          <Btn color="ghost" onClick={carregar}>↻ Atualizar</Btn>
-        </div>
+        <Btn color="ghost" onClick={carregar}>↻ Atualizar</Btn>
       </div>
 
       {/* Sub-tabs */}
@@ -574,7 +562,7 @@ const GarimpoPage = () => {
             />
             <StatCard
               label="Pendentes"
-              value={achados.filter(a=>a.status==='novo').length}
+              value={achados.filter(a=>a.status==='pendente').length}
               sub={`${achados.filter(a=>a.status==='comprado').length} comprados`}
               color="var(--purple)"
               icon="💎"
@@ -621,7 +609,7 @@ const GarimpoPage = () => {
                   </div>
                   <div style={{display:'flex',gap:6,flexShrink:0}}>
                     {a.url && <a href={a.url} target="_blank" rel="noopener" style={{...S.btn,padding:'5px 10px',fontSize:11,background:'rgba(0,255,255,.1)',color:'var(--cyan)',textDecoration:'none',border:'1px solid rgba(0,255,255,.2)'}}>↗ OLX</a>}
-                    {a.status==='novo' && <>
+                    {a.status==='pendente' && <>
                       <button onClick={()=>marcarComprado(a)} style={{...S.btn,padding:'5px 10px',fontSize:11,background:'rgba(37,211,102,.12)',color:'var(--green)',border:'1px solid rgba(37,211,102,.3)'}}>✔ Comprei</button>
                       <button onClick={()=>marcarDescartado(a)} style={{...S.btn,padding:'5px 10px',fontSize:11,background:'var(--surface2)',color:'var(--muted)',border:'1px solid var(--border)'}}>✕</button>
                     </>}
@@ -636,8 +624,8 @@ const GarimpoPage = () => {
       {sub==='achados' && (
         <div>
           <div style={{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap'}}>
-            {['novo','comprado','descartado'].map(s=>(
-              <MonoTag key={s} color={s==='novo'?'var(--purple)':s==='comprado'?'var(--green)':'var(--muted)'}>
+            {['pendente','comprado','descartado'].map(s=>(
+              <MonoTag key={s} color={s==='pendente'?'var(--purple)':s==='comprado'?'var(--green)':'var(--muted)'}>
                 {s.toUpperCase()}: {achados.filter(a=>a.status===s).length}
               </MonoTag>
             ))}
@@ -655,7 +643,7 @@ const GarimpoPage = () => {
                           background:a.status==='comprado'?'rgba(37,211,102,.12)':a.status==='descartado'?'var(--surface2)':'rgba(168,85,247,.12)',
                           color:a.status==='comprado'?'var(--green)':a.status==='descartado'?'var(--muted)':'var(--purple)',
                           border:`1px solid ${a.status==='comprado'?'rgba(37,211,102,.3)':a.status==='descartado'?'var(--border)':'rgba(168,85,247,.3)'}`
-                        }}>{(a.status||'novo').toUpperCase()}</span>
+                        }}>{(a.status||'pendente').toUpperCase()}</span>
                       </td>
                       <td style={{padding:'10px 14px',maxWidth:240}}><div style={{fontSize:13,fontWeight:700,color:'var(--text)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.titulo}</div></td>
                       <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:13,color:'var(--gold)',whiteSpace:'nowrap'}}>R$ {Number(a.preco).toLocaleString('pt-BR')}</td>
@@ -664,7 +652,7 @@ const GarimpoPage = () => {
                       <td style={{padding:'10px 14px'}}>
                         <div style={{display:'flex',gap:4}}>
                           {a.url&&<a href={a.url} target="_blank" rel="noopener" style={{...S.btn,padding:'4px 8px',fontSize:11,background:'rgba(0,255,255,.1)',color:'var(--cyan)',textDecoration:'none'}}>↗</a>}
-                          {a.status==='novo'&&<><button onClick={()=>marcarComprado(a)} style={{...S.btn,padding:'4px 8px',fontSize:11,background:'rgba(37,211,102,.1)',color:'var(--green)'}}>✔</button><button onClick={()=>marcarDescartado(a)} style={{...S.btn,padding:'4px 8px',fontSize:11,background:'var(--surface2)',color:'var(--muted)'}}>✕</button></>}
+                          {a.status==='pendente'&&<><button onClick={()=>marcarComprado(a)} style={{...S.btn,padding:'4px 8px',fontSize:11,background:'rgba(37,211,102,.1)',color:'var(--green)'}}>✔</button><button onClick={()=>marcarDescartado(a)} style={{...S.btn,padding:'4px 8px',fontSize:11,background:'var(--surface2)',color:'var(--muted)'}}>✕</button></>}
                         </div>
                       </td>
                     </tr>
