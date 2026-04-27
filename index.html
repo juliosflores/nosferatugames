@@ -312,7 +312,9 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
 .checkout-overlay strong{font-family:'Press Start 2P',monospace;font-size:10px;color:var(--text);display:block;margin-bottom:4px}
 
 /* PAYMENT TOAST */
-.payment-toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:1rem 1.5rem;font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:600;display:flex;align-items:center;gap:10px;z-index:9998;opacity:0;transition:opacity 0.3s,transform 0.3s;white-space:nowrap;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,0.6)}
+.payment-toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:1rem 1.5rem;font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:600;display:flex;align-items:center;gap:10px;z-index:10010;opacity:0;transition:opacity 0.3s,transform 0.3s;white-space:nowrap;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,0.6)}
+.field-error{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--red-bright);margin-top:4px;display:none;}
+.checkout-input.invalid{border-color:rgba(255,34,34,0.7)!important;box-shadow:0 0 0 3px rgba(255,34,34,0.12)!important;}
 .payment-toast.visible{opacity:1;transform:translateX(-50%) translateY(0)}
 .payment-toast.sucesso{border-color:rgba(74,222,128,0.5);color:#4ade80}
 .payment-toast.pendente{border-color:rgba(255,184,0,0.5);color:var(--gold)}
@@ -900,6 +902,21 @@ function formatarWPP(el) {
 
 function validarNome(nome) { return nome.trim().length >= 3 && nome.trim().includes(' '); }
 
+function mostrarErro(fieldId, errId) {
+  const el = document.getElementById(fieldId);
+  const err = document.getElementById(errId);
+  if (el) { el.classList.add('invalid'); el.focus(); }
+  if (err) err.style.display = 'block';
+}
+function limparErro(fieldId) {
+  const el = document.getElementById(fieldId);
+  if (!el) return;
+  el.classList.remove('invalid');
+  const errId = 'err-' + fieldId.replace('chk-','');
+  const err = document.getElementById(errId);
+  if (err) err.style.display = 'none';
+}
+
 function atualizarTotal(frete) {
   if (frete !== undefined) valorFreteAtivo = Number(frete);
   const subtotal = meuCarrinho.reduce((acc, p) => acc + Number(p.preco || 0), 0);
@@ -970,9 +987,9 @@ async function processarPedido(e) {
   const radioSelected = document.querySelector('input[name="shipping"]:checked');
   const isRetirada = !radioSelected || Number(radioSelected.value) === 0;
 
-  if (!validarNome(nome))                      { showToast('erro','✕ Digite o nome completo (nome e sobrenome).'); document.getElementById('chk-nome').focus(); return; }
-  if (wpp.replace(/\D/g,'').length < 10)       { showToast('erro','✕ WhatsApp inválido. Ex: (51) 9 9999-9999'); document.getElementById('chk-wpp').focus(); return; }
-  if (!validarCPF(cpf))                        { showToast('erro','✕ CPF inválido.'); document.getElementById('chk-cpf').focus(); return; }
+  if (!validarNome(nome))                      { mostrarErro('chk-nome','err-nome'); return; }
+  if (wpp.replace(/\D/g,'').length < 10)       { mostrarErro('chk-wpp','err-wpp'); return; }
+  if (!validarCPF(cpf))                        { mostrarErro('chk-cpf','err-cpf'); return; }
 
   // Para entrega (não retirada), valida endereço
   if (!isRetirada) {
@@ -1440,16 +1457,19 @@ verificarDeepLink();
       </div>
       <div class="checkout-form-group">
         <label class="checkout-label">NOME COMPLETO</label>
-        <input type="text" id="chk-nome" class="checkout-input" required>
+        <input type="text" id="chk-nome" class="checkout-input" required placeholder="Ex: João Silva" oninput="limparErro('chk-nome')">
+        <div class="field-error" id="err-nome">✕ Digite nome e sobrenome (mínimo 2 palavras)</div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
         <div>
           <label class="checkout-label">WHATSAPP</label>
-          <input type="text" id="chk-wpp" class="checkout-input" required placeholder="(51) 9 9999-9999" maxlength="16" oninput="formatarWPP(this)" inputmode="numeric">
+          <input type="text" id="chk-wpp" class="checkout-input" required placeholder="(51) 9 9999-9999" maxlength="16" oninput="formatarWPP(this);limparErro('chk-wpp')" inputmode="numeric">
+          <div class="field-error" id="err-wpp">✕ WhatsApp inválido</div>
         </div>
         <div>
           <label class="checkout-label">CPF</label>
-          <input type="text" id="chk-cpf" class="checkout-input" required placeholder="000.000.000-00" maxlength="14" oninput="formatarCPF(this)" inputmode="numeric">
+          <input type="text" id="chk-cpf" class="checkout-input" required placeholder="000.000.000-00" maxlength="14" oninput="formatarCPF(this);limparErro('chk-cpf')" inputmode="numeric">
+          <div class="field-error" id="err-cpf">✕ CPF inválido — verifique os números</div>
         </div>
       </div>
       <div class="checkout-form-group">
