@@ -424,6 +424,57 @@ const Config = () => {
   );
 };
 
+// ── AlvoForm ─────────────────────────────────────────────────
+const AlvoForm = ({alvo, onSave, onClose, saving}) => {
+  const [f, setF] = useState({...alvo});
+  const [buscaStr, setBuscaStr] = useState(Array.isArray(alvo.palavras_chave)?alvo.palavras_chave.join(', '):(alvo.palavras_chave||''));
+  const set = (k,v) => setF(p=>({...p,[k]:v}));
+
+  const submit = () => {
+    const palavras = buscaStr.split(',').map(s=>s.trim()).filter(Boolean);
+    onSave({...f, palavras_chave: palavras, preco_max: Number(f.preco_max)||0, preco_max_defeito: Number(f.preco_max_defeito)||0, desconto_minimo: Number(f.desconto_minimo)||25 });
+  };
+
+  return (
+    <div>
+      <div style={S.grid2}>
+        <Input label="Nome do alvo" value={f.nome} onChange={e=>set('nome',e.target.value)} placeholder="Ex: PS4 Slim 500GB" />
+        <Input label="Preço máximo (R$)" type="number" value={f.preco_max} onChange={e=>set('preco_max',e.target.value)} placeholder="650" />
+      </div>
+      <Input label="Palavras de busca (separadas por vírgula)" value={buscaStr} onChange={e=>setBuscaStr(e.target.value)} placeholder="ps4 slim 500gb, playstation 4 slim" />
+      <div style={S.grid2}>
+        <div style={{marginBottom:14}}>
+          <label style={S.label}>Grupo (1=PlayStation, 2=Xbox, 3=Retrô)</label>
+          <select value={f.grupo} onChange={e=>set('grupo',Number(e.target.value))} style={{...S.input,cursor:'pointer'}}>
+            <option value={1}>1 — Grupo 1</option><option value={2}>2 — Grupo 2</option><option value={3}>3 — Grupo 3</option>
+          </select>
+        </div>
+        <div style={{marginBottom:14}}>
+          <label style={S.label}>Prioridade</label>
+          <select value={f.prioridade} onChange={e=>set('prioridade',Number(e.target.value))} style={{...S.input,cursor:'pointer'}}>
+            <option value={1}>🔥 1 — TURBO (45s)</option><option value={2}>2 — Normal (3min)</option><option value={3}>3 — Lento (5min)</option>
+          </select>
+        </div>
+      </div>
+      <div style={{marginBottom:14}}>
+        <label style={S.label}>Desconto mínimo para notificar (%)</label>
+        <input type="number" value={f.desconto_minimo} onChange={e=>set('desconto_minimo',e.target.value)} min="0" max="90" style={S.input} />
+      </div>
+      <div style={{display:'flex',gap:24,marginBottom:16,flexWrap:'wrap'}}>
+        <Toggle label="Ativo" checked={!!f.ativo} onChange={()=>set('ativo',!f.ativo)} />
+        <Toggle label="Aceita defeito" checked={!!f.aceita_defeito} onChange={()=>set('aceita_defeito',!f.aceita_defeito)} />
+      </div>
+      {f.aceita_defeito && (
+        <Input label="Preço máximo com defeito (R$)" type="number" value={f.preco_max_defeito||''} onChange={e=>set('preco_max_defeito',e.target.value)} placeholder="300" />
+      )}
+      <div style={{display:'flex',gap:10,justifyContent:'flex-end',marginTop:8}}>
+        <Btn color="ghost" onClick={onClose}>Cancelar</Btn>
+        <Btn onClick={submit} disabled={saving}>{saving?'Salvando...':'Salvar'}</Btn>
+      </div>
+    </div>
+  );
+};
+
 // ════════════════════════════════════════════════════════════
 // ── GARIMPO PAGE ─────────────────────────────────────────────
 // ════════════════════════════════════════════════════════════
@@ -783,57 +834,6 @@ const GarimpoPage = () => {
           </div>
         </div>
       )}
-    </div>
-  );
-};
-
-// ── AlvoForm ─────────────────────────────────────────────────
-const AlvoForm = ({alvo, onSave, onClose, saving}) => {
-  const [f, setF] = useState({...alvo});
-  const [buscaStr, setBuscaStr] = useState(Array.isArray(alvo.palavras_chave)?alvo.palavras_chave.join(', '):(alvo.palavras_chave||''));
-  const set = (k,v) => setF(p=>({...p,[k]:v}));
-
-  const submit = () => {
-    const palavras = buscaStr.split(',').map(s=>s.trim()).filter(Boolean);
-    onSave({...f, palavras_chave: palavras, preco_max: Number(f.preco_max)||0, preco_max_defeito: Number(f.preco_max_defeito)||0, desconto_minimo: Number(f.desconto_minimo)||25 });
-  };
-
-  return (
-    <div>
-      <div style={S.grid2}>
-        <Input label="Nome do alvo" value={f.nome} onChange={e=>set('nome',e.target.value)} placeholder="Ex: PS4 Slim 500GB" />
-        <Input label="Preço máximo (R$)" type="number" value={f.preco_max} onChange={e=>set('preco_max',e.target.value)} placeholder="650" />
-      </div>
-      <Input label="Palavras de busca (separadas por vírgula)" value={buscaStr} onChange={e=>setBuscaStr(e.target.value)} placeholder="ps4 slim 500gb, playstation 4 slim" />
-      <div style={S.grid2}>
-        <div style={{marginBottom:14}}>
-          <label style={S.label}>Grupo (1=PlayStation, 2=Xbox, 3=Retrô)</label>
-          <select value={f.grupo} onChange={e=>set('grupo',Number(e.target.value))} style={{...S.input,cursor:'pointer'}}>
-            <option value={1}>1 — Grupo 1</option><option value={2}>2 — Grupo 2</option><option value={3}>3 — Grupo 3</option>
-          </select>
-        </div>
-        <div style={{marginBottom:14}}>
-          <label style={S.label}>Prioridade</label>
-          <select value={f.prioridade} onChange={e=>set('prioridade',Number(e.target.value))} style={{...S.input,cursor:'pointer'}}>
-            <option value={1}>🔥 1 — TURBO (45s)</option><option value={2}>2 — Normal (3min)</option><option value={3}>3 — Lento (5min)</option>
-          </select>
-        </div>
-      </div>
-      <div style={{marginBottom:14}}>
-        <label style={S.label}>Desconto mínimo para notificar (%)</label>
-        <input type="number" value={f.desconto_minimo} onChange={e=>set('desconto_minimo',e.target.value)} min="0" max="90" style={S.input} />
-      </div>
-      <div style={{display:'flex',gap:24,marginBottom:16,flexWrap:'wrap'}}>
-        <Toggle label="Ativo" checked={!!f.ativo} onChange={()=>set('ativo',!f.ativo)} />
-        <Toggle label="Aceita defeito" checked={!!f.aceita_defeito} onChange={()=>set('aceita_defeito',!f.aceita_defeito)} />
-      </div>
-      {f.aceita_defeito && (
-        <Input label="Preço máximo com defeito (R$)" type="number" value={f.preco_max_defeito||''} onChange={e=>set('preco_max_defeito',e.target.value)} placeholder="300" />
-      )}
-      <div style={{display:'flex',gap:10,justifyContent:'flex-end',marginTop:8}}>
-        <Btn color="ghost" onClick={onClose}>Cancelar</Btn>
-        <Btn onClick={submit} disabled={saving}>{saving?'Salvando...':'Salvar'}</Btn>
-      </div>
     </div>
   );
 };
