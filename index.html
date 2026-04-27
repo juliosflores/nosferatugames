@@ -966,32 +966,104 @@ async function processarPedido(e) {
   const end  = document.getElementById('chk-endereco').value.trim();
   const num  = document.getElementById('chk-numero').value.trim();
   const cpf  = document.getElementById('chk-cpf').value.trim();
+
+  const radioSelected = document.querySelector('input[name="shipping"]:checked');
+  const isRetirada = !radioSelected || Number(radioSelected.value) === 0;
+
   if (!validarNome(nome))                      { showToast('erro','✕ Digite o nome completo (nome e sobrenome).'); document.getElementById('chk-nome').focus(); return; }
   if (wpp.replace(/\D/g,'').length < 10)       { showToast('erro','✕ WhatsApp inválido. Ex: (51) 9 9999-9999'); document.getElementById('chk-wpp').focus(); return; }
   if (!validarCPF(cpf))                        { showToast('erro','✕ CPF inválido.'); document.getElementById('chk-cpf').focus(); return; }
-  if (cep.replace(/\D/g,'').length !== 8)      { showToast('erro','✕ CEP inválido.'); document.getElementById('chk-cep').focus(); return; }
-  if (!end)                                    { showToast('erro','✕ Endereço não encontrado. Verifique o CEP.'); return; }
-  if (!num)                                    { showToast('erro','✕ Informe o número do endereço.'); document.getElementById('chk-numero').focus(); return; }
+
+  // Para entrega (não retirada), valida endereço
+  if (!isRetirada) {
+    if (cep.replace(/\D/g,'').length !== 8)    { showToast('erro','✕ CEP inválido.'); document.getElementById('chk-cep').focus(); return; }
+    if (!end)                                  { showToast('erro','✕ Aguarde o CEP carregar ou verifique se é válido.'); document.getElementById('chk-cep').focus(); return; }
+    if (!num)                                  { showToast('erro','✕ Informe o número do endereço.'); document.getElementById('chk-numero').focus(); return; }
+  }
   const btn = document.getElementById('btnFinalizar');
   const originalText = btn.textContent;
   btn.disabled = true; btn.textContent = '⏳ Processando...';
-  const radioSelected = document.querySelector('input[name="shipping"]:checked');
-  const metodoEnvio = radioSelected ? radioSelected.parentElement.innerText.trim() : 'Não selecionado';
+  const metodoEnvio = radioSelected ? radioSelected.parentElement.innerText.trim() : 'Retirada em Mãos';
+  const subtotal = meuCarrinho.reduce((acc,p)=>acc+Number(p.preco||0),0);
+  const total = subtotal + valorFreteAtivo;
+
+  // Monta mensagem WhatsApp de fallback
+  const gerarMsgWpp = () => {
+    const itens = meuCarrinho.map(p=>`• ${p.nome} — R$ ${Number(p.preco).toLocaleString('pt-BR')}`).join('\n');
+    const endCompleto = isRetirada ? 'Retirada em mãos' : `${end}, ${num} — CEP ${cep}`;
+    return encodeURIComponent(
+      `🧛 *Pedido Nosferatu Games*\n\n${itens}\n\n📦 Entrega: ${metodoEnvio}\n📍 Endereço: ${endCompleto}\n👤 Nome: ${nome}\n📱 WhatsApp: ${wpp}\n\n💰 *Total: R$ ${total.toLocaleString('pt-BR',{minimumFractionDigits:2})}*\n\nQuero finalizar o pedido!`
+    );
+  };
+
+  let apiOk = false;
+
+  // Salva pedido no Supabase antes de ir pro MP
+  const pedidoPayload = {
+    nome, whatsapp: wpp, cpf, cep,
+    endereco: isRetirada ? 'Retirada em Mãos' : `${end}, ${num}`,
+    numero: num,
+    metodo_envio: metodoEnvio,
+    frete: valorFreteAtivo,
+    subtotal,
+    total,
+    itens: meuCarrinho.map(p=>({id:p.id,nome:p.nome,preco:Number(p.preco||0)})),
+    status: 'pendente',
+    session_id: SESSION_ID
+  };
+  let pedidoId = null;
+  try {
+    const r = await fetch(`${SUPA_URL}/rest/v1/pedidos`, {
+      method: 'POST',
+      headers: { apikey: SUPA_ANON, Authorization: `Bearer ${SUPA_ANON}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+      body: JSON.stringify(pedidoPayload)
+    });
+    const data = await r.json();
+    pedidoId = Array.isArray(data) ? data[0]?.id : data?.id;
+    if (pedidoId) localStorage.setItem('ng_last_pedido_id', pedidoId);
+  } catch(e) { console.warn('Erro ao salvar pedido:', e.message); }
+
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
-    const payRes = await fetch('/api/create-preference', { method:'POST', headers:{'Content-Type':'application/json'}, signal:controller.signal, body: JSON.stringify({ items:meuCarrinho, shipping_cost:valorFreteAtivo, shipping_name:metodoEnvio }) });
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+    const payRes = await fetch('/api/create-preference', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      signal:controller.signal,
+      body: JSON.stringify({ items:meuCarrinho, shipping_cost:valorFreteAtivo, shipping_name:metodoEnvio })
+    });
     clearTimeout(timeoutId);
+    if (!payRes.ok) throw new Error(`API retornou ${payRes.status}`);
     const payData = await payRes.json();
     if (payData.init_point) {
+      apiOk = true;
       btn.textContent = '✔ Redirecionando...';
       meuCarrinho = []; salvarCarrinho(); fecharCheckoutEntrega();
       window.location.href = payData.init_point;
-    } else { throw new Error('Pagamento recusado. Tente novamente.'); }
+      return;
+    }
+    throw new Error(payData.error || 'Sem link de pagamento');
   } catch(err) {
-    console.error('Erro checkout:',err);
-    showToast('erro',`✕ ${err.message||'Erro ao processar'}. Tente novamente.`);
-    btn.disabled=false; btn.textContent=originalText;
+    console.warn('MP API falhou, usando fallback WPP:', err.message);
+  }
+
+  if (!apiOk) {
+    // Fallback: redireciona pro WhatsApp com o pedido completo
+    btn.textContent = '📲 Abrindo WhatsApp...';
+    setTimeout(() => {
+      const wppLink = `https://wa.me/5551951089700?text=${gerarMsgWpp()}`;
+      // Atualiza status do pedido para fallback_wpp
+      if (pedidoId) {
+        fetch(`${SUPA_URL}/rest/v1/pedidos?id=eq.${pedidoId}`, {
+          method: 'PATCH',
+          headers: { apikey: SUPA_ANON, Authorization: `Bearer ${SUPA_ANON}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'fallback_wpp' })
+        }).catch(()=>{});
+      }
+      meuCarrinho = []; salvarCarrinho(); fecharCheckoutEntrega();
+      window.open(wppLink, '_blank');
+      showToast('pendente','📲 Abrimos o WhatsApp com seu pedido! Aguarde o vendedor confirmar.');
+      btn.disabled=false; btn.textContent=originalText;
+    }, 600);
   }
 }
 
@@ -1084,6 +1156,19 @@ function checkPaymentReturn() {
   const btn=document.getElementById('btnFinalizar');
   if (btn) { btn.disabled=false; btn.textContent='💳 Confirmar e Pagar'; }
   fecharCheckoutEntrega();
+
+  // Atualiza status do pedido no Supabase
+  const pedidoId = localStorage.getItem('ng_last_pedido_id');
+  if (pedidoId) {
+    const novoStatus = status==='sucesso'?'pago':status==='pendente'?'pendente':'cancelado';
+    fetch(`${SUPA_URL}/rest/v1/pedidos?id=eq.${pedidoId}`, {
+      method: 'PATCH',
+      headers: { apikey: SUPA_ANON, Authorization: `Bearer ${SUPA_ANON}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: novoStatus })
+    }).catch(()=>{});
+    if (status==='sucesso') localStorage.removeItem('ng_last_pedido_id');
+  }
+
   if (status==='sucesso')       showToast('sucesso','✔ Pagamento aprovado! Em breve entraremos em contato.');
   else if (status==='pendente') showToast('pendente','⏳ Pagamento pendente. Aguarde a confirmação.');
   else if (status==='erro')     showToast('erro','✕ Pagamento não concluído. Seu carrinho foi mantido.');
