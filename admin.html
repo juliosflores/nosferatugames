@@ -904,6 +904,109 @@ const GarimpoPage = () => {
   );
 };
 
+// ── Pedidos Page ─────────────────────────────────────────────
+const PedidosPage = () => {
+  const [pedidos, setPedidos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filtro, setFiltro]   = useState('todos');
+
+  const carregar = async () => {
+    setLoading(true);
+    try { setPedidos(await supa('pedidos?order=created_at.desc&limit=200') || []); }
+    catch(e) { console.error(e); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { carregar(); }, []);
+
+  const atualizarStatus = async (id, status) => {
+    await supa(`pedidos?id=eq.${id}`, { method:'PATCH', body: JSON.stringify({ status }) });
+    carregar();
+  };
+
+  const STATUS_COLOR = { pago:'#4ade80', pendente:'var(--gold)', fallback_wpp:'var(--purple)', cancelado:'var(--red-b)' };
+  const STATUS_LABEL = { pago:'✅ PAGO', pendente:'⏳ PENDENTE', fallback_wpp:'📲 WPP', cancelado:'✕ CANCELADO' };
+
+  const filtrados = pedidos.filter(p => filtro === 'todos' || p.status === filtro);
+  const totalPago = pedidos.filter(p=>p.status==='pago').reduce((a,p)=>a+Number(p.total||0),0);
+
+  return (
+    <div>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20,flexWrap:'wrap',gap:12}}>
+        <div>
+          <div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Pedidos</div>
+          <div style={{fontSize:14,color:'var(--muted)'}}>{filtrados.length} pedidos · R$ {totalPago.toLocaleString('pt-BR')} confirmados</div>
+        </div>
+        <Btn color="ghost" onClick={carregar}>↻ Atualizar</Btn>
+      </div>
+
+      <div className="ng-grid4" style={S.grid4}>
+        <StatCard label="Total pedidos" value={pedidos.length} color="var(--purple)" icon="💳"/>
+        <StatCard label="Pagos" value={pedidos.filter(p=>p.status==='pago').length} sub={`R$ ${totalPago.toLocaleString('pt-BR')}`} color="#4ade80" icon="✅"/>
+        <StatCard label="Pendentes" value={pedidos.filter(p=>p.status==='pendente').length} color="var(--gold)" icon="⏳"/>
+        <StatCard label="Via WhatsApp" value={pedidos.filter(p=>p.status==='fallback_wpp').length} color="var(--green)" icon="📲"/>
+      </div>
+
+      <div style={{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap'}}>
+        {['todos','pago','pendente','fallback_wpp','cancelado'].map(f=>(
+          <button key={f} onClick={()=>setFiltro(f)} style={{...S.btn,height:34,fontSize:12,background:filtro===f?'rgba(204,20,20,.15)':'var(--surface)',border:`1px solid ${filtro===f?'var(--red)':'var(--border)'}`,color:filtro===f?'#fff':'var(--dim)'}}>
+            {STATUS_LABEL[f]||'Todos'}
+          </button>
+        ))}
+      </div>
+
+      {loading ? <div style={{textAlign:'center',padding:40,fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--muted)'}}>Carregando pedidos...</div> : (
+        <div style={{...S.card,padding:0,overflow:'hidden'}}>
+          <div style={{overflowX:'auto'}}>
+            <table style={{width:'100%',borderCollapse:'collapse',minWidth:700}}>
+              <thead>
+                <tr style={{background:'var(--bg3)'}}>
+                  {['Data','Cliente','Itens','Entrega','Total','Status','Ações'].map(h=>(
+                    <th key={h} style={{padding:'10px 14px',textAlign:'left',fontFamily:'Share Tech Mono, monospace',fontSize:10,color:'var(--muted)',letterSpacing:'0.15em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtrados.length===0 && (
+                  <tr><td colSpan={7} style={{padding:'2rem',textAlign:'center',color:'var(--muted)',fontFamily:'Share Tech Mono, monospace',fontSize:13}}>nenhum pedido encontrado</td></tr>
+                )}
+                {filtrados.map(p=>(
+                  <tr key={p.id} style={{borderTop:'1px solid var(--border)'}}>
+                    <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--muted)',whiteSpace:'nowrap'}}>{fmtDate(p.created_at)}</td>
+                    <td style={{padding:'10px 14px'}}>
+                      <div style={{fontSize:14,fontWeight:700,color:'var(--text)'}}>{p.nome}</div>
+                      <div style={{fontSize:11,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>{p.whatsapp}</div>
+                    </td>
+                    <td style={{padding:'10px 14px',maxWidth:200}}>
+                      {(p.itens||[]).map((it,i)=>(
+                        <div key={i} style={{fontSize:12,color:'var(--dim)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{it.nome}</div>
+                      ))}
+                    </td>
+                    <td style={{padding:'10px 14px',fontSize:12,color:'var(--dim)',maxWidth:150,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.metodo_envio||'—'}</td>
+                    <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:13,color:'var(--gold)',whiteSpace:'nowrap'}}>R$ {Number(p.total||0).toLocaleString('pt-BR')}</td>
+                    <td style={{padding:'10px 14px'}}>
+                      <span style={{fontFamily:'Share Tech Mono, monospace',fontSize:10,padding:'3px 8px',borderRadius:2,background:'rgba(255,255,255,.05)',color:STATUS_COLOR[p.status]||'var(--dim)',border:`1px solid ${STATUS_COLOR[p.status]||'var(--border)'}33`}}>
+                        {STATUS_LABEL[p.status]||p.status}
+                      </span>
+                    </td>
+                    <td style={{padding:'10px 14px'}}>
+                      <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                        {p.status!=='pago' && <button onClick={()=>atualizarStatus(p.id,'pago')} style={{...S.btn,padding:'4px 10px',fontSize:11,background:'rgba(74,222,128,.1)',border:'1px solid rgba(74,222,128,.3)',color:'#4ade80'}}>✅ Pago</button>}
+                        {p.status!=='cancelado' && <button onClick={()=>atualizarStatus(p.id,'cancelado')} style={{...S.btn,padding:'4px 10px',fontSize:11,background:'rgba(204,20,20,.1)',border:'1px solid var(--border-r)',color:'var(--red-b)'}}>✕</button>}
+                        {p.whatsapp && <a href={`https://wa.me/55${p.whatsapp.replace(/\D/g,'')}`} target="_blank" style={{...S.btn,padding:'4px 10px',fontSize:11,background:'rgba(37,211,102,.1)',border:'1px solid rgba(37,211,102,.3)',color:'var(--green)',textDecoration:'none'}}>💬</a>}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ════════════════════════════════════════════════════════════
 // ── App ───────────────────────────────────────────────────────
 // ════════════════════════════════════════════════════════════
@@ -911,6 +1014,7 @@ const GarimpoPage = () => {
 const NAV = [
   { id:'dashboard', label:'Dashboard',  icon:'🏰' },
   { id:'produtos',  label:'Produtos',   icon:'🗡️' },
+  { id:'pedidos',   label:'Pedidos',    icon:'💳' },
   { id:'garimpo',   label:'Garimpo',    icon:'🎮' },
   { id:'analytics', label:'Analytics',  icon:'🧛' },
   { id:'config',    label:'Config',     icon:'⚙️' },
@@ -989,6 +1093,7 @@ const App = () => {
         <div className="ng-content" style={S.content}>
           {tab==='dashboard' && <Dashboard produtos={produtos} visitas={visitas} />}
           {tab==='produtos'  && <ProductsPage produtos={produtos} reload={loadProdutos} />}
+          {tab==='pedidos'   && <PedidosPage />}
           {tab==='garimpo'   && <GarimpoPage />}
           {tab==='analytics' && <Analytics visitas={visitas} />}
           {tab==='config'    && <Config />}
