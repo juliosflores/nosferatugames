@@ -1012,33 +1012,72 @@ const PedidosPage = () => {
 // ════════════════════════════════════════════════════════════
 
 const InfraPage = () => {
+  const VPS_IP     = '2.24.217.31';
   const VPS_DOMAIN = 'nosferatugames.com.br';
-  const N8N_URL = `https://n8n.${VPS_DOMAIN}`;
+  const N8N_URL    = `https://n8n.${VPS_DOMAIN}`;
   const HERMES_URL = `https://hermes.${VPS_DOMAIN}`;
   const HERMES_KEY = 'hermes-n8n-key-2026';
 
-  const [sub, setSub] = useState('n8n');
-  const [vpsStatus, setVpsStatus] = useState(null);
-  const [hermesMsg, setHermesMsg] = useState('');
+  const [sub, setSub]               = useState('status');
+  const [loading, setLoading]       = useState(false);
+
+  // ── Hermes data ──
+  const [health, setHealth]         = useState(null);       // /health
+  const [healthEx, setHealthEx]     = useState(null);       // /health/extended
+  const [caps, setCaps]             = useState(null);       // /capabilities
+  const [model, setModel]           = useState(null);       // /v1/models
+  const [dashStatus, setDashStatus] = useState(null);       // /api/dashboard/status
+  const [sessions, setSessions]     = useState([]);         // /api/dashboard/sessions
+  const [jobs, setJobs]             = useState([]);         // /api/jobs
+  const [lastRefresh, setLastRefresh] = useState(null);
+
+  // ── Chat ──
+  const [hermesMsg, setHermesMsg]   = useState('');
   const [hermesChat, setHermesChat] = useState([]);
   const [hermesLoading, setHermesLoading] = useState(false);
-  const [vpsLoading, setVpsLoading] = useState(false);
   const chatEndRef = useRef();
 
-  const checkVPS = async () => {
-    setVpsLoading(true);
-    const t0 = Date.now();
-    try {
-      const r = await fetch(`${HERMES_URL}/health`, { signal: AbortSignal.timeout(5000) }).catch(() => null);
-      const ping = Date.now() - t0;
-      setVpsStatus({ ok: !!r, ping, ts: new Date().toLocaleTimeString('pt-BR') });
-    } catch { setVpsStatus({ ok: false, ping: null, ts: new Date().toLocaleTimeString('pt-BR') }); }
-    setVpsLoading(false);
+  // ── Toast ──
+  const [toast, setToast]           = useState('');
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3500); };
+
+  // ── Fetch helpers ──
+  const hermesGet = async (path) => {
+    const r = await fetch(`${HERMES_URL}${path}`, {
+      headers: { Authorization: `Bearer ${HERMES_KEY}` },
+      signal: AbortSignal.timeout(6000)
+    });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
   };
 
-  useEffect(() => { if (sub === 'vps') checkVPS(); }, [sub]);
+  const fetchAll = async () => {
+    setLoading(true);
+    const results = await Promise.allSettled([
+      hermesGet('/health'),
+      hermesGet('/health/extended'),
+      hermesGet('/capabilities'),
+      hermesGet('/v1/models'),
+      hermesGet('/api/dashboard/status'),
+      hermesGet('/api/dashboard/sessions'),
+      hermesGet('/api/jobs'),
+    ]);
+    const [h, hx, cp, md, ds, ss, jj] = results;
+    if (h.status  === 'fulfilled') setHealth(h.value);
+    if (hx.status === 'fulfilled') setHealthEx(hx.value);
+    if (cp.status === 'fulfilled') setCaps(cp.value);
+    if (md.status === 'fulfilled') setModel(md.value);
+    if (ds.status === 'fulfilled') setDashStatus(ds.value);
+    if (ss.status === 'fulfilled') setSessions(ss.value?.sessions || ss.value || []);
+    if (jj.status === 'fulfilled') setJobs(jj.value?.jobs || jj.value || []);
+    setLastRefresh(new Date());
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchAll(); }, []);
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [hermesChat]);
 
+  // ── Chat ──
   const sendHermes = async () => {
     if (!hermesMsg.trim() || hermesLoading) return;
     const msg = hermesMsg.trim();
@@ -1049,182 +1088,442 @@ const InfraPage = () => {
       const r = await fetch(`${HERMES_URL}/v1/chat/completions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${HERMES_KEY}` },
-        body: JSON.stringify({ messages: [{ role: 'user', content: msg }] }),
+        body: JSON.stringify({ model: 'hermes-agent', messages: [{ role: 'user', content: msg }] }),
         signal: AbortSignal.timeout(60000)
       });
       const d = await r.json();
       const reply = d?.choices?.[0]?.message?.content || '(sem resposta)';
       setHermesChat(c => [...c, { role: 'assistant', content: reply }]);
-    } catch(e) { setHermesChat(c => [...c, { role: 'assistant', content: `✕ Erro: ${e.message}` }]); }
+    } catch (e) {
+      setHermesChat(c => [...c, { role: 'assistant', content: `✕ Erro: ${e.message}` }]);
+    }
     setHermesLoading(false);
   };
 
+  // ── Toggle job ──
+  const toggleJob = async (job) => {
+    try {
+      const action = job.paused ? 'resume' : 'pause';
+      await fetch(`${HERMES_URL}/api/jobs/${job.id}/${action}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${HERMES_KEY}` },
+        signal: AbortSignal.timeout(5000)
+      });
+      showToast(`✔ Job ${action === 'pause' ? 'pausado' : 'retomado'}`);
+      fetchAll();
+    } catch (e) { showToast('✕ ' + e.message); }
+  };
+
+  const runJobNow = async (job) => {
+    try {
+      await fetch(`${HERMES_URL}/api/jobs/${job.id}/trigger`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${HERMES_KEY}` },
+        signal: AbortSignal.timeout(5000)
+      });
+      showToast('🚀 Job disparado!');
+    } catch (e) { showToast('✕ ' + e.message); }
+  };
+
+  // ── Derived state ──
+  const hermesOk    = health?.status === 'ok';
+  const activeSess  = healthEx?.active_sessions ?? dashStatus?.active_session_count ?? '—';
+  const runningAg   = healthEx?.running_agents ?? '—';
+  const memUsage    = healthEx?.resource_usage?.memory_mb
+    ? `${Math.round(healthEx.resource_usage.memory_mb)} MB`
+    : '—';
+  const cpuUsage    = healthEx?.resource_usage?.cpu_percent != null
+    ? `${healthEx.resource_usage.cpu_percent.toFixed(1)}%`
+    : '—';
+  const hermesVer   = dashStatus?.version ?? '—';
+  const activeJobs  = jobs.filter(j => !j.paused).length;
+
+  // ── Feature badges ──
+  const features = caps?.features || {};
+  const FEATURE_LABELS = {
+    chat_completions: 'Chat',
+    responses_api: 'Responses',
+    run_submission: 'Runs',
+    run_status: 'Run Status',
+    run_events_sse: 'SSE Stream',
+    run_stop: 'Interrupt',
+  };
+
   const INFRA_TABS = [
-    { id:'n8n',    label:'N8N',    icon:'🔄' },
-    { id:'hermes', label:'Hermes', icon:'🤖' },
-    { id:'vps',    label:'VPS',    icon:'🖥️' },
+    { id: 'status',   label: 'Status',   icon: '📊' },
+    { id: 'sessions', label: `Sessões (${sessions.length})`, icon: '💬' },
+    { id: 'jobs',     label: `Jobs (${activeJobs}/${jobs.length})`, icon: '⏱️' },
+    { id: 'hermes',   label: 'Chat',     icon: '🤖' },
+    { id: 'n8n',      label: 'N8N',      icon: '🔄' },
+    { id: 'ssh',      label: 'SSH Ref',  icon: '🖥️' },
   ];
 
   return (
     <div>
-      <div style={{marginBottom:20,display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
-        <div>
-          <div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Infraestrutura</div>
-          <div style={{fontSize:14,color:'var(--muted)'}}>N8N · Hermes Agent · VPS</div>
+      {/* Toast */}
+      {toast && (
+        <div style={{ position: 'fixed', top: 70, right: 24, zIndex: 2000, background: 'var(--surface2)', border: '1px solid var(--border)', padding: '10px 18px', borderRadius: 4, fontFamily: 'Share Tech Mono, monospace', fontSize: 12, color: 'var(--text)', animation: 'slideIn .2s ease', maxWidth: 320 }}>
+          {toast}
         </div>
-        <div style={{display:'flex',gap:8}}>
-          <a href={N8N_URL} target="_blank" rel="noopener" style={{...S.btn,background:'rgba(255,140,0,.12)',border:'1px solid rgba(255,140,0,.35)',color:'#ff9500',textDecoration:'none',fontSize:13}}>↗ Abrir N8N</a>
+      )}
+
+      {/* Header */}
+      <div style={{ marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+        <div>
+          <div style={{ fontFamily: 'Press Start 2P, monospace', fontSize: 14, color: 'var(--text)', marginBottom: 4 }}>Infraestrutura</div>
+          <div style={{ fontSize: 14, color: 'var(--muted)' }}>
+            Hermes {hermesVer} · VPS {VPS_IP} · {lastRefresh ? `atualizado ${lastRefresh.toLocaleTimeString('pt-BR')}` : 'carregando...'}
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <Btn color="ghost" onClick={fetchAll} disabled={loading}>{loading ? '...' : '↻ Refresh'}</Btn>
+          <a href={N8N_URL} target="_blank" rel="noopener" style={{ ...S.btn, background: 'rgba(255,140,0,.12)', border: '1px solid rgba(255,140,0,.35)', color: '#ff9500', textDecoration: 'none', fontSize: 13 }}>↗ N8N</a>
         </div>
       </div>
 
       {/* Sub-tabs */}
-      <div style={{display:'flex',gap:2,borderBottom:'1px solid var(--border)',marginBottom:24}}>
+      <div style={{ display: 'flex', gap: 2, borderBottom: '1px solid var(--border)', marginBottom: 24, overflowX: 'auto' }}>
         {INFRA_TABS.map(t => (
-          <button key={t.id} onClick={() => setSub(t.id)} style={{...S.btn,padding:'8px 18px',fontSize:12,background:'none',border:'none',borderBottom:`2px solid ${sub===t.id?'var(--red)':'transparent'}`,borderRadius:0,color:sub===t.id?'var(--red-b)':'var(--dim)',marginBottom:-1,gap:6}}>
+          <button key={t.id} onClick={() => setSub(t.id)} style={{ ...S.btn, padding: '8px 14px', fontSize: 11, background: 'none', border: 'none', borderBottom: `2px solid ${sub === t.id ? 'var(--red)' : 'transparent'}`, borderRadius: 0, color: sub === t.id ? 'var(--red-b)':'var(--dim)', marginBottom: -1, whiteSpace: 'nowrap', gap: 6 }}>
             {t.icon} {t.label}
           </button>
         ))}
       </div>
 
-      {/* ── N8N ── */}
-      {sub==='n8n' && (
+      {/* ── STATUS ── */}
+      {sub === 'status' && (
         <div>
-          <div style={{...S.card,borderTop:'3px solid #ff9500',marginBottom:16}}>
-            <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:12}}>
-              <div style={{fontSize:24}}>🔄</div>
-              <div>
-                <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'#ff9500',letterSpacing:'0.2em',marginBottom:2}}>// N8N SELF-HOSTED</div>
-                <div style={{fontSize:13,color:'var(--dim)'}}>Rodando na VPS via Docker · Porta 5678</div>
-              </div>
-              <span style={{marginLeft:'auto',fontFamily:'Share Tech Mono, monospace',fontSize:10,padding:'3px 10px',borderRadius:2,background:'rgba(37,211,102,.12)',border:'1px solid rgba(37,211,102,.3)',color:'var(--green)'}}>● ONLINE</span>
+          {/* Stat cards */}
+          <div className="ng-grid4" style={S.grid4}>
+            <StatCard
+              label="Hermes Agent"
+              value={hermesOk ? 'OK' : loading ? '...' : 'ERR'}
+              sub={hermesOk ? `v${hermesVer} · online` : 'Sem resposta'}
+              color={hermesOk ? 'var(--green)' : loading ? 'var(--dim)' : 'var(--red-b)'}
+              icon="🤖"
+            />
+            <StatCard
+              label="Sessões ativas"
+              value={activeSess}
+              sub={`${runningAg} agentes rodando`}
+              color="var(--cyan)"
+              icon="💬"
+            />
+            <StatCard
+              label="Memória"
+              value={memUsage}
+              sub={`CPU: ${cpuUsage}`}
+              color="var(--purple)"
+              icon="🖥️"
+            />
+            <StatCard
+              label="Cron Jobs"
+              value={activeJobs}
+              sub={`de ${jobs.length} total`}
+              color="var(--gold)"
+              icon="⏱️"
+            />
+          </div>
+
+          {/* Conectividade */}
+          <div style={{ ...S.card, marginBottom: 16 }}>
+            <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--dim)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 16 }}>// Mapa de Conectividade</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'center', padding: '8px 0' }}>
+              {[
+                { label: 'Admin', color: 'var(--red-b)', icon: '🏰', ok: true },
+                { label: '→', color: 'var(--muted)', icon: '', ok: true, arrow: true },
+                { label: 'Hermes', color: hermesOk ? 'var(--green)' : 'var(--red-b)', icon: '🤖', ok: hermesOk },
+                { label: '→', color: 'var(--muted)', icon: '', ok: true, arrow: true },
+                { label: 'N8N', color: 'var(--gold)', icon: '🔄', ok: true },
+                { label: '→', color: 'var(--muted)', icon: '', ok: true, arrow: true },
+                { label: 'WhatsApp', color: 'var(--green)', icon: '💬', ok: true },
+              ].map((node, i) =>
+                node.arrow ? (
+                  <div key={i} style={{ color: 'var(--border)', fontSize: 20, fontWeight: 300 }}>→</div>
+                ) : (
+                  <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                    <div style={{ width: 56, height: 56, borderRadius: 8, background: `${node.color}18`, border: `2px solid ${node.color}55`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>{node.icon}</div>
+                    <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 10, color: node.color }}>{node.label}</div>
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: node.ok ? 'var(--green)' : 'var(--red-b)', boxShadow: `0 0 6px ${node.ok ? 'var(--green)' : 'var(--red-b)'}` }} />
+                  </div>
+                )
+              )}
             </div>
-            <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-              <a href={N8N_URL} target="_blank" rel="noopener" style={{...S.btn,background:'rgba(255,140,0,.15)',border:'1px solid rgba(255,140,0,.4)',color:'#ff9500',textDecoration:'none'}}>↗ Abrir N8N</a>
-              <a href={`${N8N_URL}/workflows`} target="_blank" rel="noopener" style={{...S.btn,background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--dim)',textDecoration:'none',fontSize:13}}>📋 Workflows</a>
-              <a href={`${N8N_URL}/credentials`} target="_blank" rel="noopener" style={{...S.btn,background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--dim)',textDecoration:'none',fontSize:13}}>🔑 Credenciais</a>
+            <div style={{ marginTop: 16, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {[
+                { label: 'Supabase', url: 'https://supabase.com', color: 'var(--green)', icon: '🗄️' },
+                { label: 'Cloudinary', url: 'https://cloudinary.com', color: 'var(--cyan)', icon: '🖼️' },
+                { label: 'Vercel', url: 'https://vercel.com', color: 'var(--dim)', icon: '▲' },
+              ].map(s => (
+                <a key={s.label} href={s.url} target="_blank" rel="noopener" style={{ ...S.btn, padding: '5px 12px', fontSize: 12, background: `${s.color}12`, border: `1px solid ${s.color}40`, color: s.color, textDecoration: 'none', gap: 6 }}>
+                  {s.icon} {s.label}
+                </a>
+              ))}
             </div>
           </div>
 
-          <div style={{...S.card,borderTop:'3px solid var(--purple)'}}>
-            <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--purple)',letterSpacing:'0.2em',marginBottom:16}}>// ACESSO DIRETO — IFRAME</div>
-            <div style={{background:'var(--bg)',borderRadius:6,overflow:'hidden',border:'1px solid var(--border)',height:600}}>
-              <iframe
-                src={N8N_URL}
-                style={{width:'100%',height:'100%',border:'none'}}
-                title="N8N"
-              />
+          {/* Features do Hermes */}
+          {caps && (
+            <div style={{ ...S.card, marginBottom: 16 }}>
+              <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--dim)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 12 }}>// Capabilities do Hermes</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {Object.entries(FEATURE_LABELS).map(([key, label]) => (
+                  <span key={key} style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 11, padding: '4px 10px', borderRadius: 2, background: features[key] ? 'rgba(37,211,102,.1)' : 'var(--surface2)', border: `1px solid ${features[key] ? 'rgba(37,211,102,.3)' : 'var(--border)'}`, color: features[key] ? 'var(--green)' : 'var(--muted)' }}>
+                    {features[key] ? '✔' : '✕'} {label}
+                  </span>
+                ))}
+              </div>
             </div>
-            <div style={{marginTop:8,fontSize:12,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>
-              ⚠ Se o iframe não carregar, abra em uma nova aba clicando em "↗ Abrir N8N" acima. Isso ocorre quando o navegador bloqueia HTTP dentro de HTTPS.
+          )}
+
+          {/* Modelo ativo */}
+          {model && (
+            <div style={{ ...S.card }}>
+              <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--dim)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 12 }}>// Modelo LLM ativo</div>
+              {(model.data || [model]).map((m, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--green)', flexShrink: 0 }} />
+                  <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 13, color: 'var(--cyan)' }}>{m.id || m.model || 'hermes-agent'}</div>
+                  {m.created && <div style={{ fontSize: 11, color: 'var(--muted)', marginLeft: 'auto' }}>{new Date(m.created * 1000).toLocaleDateString('pt-BR')}</div>}
+                </div>
+              ))}
             </div>
-          </div>
+          )}
         </div>
       )}
 
-      {/* ── HERMES ── */}
-      {sub==='hermes' && (
+      {/* ── SESSIONS ── */}
+      {sub === 'sessions' && (
         <div>
-          <div style={{...S.card,borderTop:'3px solid var(--cyan)',marginBottom:16}}>
-            <div style={{display:'flex',alignItems:'center',gap:12}}>
-              <div style={{fontSize:24}}>🤖</div>
+          <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ fontSize: 14, color: 'var(--muted)' }}>{sessions.length} sessões recentes</div>
+            {sessions.length === 0 && !loading && (
+              <MonoTag color="var(--amber)">⚠ Endpoint /api/dashboard/sessions pode não estar ativo nesta versão</MonoTag>
+            )}
+          </div>
+          {sessions.length === 0 ? (
+            <div style={{ ...S.card, borderLeft: '3px solid var(--amber)', padding: 24 }}>
+              <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 12, color: 'var(--amber)', marginBottom: 8 }}>SEM DADOS</div>
+              <div style={{ fontSize: 13, color: 'var(--dim)', lineHeight: 1.8 }}>
+                O endpoint <code style={{ background: 'var(--bg3)', padding: '1px 6px', borderRadius: 3, color: 'var(--text)' }}>/api/dashboard/sessions</code> retornou vazio.<br />
+                Isso acontece se o dashboard plugin não estiver instalado (<code style={{ background: 'var(--bg3)', padding: '1px 6px', borderRadius: 3, color: 'var(--text)' }}>hermes dashboard</code>).<br />
+                O Hermes em si está funcionando normalmente.
+              </div>
+            </div>
+          ) : (
+            <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 600 }}>
+                  <thead>
+                    <tr style={{ background: 'var(--bg3)' }}>
+                      {['Plataforma', 'Título', 'Modelo', 'Msgs', 'Tokens', 'Última atividade'].map(h => (
+                        <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontFamily: 'Share Tech Mono, monospace', fontSize: 10, color: 'var(--muted)', letterSpacing: '0.15em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sessions.map((s, i) => {
+                      const PLATFORM_ICON = { telegram: '✈️', discord: '🎮', whatsapp: '📱', cli: '💻', slack: '💼', cron: '⏱️' };
+                      return (
+                        <tr key={s.id || i} style={{ borderTop: '1px solid var(--border)' }}>
+                          <td style={{ padding: '10px 14px' }}>
+                            <span style={{ fontSize: 18 }}>{PLATFORM_ICON[s.platform] || '💬'}</span>
+                          </td>
+                          <td style={{ padding: '10px 14px', maxWidth: 200 }}>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.title || s.id || '—'}</div>
+                            {s.live && <span style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 9, color: 'var(--green)', animation: 'pulse 1s infinite' }}>● LIVE</span>}
+                          </td>
+                          <td style={{ padding: '10px 14px', fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--cyan)' }}>{s.model || '—'}</td>
+                          <td style={{ padding: '10px 14px', fontFamily: 'Share Tech Mono, monospace', fontSize: 12, color: 'var(--dim)' }}>{s.message_count ?? '—'}</td>
+                          <td style={{ padding: '10px 14px', fontFamily: 'Share Tech Mono, monospace', fontSize: 12, color: 'var(--purple)' }}>{s.total_tokens ? s.total_tokens.toLocaleString('pt-BR') : '—'}</td>
+                          <td style={{ padding: '10px 14px', fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--muted)' }}>{s.updated_at || s.last_active ? fmtDateFull(s.updated_at || s.last_active) : '—'}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── JOBS ── */}
+      {sub === 'jobs' && (
+        <div>
+          <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ fontSize: 14, color: 'var(--muted)' }}>{activeJobs} ativos · {jobs.filter(j => j.paused).length} pausados</div>
+          </div>
+          {jobs.length === 0 ? (
+            <div style={{ ...S.card, borderLeft: '3px solid var(--dim)', padding: 24 }}>
+              <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 12, color: 'var(--muted)', marginBottom: 8 }}>NENHUM JOB CADASTRADO</div>
+              <div style={{ fontSize: 13, color: 'var(--dim)', lineHeight: 1.8 }}>
+                Crie cron jobs pelo Hermes com <code style={{ background: 'var(--bg3)', padding: '1px 6px', borderRadius: 3, color: 'var(--text)' }}>hermes cron</code> ou via POST em <code style={{ background: 'var(--bg3)', padding: '1px 6px', borderRadius: 3, color: 'var(--text)' }}>/api/jobs</code>.
+              </div>
+            </div>
+          ) : (
+            <div style={{ ...S.card, padding: 0, overflow: 'hidden' }}>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 650 }}>
+                  <thead>
+                    <tr style={{ background: 'var(--bg3)' }}>
+                      {['Status', 'Nome', 'Schedule', 'Próxima execução', 'Última execução', 'Ações'].map(h => (
+                        <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontFamily: 'Share Tech Mono, monospace', fontSize: 10, color: 'var(--muted)', letterSpacing: '0.15em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {jobs.map((j, i) => (
+                      <tr key={j.id || i} style={{ borderTop: '1px solid var(--border)', opacity: j.paused ? 0.5 : 1 }}>
+                        <td style={{ padding: '10px 14px' }}>
+                          <span style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 10, padding: '2px 8px', borderRadius: 2, background: j.paused ? 'var(--surface2)' : 'rgba(37,211,102,.1)', border: `1px solid ${j.paused ? 'var(--border)' : 'rgba(37,211,102,.3)'}`, color: j.paused ? 'var(--muted)' : 'var(--green)' }}>
+                            {j.paused ? 'PAUSADO' : 'ATIVO'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '10px 14px', maxWidth: 200 }}>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{j.name || j.prompt?.slice(0, 40) || j.id}</div>
+                          {j.platform && <div style={{ fontSize: 11, color: 'var(--dim)', fontFamily: 'Share Tech Mono, monospace' }}>→ {j.platform}</div>}
+                        </td>
+                        <td style={{ padding: '10px 14px', fontFamily: 'Share Tech Mono, monospace', fontSize: 12, color: 'var(--cyan)' }}>{j.schedule || '—'}</td>
+                        <td style={{ padding: '10px 14px', fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--gold)' }}>{j.next_run ? fmtDateFull(j.next_run) : '—'}</td>
+                        <td style={{ padding: '10px 14px', fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--muted)' }}>{j.last_run ? fmtDateFull(j.last_run) : 'nunca'}</td>
+                        <td style={{ padding: '10px 14px' }}>
+                          <div style={{ display: 'flex', gap: 4 }}>
+                            <button onClick={() => runJobNow(j)} title="Executar agora" style={{ ...S.btn, padding: '4px 8px', fontSize: 11, background: 'rgba(255,184,0,.1)', border: '1px solid rgba(255,184,0,.3)', color: 'var(--gold)' }}>▶</button>
+                            <button onClick={() => toggleJob(j)} title={j.paused ? 'Retomar' : 'Pausar'} style={{ ...S.btn, padding: '4px 8px', fontSize: 11, background: 'var(--surface2)', border: '1px solid var(--border)', color: 'var(--dim)' }}>{j.paused ? '▶▶' : '⏸'}</button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── CHAT HERMES ── */}
+      {sub === 'hermes' && (
+        <div>
+          <div style={{ ...S.card, borderTop: '3px solid var(--cyan)', marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+              <div style={{ fontSize: 24 }}>🤖</div>
               <div>
-                <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--cyan)',letterSpacing:'0.2em',marginBottom:2}}>// HERMES AGENT</div>
-                <div style={{fontSize:13,color:'var(--dim)'}}>Assistente de IA rodando na VPS · Porta 8080</div>
+                <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--cyan)', letterSpacing: '0.2em', marginBottom: 2 }}>// HERMES AGENT CHAT</div>
+                <div style={{ fontSize: 13, color: 'var(--dim)' }}>{HERMES_URL} · {hermesOk ? <span style={{ color: 'var(--green)' }}>● online</span> : <span style={{ color: 'var(--red-b)' }}>● offline</span>}</div>
+              </div>
+              <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {['docker ps', 'free -h', 'df -h /', 'uptime'].map(cmd => (
+                  <button key={cmd} onClick={() => setHermesMsg(cmd)} style={{ ...S.btn, padding: '4px 10px', fontSize: 11, background: 'rgba(0,255,255,.06)', border: '1px solid rgba(0,255,255,.2)', color: 'var(--cyan)' }}>{cmd}</button>
+                ))}
               </div>
             </div>
           </div>
 
-          <div style={{...S.card,padding:0,display:'flex',flexDirection:'column',height:520}}>
-            <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:10,color:'var(--dim)',letterSpacing:'0.15em',padding:'12px 16px',borderBottom:'1px solid var(--border)',background:'var(--bg3)'}}>
-              // CHAT COM HERMES — {HERMES_URL}
+          <div style={{ ...S.card, padding: 0, display: 'flex', flexDirection: 'column', height: 520 }}>
+            <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 10, color: 'var(--dim)', letterSpacing: '0.15em', padding: '10px 16px', borderBottom: '1px solid var(--border)', background: 'var(--bg3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>// HERMES TERMINAL</span>
+              {hermesChat.length > 0 && <button onClick={() => setHermesChat([])} style={{ ...S.btn, padding: '2px 8px', fontSize: 10, background: 'none', border: '1px solid var(--border)', color: 'var(--muted)' }}>limpar</button>}
             </div>
-
-            {/* Messages */}
-            <div style={{flex:1,overflowY:'auto',padding:16,display:'flex',flexDirection:'column',gap:12}}>
-              {hermesChat.length===0 && (
-                <div style={{textAlign:'center',padding:40,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace',fontSize:12}}>
-                  💬 Envie uma mensagem para o Hermes<br/><br/>
-                  <span style={{fontSize:10,color:'var(--surface2)'}}>Ex: "docker ps" · "status dos serviços" · "quanto de RAM está livre?"</span>
+            <div style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {hermesChat.length === 0 && (
+                <div style={{ textAlign: 'center', padding: 40, color: 'var(--muted)', fontFamily: 'Share Tech Mono, monospace', fontSize: 12 }}>
+                  💬 Chat direto com o Hermes Agent<br /><br />
+                  <span style={{ fontSize: 10 }}>Pergunte sobre status dos serviços, execute comandos, consulte logs...</span>
                 </div>
               )}
               {hermesChat.map((m, i) => (
-                <div key={i} style={{display:'flex',gap:10,alignItems:'flex-start',flexDirection:m.role==='user'?'row-reverse':'row'}}>
-                  <div style={{flexShrink:0,width:28,height:28,borderRadius:'50%',background:m.role==='user'?'var(--red)':'rgba(0,255,255,.15)',border:`1px solid ${m.role==='user'?'var(--red-b)':'rgba(0,255,255,.3)'}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:14}}>
-                    {m.role==='user'?'👤':'🤖'}
+                <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', flexDirection: m.role === 'user' ? 'row-reverse' : 'row' }}>
+                  <div style={{ flexShrink: 0, width: 28, height: 28, borderRadius: '50%', background: m.role === 'user' ? 'var(--red)' : 'rgba(0,255,255,.15)', border: `1px solid ${m.role === 'user' ? 'var(--red-b)' : 'rgba(0,255,255,.3)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
+                    {m.role === 'user' ? '👤' : '🤖'}
                   </div>
-                  <div style={{maxWidth:'75%',padding:'10px 14px',borderRadius:m.role==='user'?'12px 4px 12px 12px':'4px 12px 12px 12px',background:m.role==='user'?'rgba(204,20,20,.15)':'var(--surface2)',border:`1px solid ${m.role==='user'?'rgba(204,20,20,.3)':'var(--border)'}`,fontSize:13,color:'var(--text)',lineHeight:1.6,whiteSpace:'pre-wrap',wordBreak:'break-word'}}>
+                  <div style={{ maxWidth: '75%', padding: '10px 14px', borderRadius: m.role === 'user' ? '12px 4px 12px 12px' : '4px 12px 12px 12px', background: m.role === 'user' ? 'rgba(204,20,20,.15)' : 'var(--surface2)', border: `1px solid ${m.role === 'user' ? 'rgba(204,20,20,.3)' : 'var(--border)'}`, fontSize: 13, color: 'var(--text)', lineHeight: 1.6, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                     {m.content}
                   </div>
                 </div>
               ))}
               {hermesLoading && (
-                <div style={{display:'flex',gap:10,alignItems:'center'}}>
-                  <div style={{width:28,height:28,borderRadius:'50%',background:'rgba(0,255,255,.15)',border:'1px solid rgba(0,255,255,.3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14}}>🤖</div>
-                  <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--dim)',animation:'pulse 1s infinite'}}>digitando...</div>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(0,255,255,.15)', border: '1px solid rgba(0,255,255,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>🤖</div>
+                  <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 12, color: 'var(--dim)', animation: 'pulse 1s infinite' }}>processando...</div>
                 </div>
               )}
-              <div ref={chatEndRef}/>
+              <div ref={chatEndRef} />
             </div>
-
-            {/* Input */}
-            <div style={{padding:12,borderTop:'1px solid var(--border)',display:'flex',gap:8,background:'var(--bg3)'}}>
+            <div style={{ padding: 12, borderTop: '1px solid var(--border)', display: 'flex', gap: 8, background: 'var(--bg3)' }}>
               <input
                 value={hermesMsg}
                 onChange={e => setHermesMsg(e.target.value)}
-                onKeyDown={e => e.key==='Enter'&&!e.shiftKey&&sendHermes()}
-                placeholder="Mensagem para o Hermes... (Enter para enviar)"
-                style={{...S.input,flex:1}}
+                onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendHermes()}
+                placeholder="Mensagem para o Hermes... (Enter)"
+                style={{ ...S.input, flex: 1 }}
               />
-              <button onClick={sendHermes} disabled={hermesLoading||!hermesMsg.trim()} style={{...S.btn,background:'rgba(0,255,255,.12)',border:'1px solid rgba(0,255,255,.3)',color:'var(--cyan)',opacity:(hermesLoading||!hermesMsg.trim())?.5:1}}>Enviar</button>
+              <button onClick={sendHermes} disabled={hermesLoading || !hermesMsg.trim()} style={{ ...S.btn, background: 'rgba(0,255,255,.12)', border: '1px solid rgba(0,255,255,.3)', color: 'var(--cyan)', opacity: (hermesLoading || !hermesMsg.trim()) ? .5 : 1 }}>Enviar</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── VPS ── */}
-      {sub==='vps' && (
+      {/* ── N8N ── */}
+      {sub === 'n8n' && (
+        <div>
+          <div style={{ ...S.card, borderTop: '3px solid #ff9500', marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+              <div style={{ fontSize: 24 }}>🔄</div>
+              <div>
+                <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: '#ff9500', letterSpacing: '0.2em', marginBottom: 2 }}>// N8N SELF-HOSTED</div>
+                <div style={{ fontSize: 13, color: 'var(--dim)' }}>Docker · {N8N_URL}</div>
+              </div>
+              <span style={{ marginLeft: 'auto', fontFamily: 'Share Tech Mono, monospace', fontSize: 10, padding: '3px 10px', borderRadius: 2, background: 'rgba(37,211,102,.12)', border: '1px solid rgba(37,211,102,.3)', color: 'var(--green)' }}>● ONLINE</span>
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <a href={N8N_URL} target="_blank" rel="noopener" style={{ ...S.btn, background: 'rgba(255,140,0,.15)', border: '1px solid rgba(255,140,0,.4)', color: '#ff9500', textDecoration: 'none' }}>↗ Abrir N8N</a>
+              <a href={`${N8N_URL}/workflows`} target="_blank" rel="noopener" style={{ ...S.btn, background: 'var(--surface2)', border: '1px solid var(--border)', color: 'var(--dim)', textDecoration: 'none', fontSize: 13 }}>📋 Workflows</a>
+              <a href={`${N8N_URL}/credentials`} target="_blank" rel="noopener" style={{ ...S.btn, background: 'var(--surface2)', border: '1px solid var(--border)', color: 'var(--dim)', textDecoration: 'none', fontSize: 13 }}>🔑 Credenciais</a>
+            </div>
+          </div>
+          <div style={{ ...S.card, borderTop: '3px solid var(--purple)' }}>
+            <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--purple)', letterSpacing: '0.2em', marginBottom: 16 }}>// IFRAME DIRETO</div>
+            <div style={{ background: 'var(--bg)', borderRadius: 6, overflow: 'hidden', border: '1px solid var(--border)', height: 560 }}>
+              <iframe src={N8N_URL} style={{ width: '100%', height: '100%', border: 'none' }} title="N8N" />
+            </div>
+            <div style={{ marginTop: 8, fontSize: 12, color: 'var(--muted)', fontFamily: 'Share Tech Mono, monospace' }}>
+              ⚠ Se o iframe não carregar, use "↗ Abrir N8N" acima.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── SSH REFERENCE ── */}
+      {sub === 'ssh' && (
         <div>
           <div className="ng-grid4" style={S.grid4}>
-            <StatCard
-              label="Endereço VPS"
-              value="2.24.217"
-              sub=".31 — Hostinger"
-              color="var(--cyan)"
-              icon="🌐"
-            />
-            <StatCard
-              label="Status"
-              value={vpsLoading?'…':vpsStatus?.ok?'OK':'ERR'}
-              sub={vpsStatus?`Ping: ${vpsStatus.ping??'—'}ms · ${vpsStatus.ts}`:'Clique em Verificar'}
-              color={vpsStatus?.ok?'var(--green)':vpsStatus?.ok===false?'var(--red-b)':'var(--dim)'}
-              icon="🖥️"
-            />
-            <StatCard label="N8N" value=":5678" sub="Self-Hosted Docker" color="#ff9500" icon="🔄"/>
-            <StatCard label="Hermes" value=":8080" sub="Gateway API" color="var(--purple)" icon="🤖"/>
+            <StatCard label="IP VPS" value="2.24.217" sub=".31 — Hostinger" color="var(--cyan)" icon="🌐" />
+            <StatCard label="Hermes" value=":8642" sub="API Server" color="var(--purple)" icon="🤖" />
+            <StatCard label="N8N" value=":5678" sub="Docker" color="#ff9500" icon="🔄" />
+            <StatCard label="Nginx" value=":443" sub="Reverse Proxy" color="var(--dim)" icon="🔒" />
           </div>
-
-          <div style={{display:'flex',gap:8,marginBottom:16}}>
-            <Btn color="ghost" onClick={checkVPS}>{vpsLoading?'Verificando...':'↻ Verificar Status'}</Btn>
-            <a href={`https://n8n.nosferatugames.com.br`} target="_blank" rel="noopener" style={{...S.btn,background:'rgba(255,140,0,.12)',border:'1px solid rgba(255,140,0,.35)',color:'#ff9500',textDecoration:'none',fontSize:13}}>↗ N8N</a>
-            <a href={`https://hermes.nosferatugames.com.br`} target="_blank" rel="noopener" style={{...S.btn,background:'rgba(0,255,255,.08)',border:'1px solid rgba(0,255,255,.2)',color:'var(--cyan)',textDecoration:'none',fontSize:13}}>↗ Hermes API</a>
-          </div>
-
-          <div style={{...S.card,borderTop:'3px solid var(--dim)'}}>
-            <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',marginBottom:16}}>// REFERÊNCIA RÁPIDA</div>
+          <div style={{ ...S.card }}>
+            <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--dim)', letterSpacing: '0.2em', marginBottom: 16 }}>// REFERÊNCIA SSH RÁPIDA</div>
             {[
-              { label:'Entrar via SSH',   cmd:`ssh root@${VPS_IP}` },
-              { label:'Status N8N',       cmd:'docker ps | grep n8n' },
-              { label:'Reiniciar N8N',    cmd:'cd /root/n8n && docker compose restart' },
-              { label:'Logs N8N',         cmd:'docker logs n8n-n8n-1 -f --tail=50' },
-              { label:'Status Hermes',    cmd:'systemctl status hermes-gateway' },
-              { label:'Reiniciar Hermes', cmd:'systemctl restart hermes-gateway' },
-              { label:'Uso de memória',   cmd:'free -h' },
-              { label:'Uso de disco',     cmd:'df -h /' },
-            ].map(({label,cmd}) => (
-              <div key={cmd} style={{display:'flex',alignItems:'center',gap:12,padding:'8px 0',borderBottom:'1px solid var(--border)'}}>
-                <div style={{fontSize:12,color:'var(--dim)',minWidth:160}}>{label}</div>
-                <code style={{flex:1,fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--cyan)',background:'rgba(0,0,0,.3)',padding:'4px 10px',borderRadius:3,overflow:'auto',whiteSpace:'nowrap'}}>{cmd}</code>
-                <button onClick={() => navigator.clipboard?.writeText(cmd)} style={{...S.btn,padding:'4px 8px',fontSize:11,background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--muted)',flexShrink:0}}>📋</button>
+              { label: 'SSH na VPS',           cmd: `ssh root@${VPS_IP}` },
+              { label: 'Status Hermes',         cmd: 'systemctl status hermes-gateway' },
+              { label: 'Reiniciar Hermes',      cmd: 'systemctl restart hermes-gateway' },
+              { label: 'Logs Hermes (live)',    cmd: 'journalctl -u hermes-gateway -f' },
+              { label: 'Status N8N',            cmd: 'docker ps | grep n8n' },
+              { label: 'Reiniciar N8N',         cmd: 'cd /root/n8n && docker compose restart' },
+              { label: 'Logs N8N',              cmd: 'docker logs n8n-n8n-1 -f --tail=50' },
+              { label: 'Uso de memória',        cmd: 'free -h' },
+              { label: 'Uso de disco',          cmd: 'df -h /' },
+              { label: 'Processos top',         cmd: 'htop' },
+              { label: 'Testar Hermes /health', cmd: `curl ${HERMES_URL}/health` },
+              { label: 'Testar Hermes /ext',    cmd: `curl -H "Authorization: Bearer hermes-n8n-key-2026" ${HERMES_URL}/health/extended` },
+            ].map(({ label, cmd }) => (
+              <div key={cmd} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
+                <div style={{ fontSize: 12, color: 'var(--dim)', minWidth: 180, flexShrink: 0 }}>{label}</div>
+                <code style={{ flex: 1, fontFamily: 'Share Tech Mono, monospace', fontSize: 12, color: 'var(--cyan)', background: 'rgba(0,0,0,.3)', padding: '4px 10px', borderRadius: 3, overflow: 'auto', whiteSpace: 'nowrap' }}>{cmd}</code>
+                <button onClick={() => { navigator.clipboard?.writeText(cmd); showToast('📋 Copiado!'); }} style={{ ...S.btn, padding: '4px 8px', fontSize: 11, background: 'var(--surface2)', border: '1px solid var(--border)', color: 'var(--muted)', flexShrink: 0 }}>📋</button>
               </div>
             ))}
           </div>
