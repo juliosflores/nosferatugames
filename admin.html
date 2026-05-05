@@ -1012,9 +1012,9 @@ const PedidosPage = () => {
 // ════════════════════════════════════════════════════════════
 
 const InfraPage = () => {
-  const VPS_IP = '2.24.217.31';
-  const N8N_URL = `http://${VPS_IP}:5678`;
-  const HERMES_URL = `http://${VPS_IP}:8080`;
+  const VPS_DOMAIN = 'nosferatugames.com.br';
+  const N8N_URL = `https://n8n.${VPS_DOMAIN}`;
+  const HERMES_URL = `https://hermes.${VPS_DOMAIN}`;
   const HERMES_KEY = 'hermes-n8n-key-2026';
 
   const [sub, setSub] = useState('n8n');
