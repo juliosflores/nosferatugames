@@ -1008,6 +1008,233 @@ const PedidosPage = () => {
 };
 
 // ════════════════════════════════════════════════════════════
+// ── INFRA PAGE ────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════
+
+const InfraPage = () => {
+  const VPS_IP = '2.24.217.31';
+  const N8N_URL = `http://${VPS_IP}:5678`;
+  const HERMES_URL = `http://${VPS_IP}:8080`;
+  const HERMES_KEY = 'hermes-n8n-key-2026';
+
+  const [sub, setSub] = useState('n8n');
+  const [vpsStatus, setVpsStatus] = useState(null);
+  const [hermesMsg, setHermesMsg] = useState('');
+  const [hermesChat, setHermesChat] = useState([]);
+  const [hermesLoading, setHermesLoading] = useState(false);
+  const [vpsLoading, setVpsLoading] = useState(false);
+  const chatEndRef = useRef();
+
+  const checkVPS = async () => {
+    setVpsLoading(true);
+    const t0 = Date.now();
+    try {
+      const r = await fetch(`${HERMES_URL}/health`, { signal: AbortSignal.timeout(5000) }).catch(() => null);
+      const ping = Date.now() - t0;
+      setVpsStatus({ ok: !!r, ping, ts: new Date().toLocaleTimeString('pt-BR') });
+    } catch { setVpsStatus({ ok: false, ping: null, ts: new Date().toLocaleTimeString('pt-BR') }); }
+    setVpsLoading(false);
+  };
+
+  useEffect(() => { if (sub === 'vps') checkVPS(); }, [sub]);
+  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [hermesChat]);
+
+  const sendHermes = async () => {
+    if (!hermesMsg.trim() || hermesLoading) return;
+    const msg = hermesMsg.trim();
+    setHermesMsg('');
+    setHermesChat(c => [...c, { role: 'user', content: msg }]);
+    setHermesLoading(true);
+    try {
+      const r = await fetch(`${HERMES_URL}/v1/chat/completions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${HERMES_KEY}` },
+        body: JSON.stringify({ messages: [{ role: 'user', content: msg }] }),
+        signal: AbortSignal.timeout(60000)
+      });
+      const d = await r.json();
+      const reply = d?.choices?.[0]?.message?.content || '(sem resposta)';
+      setHermesChat(c => [...c, { role: 'assistant', content: reply }]);
+    } catch(e) { setHermesChat(c => [...c, { role: 'assistant', content: `✕ Erro: ${e.message}` }]); }
+    setHermesLoading(false);
+  };
+
+  const INFRA_TABS = [
+    { id:'n8n',    label:'N8N',    icon:'🔄' },
+    { id:'hermes', label:'Hermes', icon:'🤖' },
+    { id:'vps',    label:'VPS',    icon:'🖥️' },
+  ];
+
+  return (
+    <div>
+      <div style={{marginBottom:20,display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
+        <div>
+          <div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Infraestrutura</div>
+          <div style={{fontSize:14,color:'var(--muted)'}}>N8N · Hermes Agent · VPS</div>
+        </div>
+        <div style={{display:'flex',gap:8}}>
+          <a href={N8N_URL} target="_blank" rel="noopener" style={{...S.btn,background:'rgba(255,140,0,.12)',border:'1px solid rgba(255,140,0,.35)',color:'#ff9500',textDecoration:'none',fontSize:13}}>↗ Abrir N8N</a>
+        </div>
+      </div>
+
+      {/* Sub-tabs */}
+      <div style={{display:'flex',gap:2,borderBottom:'1px solid var(--border)',marginBottom:24}}>
+        {INFRA_TABS.map(t => (
+          <button key={t.id} onClick={() => setSub(t.id)} style={{...S.btn,padding:'8px 18px',fontSize:12,background:'none',border:'none',borderBottom:`2px solid ${sub===t.id?'var(--red)':'transparent'}`,borderRadius:0,color:sub===t.id?'var(--red-b)':'var(--dim)',marginBottom:-1,gap:6}}>
+            {t.icon} {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── N8N ── */}
+      {sub==='n8n' && (
+        <div>
+          <div style={{...S.card,borderTop:'3px solid #ff9500',marginBottom:16}}>
+            <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:12}}>
+              <div style={{fontSize:24}}>🔄</div>
+              <div>
+                <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'#ff9500',letterSpacing:'0.2em',marginBottom:2}}>// N8N SELF-HOSTED</div>
+                <div style={{fontSize:13,color:'var(--dim)'}}>Rodando na VPS via Docker · Porta 5678</div>
+              </div>
+              <span style={{marginLeft:'auto',fontFamily:'Share Tech Mono, monospace',fontSize:10,padding:'3px 10px',borderRadius:2,background:'rgba(37,211,102,.12)',border:'1px solid rgba(37,211,102,.3)',color:'var(--green)'}}>● ONLINE</span>
+            </div>
+            <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+              <a href={N8N_URL} target="_blank" rel="noopener" style={{...S.btn,background:'rgba(255,140,0,.15)',border:'1px solid rgba(255,140,0,.4)',color:'#ff9500',textDecoration:'none'}}>↗ Abrir N8N</a>
+              <a href={`${N8N_URL}/workflows`} target="_blank" rel="noopener" style={{...S.btn,background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--dim)',textDecoration:'none',fontSize:13}}>📋 Workflows</a>
+              <a href={`${N8N_URL}/credentials`} target="_blank" rel="noopener" style={{...S.btn,background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--dim)',textDecoration:'none',fontSize:13}}>🔑 Credenciais</a>
+            </div>
+          </div>
+
+          <div style={{...S.card,borderTop:'3px solid var(--purple)'}}>
+            <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--purple)',letterSpacing:'0.2em',marginBottom:16}}>// ACESSO DIRETO — IFRAME</div>
+            <div style={{background:'var(--bg)',borderRadius:6,overflow:'hidden',border:'1px solid var(--border)',height:600}}>
+              <iframe
+                src={N8N_URL}
+                style={{width:'100%',height:'100%',border:'none'}}
+                title="N8N"
+              />
+            </div>
+            <div style={{marginTop:8,fontSize:12,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>
+              ⚠ Se o iframe não carregar, abra em uma nova aba clicando em "↗ Abrir N8N" acima. Isso ocorre quando o navegador bloqueia HTTP dentro de HTTPS.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── HERMES ── */}
+      {sub==='hermes' && (
+        <div>
+          <div style={{...S.card,borderTop:'3px solid var(--cyan)',marginBottom:16}}>
+            <div style={{display:'flex',alignItems:'center',gap:12}}>
+              <div style={{fontSize:24}}>🤖</div>
+              <div>
+                <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--cyan)',letterSpacing:'0.2em',marginBottom:2}}>// HERMES AGENT</div>
+                <div style={{fontSize:13,color:'var(--dim)'}}>Assistente de IA rodando na VPS · Porta 8080</div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{...S.card,padding:0,display:'flex',flexDirection:'column',height:520}}>
+            <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:10,color:'var(--dim)',letterSpacing:'0.15em',padding:'12px 16px',borderBottom:'1px solid var(--border)',background:'var(--bg3)'}}>
+              // CHAT COM HERMES — {HERMES_URL}
+            </div>
+
+            {/* Messages */}
+            <div style={{flex:1,overflowY:'auto',padding:16,display:'flex',flexDirection:'column',gap:12}}>
+              {hermesChat.length===0 && (
+                <div style={{textAlign:'center',padding:40,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace',fontSize:12}}>
+                  💬 Envie uma mensagem para o Hermes<br/><br/>
+                  <span style={{fontSize:10,color:'var(--surface2)'}}>Ex: "docker ps" · "status dos serviços" · "quanto de RAM está livre?"</span>
+                </div>
+              )}
+              {hermesChat.map((m, i) => (
+                <div key={i} style={{display:'flex',gap:10,alignItems:'flex-start',flexDirection:m.role==='user'?'row-reverse':'row'}}>
+                  <div style={{flexShrink:0,width:28,height:28,borderRadius:'50%',background:m.role==='user'?'var(--red)':'rgba(0,255,255,.15)',border:`1px solid ${m.role==='user'?'var(--red-b)':'rgba(0,255,255,.3)'}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:14}}>
+                    {m.role==='user'?'👤':'🤖'}
+                  </div>
+                  <div style={{maxWidth:'75%',padding:'10px 14px',borderRadius:m.role==='user'?'12px 4px 12px 12px':'4px 12px 12px 12px',background:m.role==='user'?'rgba(204,20,20,.15)':'var(--surface2)',border:`1px solid ${m.role==='user'?'rgba(204,20,20,.3)':'var(--border)'}`,fontSize:13,color:'var(--text)',lineHeight:1.6,whiteSpace:'pre-wrap',wordBreak:'break-word'}}>
+                    {m.content}
+                  </div>
+                </div>
+              ))}
+              {hermesLoading && (
+                <div style={{display:'flex',gap:10,alignItems:'center'}}>
+                  <div style={{width:28,height:28,borderRadius:'50%',background:'rgba(0,255,255,.15)',border:'1px solid rgba(0,255,255,.3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14}}>🤖</div>
+                  <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--dim)',animation:'pulse 1s infinite'}}>digitando...</div>
+                </div>
+              )}
+              <div ref={chatEndRef}/>
+            </div>
+
+            {/* Input */}
+            <div style={{padding:12,borderTop:'1px solid var(--border)',display:'flex',gap:8,background:'var(--bg3)'}}>
+              <input
+                value={hermesMsg}
+                onChange={e => setHermesMsg(e.target.value)}
+                onKeyDown={e => e.key==='Enter'&&!e.shiftKey&&sendHermes()}
+                placeholder="Mensagem para o Hermes... (Enter para enviar)"
+                style={{...S.input,flex:1}}
+              />
+              <button onClick={sendHermes} disabled={hermesLoading||!hermesMsg.trim()} style={{...S.btn,background:'rgba(0,255,255,.12)',border:'1px solid rgba(0,255,255,.3)',color:'var(--cyan)',opacity:(hermesLoading||!hermesMsg.trim())?.5:1}}>Enviar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── VPS ── */}
+      {sub==='vps' && (
+        <div>
+          <div className="ng-grid4" style={S.grid4}>
+            <StatCard
+              label="Endereço VPS"
+              value="2.24.217"
+              sub=".31 — Hostinger"
+              color="var(--cyan)"
+              icon="🌐"
+            />
+            <StatCard
+              label="Status"
+              value={vpsLoading?'…':vpsStatus?.ok?'OK':'ERR'}
+              sub={vpsStatus?`Ping: ${vpsStatus.ping??'—'}ms · ${vpsStatus.ts}`:'Clique em Verificar'}
+              color={vpsStatus?.ok?'var(--green)':vpsStatus?.ok===false?'var(--red-b)':'var(--dim)'}
+              icon="🖥️"
+            />
+            <StatCard label="N8N" value=":5678" sub="Self-Hosted Docker" color="#ff9500" icon="🔄"/>
+            <StatCard label="Hermes" value=":8080" sub="Gateway API" color="var(--purple)" icon="🤖"/>
+          </div>
+
+          <div style={{display:'flex',gap:8,marginBottom:16}}>
+            <Btn color="ghost" onClick={checkVPS}>{vpsLoading?'Verificando...':'↻ Verificar Status'}</Btn>
+            <a href={`http://${VPS_IP}:5678`} target="_blank" rel="noopener" style={{...S.btn,background:'rgba(255,140,0,.12)',border:'1px solid rgba(255,140,0,.35)',color:'#ff9500',textDecoration:'none',fontSize:13}}>↗ N8N</a>
+            <a href={`http://${VPS_IP}:8080`} target="_blank" rel="noopener" style={{...S.btn,background:'rgba(0,255,255,.08)',border:'1px solid rgba(0,255,255,.2)',color:'var(--cyan)',textDecoration:'none',fontSize:13}}>↗ Hermes API</a>
+          </div>
+
+          <div style={{...S.card,borderTop:'3px solid var(--dim)'}}>
+            <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',marginBottom:16}}>// REFERÊNCIA RÁPIDA</div>
+            {[
+              { label:'Entrar via SSH',   cmd:`ssh root@${VPS_IP}` },
+              { label:'Status N8N',       cmd:'docker ps | grep n8n' },
+              { label:'Reiniciar N8N',    cmd:'cd /root/n8n && docker compose restart' },
+              { label:'Logs N8N',         cmd:'docker logs n8n-n8n-1 -f --tail=50' },
+              { label:'Status Hermes',    cmd:'systemctl status hermes-gateway' },
+              { label:'Reiniciar Hermes', cmd:'systemctl restart hermes-gateway' },
+              { label:'Uso de memória',   cmd:'free -h' },
+              { label:'Uso de disco',     cmd:'df -h /' },
+            ].map(({label,cmd}) => (
+              <div key={cmd} style={{display:'flex',alignItems:'center',gap:12,padding:'8px 0',borderBottom:'1px solid var(--border)'}}>
+                <div style={{fontSize:12,color:'var(--dim)',minWidth:160}}>{label}</div>
+                <code style={{flex:1,fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--cyan)',background:'rgba(0,0,0,.3)',padding:'4px 10px',borderRadius:3,overflow:'auto',whiteSpace:'nowrap'}}>{cmd}</code>
+                <button onClick={() => navigator.clipboard?.writeText(cmd)} style={{...S.btn,padding:'4px 8px',fontSize:11,background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--muted)',flexShrink:0}}>📋</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ════════════════════════════════════════════════════════════
 // ── App ───────────────────────────────────────────────────────
 // ════════════════════════════════════════════════════════════
 
@@ -1017,6 +1244,7 @@ const NAV = [
   { id:'pedidos',   label:'Pedidos',    icon:'💳' },
   { id:'garimpo',   label:'Garimpo',    icon:'🎮' },
   { id:'analytics', label:'Analytics',  icon:'🧛' },
+  { id:'infra',     label:'Infra',      icon:'🖥️' },
   { id:'config',    label:'Config',     icon:'⚙️' },
 ];
 
@@ -1096,6 +1324,7 @@ const App = () => {
           {tab==='pedidos'   && <PedidosPage />}
           {tab==='garimpo'   && <GarimpoPage />}
           {tab==='analytics' && <Analytics visitas={visitas} />}
+          {tab==='infra'     && <InfraPage />}
           {tab==='config'    && <Config />}
         </div>
       </div>
