@@ -317,7 +317,7 @@ const Dashboard = ({produtos, visitas}) => {
 };
 
 // ── ProductForm ──────────────────────────────────────────────
-const EMPTY_PROD = { nome:'', preco:'', console:'PS5', condicao:'Novo', descricao:'', imagens:[], ativo:true, destaque:false, vendido:false };
+const EMPTY_PROD = { nome:'', preco:'', console:'PS5', condicao:'Novo', descricao:'', imagens:[], ativo:true, destaque:false, vendido:false, frete_gratis:false };
 
 const ProductForm = ({initial, onSave, onClose}) => {
   const [p,setP]       = useState(initial||EMPTY_PROD);
@@ -369,6 +369,7 @@ const ProductForm = ({initial, onSave, onClose}) => {
           <Toggle label="Ativo" checked={p.ativo!==false} onChange={()=>set('ativo',!p.ativo)} />
           <Toggle label="Destaque" checked={!!p.destaque} onChange={()=>set('destaque',!p.destaque)} />
           <Toggle label="Vendido" checked={!!p.vendido} onChange={()=>set('vendido',!p.vendido)} />
+          <Toggle label="Frete Grátis" checked={!!p.frete_gratis} onChange={()=>set('frete_gratis',!p.frete_gratis)} />
         </div>
         {toast && <div style={{fontSize:13,color:'var(--red-b)',marginBottom:12,fontFamily:'Share Tech Mono, monospace'}}>{toast}</div>}
         <div style={{display:'flex',gap:10,justifyContent:'flex-end'}}><Btn color="ghost" onClick={onClose}>Cancelar</Btn><Btn onClick={salvar} disabled={saving}>{saving?'Salvando...':'Salvar produto'}</Btn></div>
@@ -424,13 +425,14 @@ const ProductsPage = ({produtos, reload}) => {
                   <td style={{padding:'10px 14px',fontSize:13,color:'var(--dim)',whiteSpace:'nowrap'}}>{p.console||'—'}</td>
                   <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:13,color:'var(--gold)',whiteSpace:'nowrap'}}>{fmtBRL(p.preco)}</td>
                   <td style={{padding:'10px 14px'}}><span style={S.tag(p.condicao)}>{p.condicao||'—'}</span></td>
-                  <td style={{padding:'10px 14px'}}><div style={{display:'flex',flexDirection:'column',gap:4}}>{p.vendido&&<span style={{fontSize:11,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>VENDIDO</span>}{p.destaque&&<span style={{fontSize:11,color:'var(--gold)',fontFamily:'Share Tech Mono, monospace'}}>⭐ DESTAQUE</span>}{p.ativo===false&&<span style={{fontSize:11,color:'var(--red-b)',fontFamily:'Share Tech Mono, monospace'}}>INATIVO</span>}{p.ativo!==false&&!p.vendido&&!p.destaque&&<span style={{fontSize:11,color:'#4ade80',fontFamily:'Share Tech Mono, monospace'}}>ATIVO</span>}</div></td>
+                  <td style={{padding:'10px 14px'}}><div style={{display:'flex',flexDirection:'column',gap:4}}>{p.vendido&&<span style={{fontSize:11,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>VENDIDO</span>}{p.destaque&&<span style={{fontSize:11,color:'var(--gold)',fontFamily:'Share Tech Mono, monospace'}}>⭐ DESTAQUE</span>}{p.frete_gratis&&<span style={{fontSize:11,color:'#4ade80',fontFamily:'Share Tech Mono, monospace'}}>🚚 FRETE</span>}{p.ativo===false&&<span style={{fontSize:11,color:'var(--red-b)',fontFamily:'Share Tech Mono, monospace'}}>INATIVO</span>}{p.ativo!==false&&!p.vendido&&!p.destaque&&<span style={{fontSize:11,color:'#4ade80',fontFamily:'Share Tech Mono, monospace'}}>ATIVO</span>}</div></td>
                   <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--purple)'}}>{p.viewed_count||0}</td>
                   <td style={{padding:'10px 14px'}}><div style={{display:'flex',gap:6}}>
                     <button title="Editar" onClick={()=>setEditando(p)} style={{...S.btn,padding:'5px 10px',fontSize:13,background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--dim)'}}>✏</button>
                     <button title="Duplicar" onClick={()=>duplicar(p)} style={{...S.btn,padding:'5px 10px',fontSize:13,background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--dim)'}}>⧉</button>
                     <button title={p.destaque?'Remover destaque':'Destaque'} onClick={()=>toggleField(p,'destaque')} disabled={saving===p.id} style={{...S.btn,padding:'5px 10px',fontSize:13,background:p.destaque?'rgba(255,184,0,.2)':'var(--surface2)',border:'1px solid var(--border)',color:p.destaque?'var(--gold)':'var(--dim)',opacity:saving===p.id?.5:1}}>⭐</button>
                     <button title={p.vendido?'Desmarcar':'Vendido'} onClick={()=>toggleField(p,'vendido')} disabled={saving===p.id} style={{...S.btn,padding:'5px 10px',fontSize:13,background:p.vendido?'rgba(37,211,102,.2)':'var(--surface2)',border:'1px solid var(--border)',color:p.vendido?'var(--green)':'var(--dim)',opacity:saving===p.id?.5:1}}>{saving===p.id?'…':'✅'}</button>
+                    <button title={p.frete_gratis?'Remover frete grátis':'Frete grátis'} onClick={()=>toggleField(p,'frete_gratis')} disabled={saving===p.id} style={{...S.btn,padding:'5px 10px',fontSize:13,background:p.frete_gratis?'rgba(37,211,102,.15)':'var(--surface2)',border:'1px solid var(--border)',color:p.frete_gratis?'#4ade80':'var(--dim)',opacity:saving===p.id?.5:1}}>🚚</button>
                     <button title="Excluir" onClick={()=>setDeleting(p.id)} style={{...S.btn,padding:'5px 10px',fontSize:13,background:'rgba(204,20,20,.1)',border:'1px solid var(--border-r)',color:'var(--red-b)'}}>🗑</button>
                   </div></td>
                 </tr>
