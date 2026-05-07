@@ -271,6 +271,7 @@ section{position:relative;z-index:1}
 .console-card-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(5,5,8,0.85) 100%),linear-gradient(rgba(5,5,8,0.04) 1px,transparent 1px);background-size:100% 100%,4px 4px;pointer-events:none}
 .console-card-svg{width:75%;height:75%;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.5));transition:transform 0.4s ease}
 .console-card-v2:hover .console-card-svg{transform:scale(1.08) rotate(-2deg)}
+.console-card-v2:hover .console-card-bg img{transform:scale(1.06)}
 .console-card-content{padding:1rem;display:flex;flex-direction:column;gap:4px;flex:1}
 .console-card-tag{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--cat-color,var(--red-bright));letter-spacing:0.15em;text-transform:uppercase;opacity:0.8}
 .console-card-title{font-family:'Press Start 2P',monospace;font-size:14px;color:var(--text);text-shadow:0 0 10px rgba(255,255,255,0.1)}
@@ -628,12 +629,8 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
     </div>
     <div class="consoles-grid">
       <div class="console-card-v2 reveal" onclick="irParaProdutos('ps5')" style="--cat-color:#0070D1">
-        <div class="console-card-bg" style="background:linear-gradient(135deg,#001a3d 0%,#0070D1 100%)">
-          <svg viewBox="0 0 100 100" class="console-card-svg">
-            <rect x="20" y="35" width="60" height="30" rx="3" fill="#fff" opacity="0.95"/>
-            <rect x="22" y="37" width="56" height="26" rx="2" fill="none" stroke="#0070D1" stroke-width="0.5"/>
-            <text x="50" y="55" text-anchor="middle" fill="#0070D1" font-family="Arial Black" font-size="12" font-weight="900">PS5</text>
-          </svg>
+        <div class="console-card-bg" style="padding:0;height:200px;">
+          <img src="PS5.png" alt="PlayStation 5" style="width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.4s ease;">
         </div>
         <div class="console-card-content">
           <div class="console-card-tag">PlayStation</div>
@@ -643,13 +640,8 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
       </div>
 
       <div class="console-card-v2 reveal" onclick="irParaProdutos('ps4')" style="--cat-color:#003791">
-        <div class="console-card-bg" style="background:linear-gradient(135deg,#000c1f 0%,#003791 100%)">
-          <svg viewBox="0 0 100 100" class="console-card-svg">
-            <rect x="15" y="40" width="70" height="20" rx="2" fill="#1a1a1a"/>
-            <rect x="15" y="40" width="70" height="3" fill="#003791"/>
-            <circle cx="75" cy="50" r="2" fill="#fff" opacity="0.5"/>
-            <text x="50" y="78" text-anchor="middle" fill="#fff" font-family="Arial Black" font-size="9" font-weight="900">PS4</text>
-          </svg>
+        <div class="console-card-bg" style="padding:0;height:200px;">
+          <img src="PS4.png" alt="PlayStation 4" style="width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.4s ease;">
         </div>
         <div class="console-card-content">
           <div class="console-card-tag">PlayStation</div>
@@ -659,14 +651,8 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
       </div>
 
       <div class="console-card-v2 reveal" onclick="irParaProdutos('switch')" style="--cat-color:#E60012">
-        <div class="console-card-bg" style="background:linear-gradient(135deg,#1a0000 0%,#E60012 100%)">
-          <svg viewBox="0 0 100 100" class="console-card-svg">
-            <rect x="20" y="35" width="60" height="30" rx="3" fill="#1a1a1a"/>
-            <rect x="20" y="35" width="10" height="30" fill="#0099d4"/>
-            <rect x="70" y="35" width="10" height="30" fill="#e60012"/>
-            <circle cx="25" cy="42" r="1.5" fill="#fff"/>
-            <circle cx="75" cy="58" r="1.5" fill="#fff"/>
-          </svg>
+        <div class="console-card-bg" style="padding:0;height:200px;">
+          <img src="SWITCH.png" alt="Nintendo Switch" style="width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.4s ease;">
         </div>
         <div class="console-card-content">
           <div class="console-card-tag">Nintendo</div>
@@ -676,14 +662,8 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
       </div>
 
       <div class="console-card-v2 reveal" onclick="irParaProdutos('3ds')" style="--cat-color:#0099d4">
-        <div class="console-card-bg" style="background:linear-gradient(135deg,#001a26 0%,#0099d4 100%)">
-          <svg viewBox="0 0 100 100" class="console-card-svg">
-            <rect x="22" y="28" width="56" height="20" rx="2" fill="#1a1a1a"/>
-            <rect x="22" y="48" width="56" height="22" rx="2" fill="#1a1a1a"/>
-            <rect x="26" y="32" width="48" height="12" fill="#0099d4" opacity="0.6"/>
-            <circle cx="30" cy="60" r="2" fill="#fff" opacity="0.4"/>
-            <circle cx="70" cy="60" r="2" fill="#fff" opacity="0.4"/>
-          </svg>
+        <div class="console-card-bg" style="padding:0;height:200px;">
+          <img src="3DS.png" alt="Nintendo 3DS" style="width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.4s ease;">
         </div>
         <div class="console-card-content">
           <div class="console-card-tag">Nintendo</div>
@@ -693,14 +673,8 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
       </div>
 
       <div class="console-card-v2 reveal" onclick="irParaProdutos('retro')" style="--cat-color:#a855f7">
-        <div class="console-card-bg" style="background:linear-gradient(135deg,#1a0033 0%,#6b21a8 100%)">
-          <svg viewBox="0 0 100 100" class="console-card-svg">
-            <rect x="15" y="35" width="70" height="30" rx="3" fill="#2d1b3d"/>
-            <rect x="20" y="40" width="20" height="3" fill="#a855f7"/>
-            <rect x="20" y="46" width="15" height="3" fill="#a855f7" opacity="0.6"/>
-            <circle cx="65" cy="50" r="6" fill="#a855f7" opacity="0.3"/>
-            <text x="50" y="80" text-anchor="middle" fill="#a855f7" font-family="Press Start 2P" font-size="6">RETRO</text>
-          </svg>
+        <div class="console-card-bg" style="padding:0;height:200px;">
+          <img src="RETRO.png" alt="Clássicos Retrô" style="width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.4s ease;">
         </div>
         <div class="console-card-content">
           <div class="console-card-tag">Clássicos</div>
@@ -710,12 +684,8 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
       </div>
 
       <div class="console-card-v2 reveal" onclick="irParaProdutos('pokemon')" style="--cat-color:#FFB800">
-        <div class="console-card-bg" style="background:linear-gradient(135deg,#3d2700 0%,#FFB800 100%)">
-          <svg viewBox="0 0 100 100" class="console-card-svg">
-            <rect x="30" y="20" width="35" height="55" rx="3" fill="#fff" transform="rotate(-8 47 47)"/>
-            <rect x="40" y="28" width="40" height="55" rx="3" fill="#FFD700" transform="rotate(8 60 55)"/>
-            <circle cx="62" cy="50" r="8" fill="#cc1414" opacity="0.7" transform="rotate(8 60 55)"/>
-          </svg>
+        <div class="console-card-bg" style="padding:0;height:200px;">
+          <img src="POKEMON.png" alt="Pokémon TCG" style="width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.4s ease;">
         </div>
         <div class="console-card-content">
           <div class="console-card-tag">TCG</div>
@@ -1457,8 +1427,8 @@ function cardHtml(p) {
   const parcela = maxParc > 1 ? (precoNum / maxParc) : 0;
   const parcelaStr = parcela ? `<strong>${maxParc}x</strong> de R$ ${parcela.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})} <span style="opacity:0.7">sem juros</span>` : '';
 
-  // Frete grátis — controlado pelo admin (campo frete_gratis no produto)
-  const freteFree = !!p.frete_gratis;
+  // Frete grátis acima de R$ 200
+  const freteFree = precoNum >= 200;
 
   // Rating fictício baseado em hash do ID (pra ser consistente) — TODO: substituir por avaliações reais
   const seed = (p.id||'').split('').reduce((a,c)=>a+c.charCodeAt(0),0);
