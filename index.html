@@ -1428,7 +1428,7 @@ function cardHtml(p) {
   const parcelaStr = parcela ? `<strong>${maxParc}x</strong> de R$ ${parcela.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})} <span style="opacity:0.7">sem juros</span>` : '';
 
   // Frete grátis acima de R$ 200
-  const freteFree = precoNum >= 200;
+  const freteFree = !!p.frete_gratis;
 
   // Rating fictício baseado em hash do ID (pra ser consistente) — TODO: substituir por avaliações reais
   const seed = (p.id||'').split('').reduce((a,c)=>a+c.charCodeAt(0),0);
