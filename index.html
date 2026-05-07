@@ -105,10 +105,109 @@ gtag('config','G-XXXXXXXXXX');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:16px;line-height:1.6;overflow-x:hidden}
-body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.08) 2px,rgba(0,0,0,0.08) 4px);pointer-events:none;z-index:9999}
+/* Scanlines mais sutis (era 0.08, agora 0.04) */
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.04) 3px,rgba(0,0,0,0.04) 4px);pointer-events:none;z-index:9999}
 
-.retro-grid{position:fixed;bottom:0;left:0;right:0;height:45vh;background:linear-gradient(to bottom,var(--bg) 0%,transparent 40%),linear-gradient(rgba(107,33,168,0.4) 1px,transparent 1px),linear-gradient(90deg,rgba(107,33,168,0.4) 1px,transparent 1px);background-size:100% 100%,60px 60px,60px 60px;transform:perspective(400px) rotateX(55deg);transform-origin:bottom center;pointer-events:none;z-index:0;animation:gridPulse 4s ease-in-out infinite}
-@keyframes gridPulse{0%,100%{opacity:.6}50%{opacity:1}}
+/* Grid retrô só no hero (não fixed pelo site todo) */
+.retro-floor{position:absolute;bottom:0;left:0;right:0;height:50vh;background:linear-gradient(to bottom,var(--bg) 0%,transparent 40%),linear-gradient(rgba(107,33,168,0.3) 1px,transparent 1px),linear-gradient(90deg,rgba(107,33,168,0.3) 1px,transparent 1px);background-size:100% 100%,60px 60px,60px 60px;transform:perspective(400px) rotateX(55deg);transform-origin:bottom center;pointer-events:none;z-index:0;animation:gridPulse 4s ease-in-out infinite}
+@keyframes gridPulse{0%,100%{opacity:.5}50%{opacity:.8}}
+
+/* ════════════ TRUST BAR ════════════ */
+.trust-bar{background:linear-gradient(180deg,var(--bg2),var(--bg));border-top:1px solid var(--border-red);border-bottom:1px solid var(--border-red);padding:1.25rem 2rem;position:relative;z-index:2}
+.trust-grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem}
+.trust-item{display:flex;align-items:center;gap:12px;padding:0.5rem}
+.trust-icon{width:42px;height:42px;background:linear-gradient(135deg,rgba(204,20,20,0.15),rgba(107,33,168,0.1));border:1px solid rgba(204,20,20,0.3);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;box-shadow:0 0 12px rgba(204,20,20,0.15)}
+.trust-text{flex:1;min-width:0}
+.trust-title{font-family:'Press Start 2P',monospace;font-size:9px;color:var(--text);line-height:1.5;margin-bottom:3px}
+.trust-sub{font-family:'Rajdhani',sans-serif;font-size:13px;color:var(--text-muted);font-weight:500;line-height:1.3}
+@media(max-width:768px){
+  .trust-grid{grid-template-columns:repeat(2,1fr);gap:0.75rem}
+  .trust-bar{padding:1rem}
+  .trust-item{padding:0.25rem;gap:8px}
+  .trust-icon{width:36px;height:36px;font-size:18px}
+  .trust-title{font-size:8px}
+  .trust-sub{font-size:11px}
+}
+
+/* ════════════ FRETE GRÁTIS BANNER ════════════ */
+.promo-banner{background:linear-gradient(90deg,rgba(255,184,0,0.12),rgba(204,20,20,0.12),rgba(255,184,0,0.12));background-size:200% 100%;animation:promoShift 8s linear infinite;border-bottom:1px solid rgba(255,184,0,0.2);padding:10px 1rem;text-align:center;position:relative;z-index:3}
+@keyframes promoShift{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+.promo-banner-inner{display:inline-flex;align-items:center;gap:14px;font-family:'Press Start 2P',monospace;font-size:10px;color:var(--gold);text-shadow:0 0 12px rgba(255,184,0,0.5);letter-spacing:0.05em}
+.promo-banner-inner em{font-style:normal;color:var(--text);font-weight:bold}
+@media(max-width:768px){
+  .promo-banner-inner{font-size:8px;gap:8px}
+}
+
+/* ════════════ PRODUTO CARD PREMIUM ════════════ */
+.produto-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:transform 0.25s cubic-bezier(0.2,0.8,0.2,1),box-shadow 0.25s,border-color 0.25s;position:relative;cursor:pointer;display:flex;flex-direction:column}
+.produto-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--red),transparent);opacity:0;transition:opacity 0.3s;z-index:2}
+.produto-card:hover{transform:translateY(-6px);box-shadow:0 12px 40px rgba(0,0,0,0.6),0 0 0 1px rgba(204,20,20,0.4),0 0 30px rgba(204,20,20,0.15);border-color:rgba(204,20,20,0.4)}
+.produto-card:hover::before{opacity:1}
+
+.produto-img{width:100%;aspect-ratio:1;background:linear-gradient(135deg,var(--bg3),var(--surface2));display:flex;align-items:center;justify-content:center;font-size:60px;position:relative;overflow:hidden}
+.produto-img::after{content:'';position:absolute;bottom:0;left:0;right:0;height:35%;background:linear-gradient(to top,var(--surface),transparent);pointer-events:none;z-index:1}
+.produto-card img{transition:transform 0.4s cubic-bezier(0.2,0.8,0.2,1)}
+.produto-card:hover img{transform:scale(1.06)}
+
+/* Badges container — múltiplas badges empilhadas */
+.produto-badges{position:absolute;top:10px;left:10px;display:flex;flex-direction:column;gap:5px;z-index:2}
+.produto-badge{font-family:'Share Tech Mono',monospace;font-size:10px;padding:4px 9px;border-radius:3px;letter-spacing:0.05em;font-weight:bold;backdrop-filter:blur(4px);box-shadow:0 2px 8px rgba(0,0,0,0.4);position:static}
+.badge-novo{background:rgba(22,58,30,0.92);color:#4ade80;border:1px solid #166534}
+.badge-usado{background:rgba(30,26,16,0.92);color:var(--gold);border:1px solid #713f12}
+.badge-seminovo{background:rgba(26,16,48,0.92);color:var(--purple-bright);border:1px solid #4c1d95}
+.badge-vendido{background:rgba(26,16,16,0.95);color:var(--text-muted);border:1px solid #4a0a0a;width:auto !important;padding:4px 10px;white-space:nowrap}
+.badge-reservado{background:rgba(245,168,0,0.18);color:#FFB800;border:1px solid #8B6914;width:auto !important;padding:4px 10px;white-space:nowrap}
+.badge-frete{background:rgba(37,211,102,0.18);color:#4ade80;border:1px solid rgba(37,211,102,0.5)}
+.badge-oferta{background:linear-gradient(135deg,#CC1414,#FF2222);color:#fff;border:1px solid #FF4444;animation:pulseRed 2s ease-in-out infinite}
+@keyframes pulseRed{0%,100%{box-shadow:0 2px 8px rgba(204,20,20,0.4)}50%{box-shadow:0 2px 16px rgba(204,20,20,0.7)}}
+
+.produto-info{padding:1rem 1rem 0.75rem;flex:1;display:flex;flex-direction:column;gap:6px}
+.produto-console{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--red-bright);letter-spacing:0.15em;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.produto-console::before{content:'';width:5px;height:5px;background:var(--red-bright);border-radius:50%;box-shadow:0 0 6px var(--red-bright)}
+.produto-nome{font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;color:var(--text);line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.5em}
+
+/* Avaliações com estrelas */
+.produto-rating{display:flex;align-items:center;gap:6px;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text-muted)}
+.produto-rating .stars{color:var(--gold);letter-spacing:1px;font-size:13px}
+.produto-rating .count{color:var(--text-muted);font-size:10px}
+
+.produto-preco-wrap{margin-top:auto;padding-top:6px}
+.produto-preco{font-family:'Press Start 2P',monospace;font-size:14px;color:var(--gold);text-shadow:0 0 10px rgba(255,184,0,0.4);line-height:1.2}
+.produto-parcelas{font-family:'Rajdhani',sans-serif;font-size:12px;color:var(--text-dim);font-weight:500;margin-top:3px;letter-spacing:0.02em}
+.produto-parcelas strong{color:#4ade80;font-weight:700}
+
+.produto-actions{display:flex;gap:6px;padding:0 1rem 1rem;margin-top:8px}
+.produto-comprar{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;background:linear-gradient(135deg,var(--red),var(--red-bright));border:1px solid var(--red-bright);border-radius:4px;color:#fff;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;letter-spacing:0.05em;text-transform:uppercase;box-shadow:0 2px 12px rgba(204,20,20,0.3)}
+.produto-comprar:hover{background:linear-gradient(135deg,var(--red-bright),#FF4444);box-shadow:0 4px 20px rgba(255,34,34,0.5);transform:translateY(-1px)}
+.produto-wpp{display:flex;align-items:center;justify-content:center;width:42px;flex-shrink:0;padding:10px;background:rgba(37,211,102,0.1);border:1px solid rgba(37,211,102,0.4);border-radius:4px;color:#25D366;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;text-decoration:none;transition:all 0.2s}
+.produto-wpp:hover{background:rgba(37,211,102,0.2);box-shadow:0 0 12px rgba(37,211,102,0.3)}
+.produto-wpp svg{width:16px;height:16px;fill:#25D366;flex-shrink:0}
+
+/* ════════════ FILTRO LATERAL ════════════ */
+.produtos-layout{display:grid;grid-template-columns:240px 1fr;gap:2rem;align-items:start}
+.filtro-sidebar{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:1.25rem;position:sticky;top:80px}
+.filtro-sidebar h4{font-family:'Press Start 2P',monospace;font-size:9px;color:var(--red-bright);margin-bottom:0.85rem;padding-bottom:0.65rem;border-bottom:1px solid var(--border);letter-spacing:0.05em}
+.filtro-grupo{margin-bottom:1.25rem}
+.filtro-grupo:last-child{margin-bottom:0}
+.filtro-grupo-title{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;padding-bottom:6px;border-bottom:1px dashed var(--border)}
+.filtro-check{display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:500;color:var(--text-dim);transition:color 0.15s}
+.filtro-check:hover{color:var(--text)}
+.filtro-check input{accent-color:var(--red-bright);cursor:pointer}
+.filtro-check .count{margin-left:auto;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text-muted);background:var(--bg3);padding:1px 6px;border-radius:2px}
+.preco-range{display:flex;gap:8px;align-items:center}
+.preco-range input{flex:1;padding:6px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;width:100%;outline:none}
+.preco-range input:focus{border-color:var(--red)}
+.preco-range span{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text-muted)}
+.preco-chip{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:600;padding:4px 9px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;color:var(--text-dim);cursor:pointer;transition:all 0.15s}
+.preco-chip:hover{border-color:var(--red);color:var(--red-bright)}
+.preco-chip.active{background:var(--red-dark);border-color:var(--red);color:#fff}
+.btn-limpar-filtros{width:100%;padding:8px;margin-top:0.5rem;background:transparent;border:1px solid var(--border);border-radius:3px;color:var(--text-dim);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;letter-spacing:0.05em;text-transform:uppercase}
+.btn-limpar-filtros:hover{border-color:var(--red);color:var(--red-bright)}
+
+@media(max-width:1024px){
+  .produtos-layout{grid-template-columns:1fr}
+  .filtro-sidebar{position:static}
+}
 
 /* NAVBAR */
 nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(5,5,8,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border-red);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between}
@@ -165,7 +264,18 @@ section{position:relative;z-index:1}
 /* CATÁLOGO */
 #catalogo{padding:80px 2rem;background:var(--bg2)}
 .container{max-width:1200px;margin:0 auto}
-.consoles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem}
+.consoles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1.25rem}
+.console-card-v2{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;cursor:pointer;transition:transform 0.25s,box-shadow 0.25s,border-color 0.25s;display:flex;flex-direction:column;min-height:240px}
+.console-card-v2:hover{transform:translateY(-6px);border-color:var(--cat-color,var(--red));box-shadow:0 12px 40px rgba(0,0,0,0.5),0 0 30px rgba(168,85,247,0.2)}
+.console-card-bg{position:relative;height:140px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.console-card-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(5,5,8,0.85) 100%),linear-gradient(rgba(5,5,8,0.04) 1px,transparent 1px);background-size:100% 100%,4px 4px;pointer-events:none}
+.console-card-svg{width:75%;height:75%;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.5));transition:transform 0.4s ease}
+.console-card-v2:hover .console-card-svg{transform:scale(1.08) rotate(-2deg)}
+.console-card-content{padding:1rem;display:flex;flex-direction:column;gap:4px;flex:1}
+.console-card-tag{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--cat-color,var(--red-bright));letter-spacing:0.15em;text-transform:uppercase;opacity:0.8}
+.console-card-title{font-family:'Press Start 2P',monospace;font-size:14px;color:var(--text);text-shadow:0 0 10px rgba(255,255,255,0.1)}
+.console-card-meta{margin-top:auto;font-family:'Rajdhani',sans-serif;font-size:13px;color:var(--text-muted);font-weight:600}
+.console-card-meta .cat-count{color:var(--cat-color,var(--gold));font-weight:700}
 .console-card{background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--red);border-radius:4px;overflow:hidden;transition:transform 0.2s,box-shadow 0.2s,border-color 0.2s;cursor:pointer;position:relative}
 .console-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(204,20,20,0.05) 0%,transparent 60%);pointer-events:none}
 .console-card:hover{transform:translateY(-4px);box-shadow:0 8px 30px rgba(204,20,20,0.2),0 0 0 1px rgba(204,20,20,0.3)}
@@ -210,36 +320,18 @@ section{position:relative;z-index:1}
 .skeleton-line.xshort{width:40%}
 @keyframes skeletonPulse{0%,100%{opacity:1}50%{opacity:0.4}}
 
-.produto-card{background:var(--surface);border:1px solid var(--border);border-radius:4px;overflow:hidden;transition:transform 0.2s,box-shadow 0.2s;position:relative;cursor:pointer}
-.produto-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.5),0 0 0 1px rgba(204,20,20,0.2)}
-.produto-card.vendido{opacity:0.65;pointer-events:none}
-.produto-img{width:100%;aspect-ratio:1;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:60px;position:relative;overflow:hidden}
-.produto-img::after{content:'';position:absolute;bottom:0;left:0;right:0;height:40%;background:linear-gradient(to top,var(--surface),transparent);pointer-events:none}
-.produto-badge{position:absolute;top:10px;left:10px;font-family:'Share Tech Mono',monospace;font-size:10px;padding:3px 8px;border-radius:2px;z-index:1}
-.badge-novo{background:#163a1e;color:#4ade80;border:1px solid #166534}
-.badge-usado{background:#1e1a10;color:var(--gold);border:1px solid #713f12}
-.badge-seminovo{background:#1a1030;color:var(--purple-bright);border:1px solid #4c1d95}
-.badge-vendido{background:#1a1010;color:var(--text-muted);border:1px solid #4a0a0a;width:auto !important;padding:4px 10px;white-space:nowrap}
+.produto-card.vendido{opacity:0.6;pointer-events:none;filter:grayscale(0.5)}
 
 .card-quick-actions{position:absolute;top:8px;right:8px;display:flex;flex-direction:column;gap:5px;z-index:3}
-.quick-btn{width:32px;height:32px;border-radius:4px;border:1px solid rgba(255,255,255,0.15);background:rgba(5,5,8,0.82);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;z-index:3;backdrop-filter:blur(6px);outline:none;user-select:none;position:relative}
+.quick-btn{width:32px;height:32px;border-radius:4px;border:1px solid rgba(255,255,255,0.15);background:rgba(5,5,8,0.82);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;z-index:3;backdrop-filter:blur(6px);outline:none;user-select:none;position:relative;flex-shrink:0}
+.quick-btn svg{flex-shrink:0;pointer-events:none}
 .quick-btn:focus{outline:none}
 .quick-btn:hover{border-color:var(--red-bright);background:rgba(204,20,20,0.2);box-shadow:0 0 10px rgba(204,20,20,0.35);transform:scale(1.05)}
 .quick-btn.fav-on{border-color:var(--purple-bright);background:rgba(168,85,247,0.1);box-shadow:0 0 10px rgba(168,85,247,0.3);color:var(--purple-bright)}
-.btn-quick-cart.in-cart{border-color:var(--gold-dim);background:rgba(200,137,10,0.15);box-shadow:0 0 12px rgba(200,137,10,0.4);color:var(--gold)}
-.btn-quick-cart.in-cart svg{fill:var(--gold)}
+.btn-quick-cart.in-cart{border-color:var(--gold-dim);background:rgba(200,137,10,0.15);box-shadow:0 0 12px rgba(200,137,10,0.4);color:var(--gold);overflow:hidden}
+.btn-quick-cart.in-cart svg{fill:var(--gold);max-width:18px;max-height:18px}
 
-.produto-info{padding:1rem}
-.produto-console{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--red-bright);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:4px}
-.produto-nome{font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:8px}
-.produto-preco{font-family:'Press Start 2P',monospace;font-size:14px;color:var(--gold);text-shadow:0 0 10px rgba(255,184,0,0.4)}
-
-.produto-actions{display:flex;gap:6px;margin-top:10px}
-.produto-wpp{display:flex;align-items:center;justify-content:center;gap:6px;flex:1;padding:8px 10px;background:rgba(37,211,102,0.1);border:1px solid rgba(37,211,102,0.3);border-radius:2px;color:#25D366;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;text-decoration:none;transition:all 0.2s}
-.produto-wpp:hover{background:rgba(37,211,102,0.2)}
-.produto-wpp svg{width:13px;height:13px;fill:#25D366;flex-shrink:0}
-.produto-comprar{display:flex;align-items:center;justify-content:center;gap:5px;flex:1;padding:8px 10px;background:rgba(204,20,20,0.15);border:1px solid rgba(204,20,20,0.4);border-radius:2px;color:var(--red-bright);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s}
-.produto-comprar:hover{background:rgba(204,20,20,0.3)}
+/* (produto-info, produto-actions etc estão definidos no bloco PRODUTO CARD PREMIUM acima) */
 
 /* RETRÔ */
 #retro{padding:80px 2rem;background:var(--bg2)}
@@ -332,6 +424,7 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
 
 @keyframes fadeInDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes bounce{0%,100%{transform:scale(1)}25%{transform:scale(1.3)}50%{transform:scale(0.9)}75%{transform:scale(1.1)}}
 .reveal{opacity:0;transform:translateY(24px);transition:opacity 0.6s ease,transform 0.6s ease}
 .reveal.visible{opacity:1;transform:translateY(0)}
 
@@ -348,7 +441,10 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
   nav{padding:0 1rem}
   .search-sort-bar{flex-direction:column}
   #sortSelect{width:100%}
-  .consoles-grid{grid-template-columns:1fr}
+  .consoles-grid{grid-template-columns:repeat(2,1fr);gap:0.75rem}
+  .console-card-v2{min-height:200px}
+  .console-card-bg{height:110px}
+  .console-card-title{font-size:11px}
   .produtos-grid{grid-template-columns:repeat(2,1fr);gap:0.75rem}
   .produto-nome{font-size:14px}
   .produto-preco{font-size:12px}
@@ -416,11 +512,18 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
 
 <div class="payment-toast" id="paymentToast"></div>
 
-<div class="retro-grid"></div>
+<div class="retro-floor"></div>
 
 <a href="https://wa.me/5195108970?text=Olá! Vi o site da Nosferatu Games e quero saber mais sobre um produto." class="wpp-float" target="_blank" title="Falar no WhatsApp">
   <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
 </a>
+
+<!-- Banner promocional topo -->
+<div class="promo-banner">
+  <div class="promo-banner-inner">
+    🦇 <span><em>FRETE GRÁTIS</em> em compras acima de R$ 200 · Porto Alegre · Retirada em mãos disponível</span> 🦇
+  </div>
+</div>
 
 <nav>
   <a href="#hero" class="nav-logo">
@@ -463,21 +566,55 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
     <h1 style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;">Nosferatu Games: Jogos PS5, Nintendo Switch e Consoles Retro em Porto Alegre</h1>
     <div class="hero-logo-wrap">
       <img src="banner.png" alt="Nosferatu Games - Loja de Games em Porto Alegre"
-        style="width:min(860px,92vw);border-radius:8px;box-shadow:0 0 60px rgba(107,33,168,0.5),0 0 120px rgba(204,20,20,0.25);"
+        style="width:min(1100px,95vw);border-radius:6px;image-rendering:pixelated;image-rendering:crisp-edges;box-shadow:0 0 50px rgba(107,33,168,0.35),0 8px 40px rgba(0,0,0,0.6);"
         loading="eager"
         onerror="this.outerHTML='<div style=\'font-family:Press Start 2P,monospace;font-size:clamp(18px,4vw,36px);color:#CC1414;text-shadow:0 0 30px rgba(204,20,20,0.8);line-height:1.4;\'>NOSFERATU<br><span style=\'font-size:0.6em;color:#FFB800;\'>GAMES</span></div>'">
     </div>
-    <p class="hero-tagline">A elite dos games em Porto Alegre</p>
-    <p class="hero-sub">Jogos de PS5, PS4, Nintendo Switch e Retro<br>Entrega ultra rápida para todo o Brasil</p>
+    <p class="hero-tagline">⚰️ Cripta dos games em Porto Alegre ⚰️</p>
+    <p class="hero-sub">PS5 · PS4 · Switch · 3DS · Retrô · Pokémon TCG<br><span style="color:var(--gold);font-weight:700">Entrega rápida em POA · Frete pra todo Brasil</span></p>
     <div class="hero-ctas">
       <a href="#catalogo" class="btn-primary">🎮 Ver Catálogo</a>
       <a href="https://wa.me/5195108970?text=Olá! Quero ver os produtos disponíveis!" class="btn-secondary" target="_blank">💬 Falar no WhatsApp</a>
     </div>
     <div class="hero-stats">
-      <div class="hero-stat"><span class="hero-stat-num">PS5</span><span class="hero-stat-label">PlayStation</span></div>
-      <div class="hero-stat"><span class="hero-stat-num">NSW</span><span class="hero-stat-label">Nintendo Switch</span></div>
-      <div class="hero-stat"><span class="hero-stat-num">PKM</span><span class="hero-stat-label">Cards Pokémon</span></div>
-      <div class="hero-stat"><span class="hero-stat-num">RTR</span><span class="hero-stat-label">Consoles Retrô</span></div>
+      <div class="hero-stat"><span class="hero-stat-num">+500</span><span class="hero-stat-label">Pedidos enviados</span></div>
+      <div class="hero-stat"><span class="hero-stat-num">90d</span><span class="hero-stat-label">Garantia</span></div>
+      <div class="hero-stat"><span class="hero-stat-num">12x</span><span class="hero-stat-label">Sem juros</span></div>
+      <div class="hero-stat"><span class="hero-stat-num">BR</span><span class="hero-stat-label">Envio Brasil</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ TRUST BAR ════════════ -->
+<section class="trust-bar">
+  <div class="trust-grid">
+    <div class="trust-item">
+      <div class="trust-icon">🛡️</div>
+      <div class="trust-text">
+        <div class="trust-title">GARANTIA</div>
+        <div class="trust-sub">90 dias contra defeitos</div>
+      </div>
+    </div>
+    <div class="trust-item">
+      <div class="trust-icon">💳</div>
+      <div class="trust-text">
+        <div class="trust-title">PAGAMENTO</div>
+        <div class="trust-sub">PIX, Cartão até 12x</div>
+      </div>
+    </div>
+    <div class="trust-item">
+      <div class="trust-icon">🚚</div>
+      <div class="trust-text">
+        <div class="trust-title">ENVIO BR</div>
+        <div class="trust-sub">Correios e Motoboy POA</div>
+      </div>
+    </div>
+    <div class="trust-item">
+      <div class="trust-icon">⚰️</div>
+      <div class="trust-text">
+        <div class="trust-title">+500 PEDIDOS</div>
+        <div class="trust-sub">Vampiros satisfeitos</div>
+      </div>
     </div>
   </div>
 </section>
@@ -490,47 +627,101 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
       <div class="section-divider"></div>
     </div>
     <div class="consoles-grid">
-      <div class="console-card reveal">
-        <div class="console-card-header"><div class="console-icon">🎮</div><div class="console-name">PlayStation 5<span>Sony · 2020</span></div></div>
-        <div class="console-categories">
-          <a href="#produtos" class="cat-tag" onclick="irParaProdutos('ps5')">Jogos</a><a href="#produtos" class="cat-tag" onclick="irParaProdutos('ps5')">Consoles</a><a href="#produtos" class="cat-tag" onclick="irParaProdutos('ps5')">Controles</a><a href="#produtos" class="cat-tag" onclick="irParaProdutos('ps5')">Acessórios</a>
+      <div class="console-card-v2 reveal" onclick="irParaProdutos('ps5')" style="--cat-color:#0070D1">
+        <div class="console-card-bg" style="background:linear-gradient(135deg,#001a3d 0%,#0070D1 100%)">
+          <svg viewBox="0 0 100 100" class="console-card-svg">
+            <rect x="20" y="35" width="60" height="30" rx="3" fill="#fff" opacity="0.95"/>
+            <rect x="22" y="37" width="56" height="26" rx="2" fill="none" stroke="#0070D1" stroke-width="0.5"/>
+            <text x="50" y="55" text-anchor="middle" fill="#0070D1" font-family="Arial Black" font-size="12" font-weight="900">PS5</text>
+          </svg>
         </div>
-        <div class="console-card-footer"><span class="footer-items">Jogos, consoles, controles</span><a href="#produtos" class="footer-cta" onclick="irParaProdutos('ps5')">Ver tudo →</a></div>
+        <div class="console-card-content">
+          <div class="console-card-tag">PlayStation</div>
+          <div class="console-card-title">PS5</div>
+          <div class="console-card-meta"><span class="cat-count" data-cat-count="ps5">0</span> produtos</div>
+        </div>
       </div>
-      <div class="console-card reveal">
-        <div class="console-card-header"><div class="console-icon">🕹️</div><div class="console-name">PlayStation 4<span>Sony · 2013</span></div></div>
-        <div class="console-categories">
-          <a href="#produtos" class="cat-tag" onclick="irParaProdutos('ps4')">Jogos</a><a href="#produtos" class="cat-tag" onclick="irParaProdutos('ps4')">Consoles</a><a href="#produtos" class="cat-tag" onclick="irParaProdutos('ps4')">Controles</a><a href="#produtos" class="cat-tag" onclick="irParaProdutos('ps4')">Acessórios</a>
+
+      <div class="console-card-v2 reveal" onclick="irParaProdutos('ps4')" style="--cat-color:#003791">
+        <div class="console-card-bg" style="background:linear-gradient(135deg,#000c1f 0%,#003791 100%)">
+          <svg viewBox="0 0 100 100" class="console-card-svg">
+            <rect x="15" y="40" width="70" height="20" rx="2" fill="#1a1a1a"/>
+            <rect x="15" y="40" width="70" height="3" fill="#003791"/>
+            <circle cx="75" cy="50" r="2" fill="#fff" opacity="0.5"/>
+            <text x="50" y="78" text-anchor="middle" fill="#fff" font-family="Arial Black" font-size="9" font-weight="900">PS4</text>
+          </svg>
         </div>
-        <div class="console-card-footer"><span class="footer-items">Jogos, consoles, controles</span><a href="#produtos" class="footer-cta" onclick="irParaProdutos('ps4')">Ver tudo →</a></div>
+        <div class="console-card-content">
+          <div class="console-card-tag">PlayStation</div>
+          <div class="console-card-title">PS4</div>
+          <div class="console-card-meta"><span class="cat-count" data-cat-count="ps4">0</span> produtos</div>
+        </div>
       </div>
-      <div class="console-card reveal">
-        <div class="console-card-header"><div class="console-icon">🔴</div><div class="console-name">Nintendo Switch<span>Nintendo · 2017</span></div></div>
-        <div class="console-categories">
-          <a href="#produtos" class="cat-tag" onclick="irParaProdutos('switch')">Jogos</a><a href="#produtos" class="cat-tag" onclick="irParaProdutos('switch')">Consoles</a><a href="#produtos" class="cat-tag" onclick="irParaProdutos('switch')">Joy-Con</a><a href="#produtos" class="cat-tag" onclick="irParaProdutos('switch')">Acessórios</a>
+
+      <div class="console-card-v2 reveal" onclick="irParaProdutos('switch')" style="--cat-color:#E60012">
+        <div class="console-card-bg" style="background:linear-gradient(135deg,#1a0000 0%,#E60012 100%)">
+          <svg viewBox="0 0 100 100" class="console-card-svg">
+            <rect x="20" y="35" width="60" height="30" rx="3" fill="#1a1a1a"/>
+            <rect x="20" y="35" width="10" height="30" fill="#0099d4"/>
+            <rect x="70" y="35" width="10" height="30" fill="#e60012"/>
+            <circle cx="25" cy="42" r="1.5" fill="#fff"/>
+            <circle cx="75" cy="58" r="1.5" fill="#fff"/>
+          </svg>
         </div>
-        <div class="console-card-footer"><span class="footer-items">Jogos, consoles, Joy-Con</span><a href="#produtos" class="footer-cta" onclick="irParaProdutos('switch')">Ver tudo →</a></div>
+        <div class="console-card-content">
+          <div class="console-card-tag">Nintendo</div>
+          <div class="console-card-title">Switch</div>
+          <div class="console-card-meta"><span class="cat-count" data-cat-count="switch">0</span> produtos</div>
+        </div>
       </div>
-      <div class="console-card reveal">
-        <div class="console-card-header"><div class="console-icon">🔵</div><div class="console-name">Nintendo 3DS<span>Nintendo · 2011</span></div></div>
-        <div class="console-categories">
-          <a href="#produtos" class="cat-tag" onclick="irParaProdutos('3ds')">Jogos</a><a href="#produtos" class="cat-tag" onclick="irParaProdutos('3ds')">Consoles</a><a href="#produtos" class="cat-tag" onclick="irParaProdutos('3ds')">Acessórios</a>
+
+      <div class="console-card-v2 reveal" onclick="irParaProdutos('3ds')" style="--cat-color:#0099d4">
+        <div class="console-card-bg" style="background:linear-gradient(135deg,#001a26 0%,#0099d4 100%)">
+          <svg viewBox="0 0 100 100" class="console-card-svg">
+            <rect x="22" y="28" width="56" height="20" rx="2" fill="#1a1a1a"/>
+            <rect x="22" y="48" width="56" height="22" rx="2" fill="#1a1a1a"/>
+            <rect x="26" y="32" width="48" height="12" fill="#0099d4" opacity="0.6"/>
+            <circle cx="30" cy="60" r="2" fill="#fff" opacity="0.4"/>
+            <circle cx="70" cy="60" r="2" fill="#fff" opacity="0.4"/>
+          </svg>
         </div>
-        <div class="console-card-footer"><span class="footer-items">3DS / 2DS / New 3DS XL</span><a href="#produtos" class="footer-cta" onclick="irParaProdutos('3ds')">Ver tudo →</a></div>
+        <div class="console-card-content">
+          <div class="console-card-tag">Nintendo</div>
+          <div class="console-card-title">3DS</div>
+          <div class="console-card-meta"><span class="cat-count" data-cat-count="3ds">0</span> produtos</div>
+        </div>
       </div>
-      <div class="console-card reveal" style="border-top-color:var(--purple-bright)">
-        <div class="console-card-header"><div class="console-icon">👾</div><div class="console-name">Consoles Retrô<span>Clássicos · Vintage</span></div></div>
-        <div class="console-categories">
-          <a href="#produtos" class="cat-tag" onclick="irParaProdutos('retro')">Super Nintendo</a><a href="#produtos" class="cat-tag" onclick="irParaProdutos('retro')">Nintendo 64</a><a href="#produtos" class="cat-tag" onclick="irParaProdutos('retro')">PlayStation 1</a><a href="#produtos" class="cat-tag" onclick="irParaProdutos('retro')">PlayStation 2</a><a href="#produtos" class="cat-tag" onclick="irParaProdutos('retro')">Game Boy</a><a href="#produtos" class="cat-tag" onclick="irParaProdutos('retro')">Mega Drive</a>
+
+      <div class="console-card-v2 reveal" onclick="irParaProdutos('retro')" style="--cat-color:#a855f7">
+        <div class="console-card-bg" style="background:linear-gradient(135deg,#1a0033 0%,#6b21a8 100%)">
+          <svg viewBox="0 0 100 100" class="console-card-svg">
+            <rect x="15" y="35" width="70" height="30" rx="3" fill="#2d1b3d"/>
+            <rect x="20" y="40" width="20" height="3" fill="#a855f7"/>
+            <rect x="20" y="46" width="15" height="3" fill="#a855f7" opacity="0.6"/>
+            <circle cx="65" cy="50" r="6" fill="#a855f7" opacity="0.3"/>
+            <text x="50" y="80" text-anchor="middle" fill="#a855f7" font-family="Press Start 2P" font-size="6">RETRO</text>
+          </svg>
         </div>
-        <div class="console-card-footer"><span class="footer-items">SNES · N64 · PS1 · PS2 · GB</span><a href="#produtos" class="footer-cta" onclick="irParaProdutos('retro')">Ver tudo →</a></div>
+        <div class="console-card-content">
+          <div class="console-card-tag">Clássicos</div>
+          <div class="console-card-title">Retrô</div>
+          <div class="console-card-meta"><span class="cat-count" data-cat-count="retro">0</span> produtos</div>
+        </div>
       </div>
-      <div class="console-card reveal" style="border-top-color:var(--gold)">
-        <div class="console-card-header"><div class="console-icon">🃏</div><div class="console-name">Cards Pokémon<span>TCG · Colecionáveis</span></div></div>
-        <div class="console-categories">
-          <a href="#produtos" class="cat-tag" onclick="irParaProdutos('pokemon')">Avulsos</a><a href="#produtos" class="cat-tag" onclick="irParaProdutos('pokemon')">Pacotes</a><a href="#produtos" class="cat-tag" onclick="irParaProdutos('pokemon')">Decks</a><a href="#produtos" class="cat-tag" onclick="irParaProdutos('pokemon')">Raros</a>
+
+      <div class="console-card-v2 reveal" onclick="irParaProdutos('pokemon')" style="--cat-color:#FFB800">
+        <div class="console-card-bg" style="background:linear-gradient(135deg,#3d2700 0%,#FFB800 100%)">
+          <svg viewBox="0 0 100 100" class="console-card-svg">
+            <rect x="30" y="20" width="35" height="55" rx="3" fill="#fff" transform="rotate(-8 47 47)"/>
+            <rect x="40" y="28" width="40" height="55" rx="3" fill="#FFD700" transform="rotate(8 60 55)"/>
+            <circle cx="62" cy="50" r="8" fill="#cc1414" opacity="0.7" transform="rotate(8 60 55)"/>
+          </svg>
         </div>
-        <div class="console-card-footer"><span class="footer-items">TCG · Colecionável · Competitivo</span><a href="#produtos" class="footer-cta" onclick="irParaProdutos('pokemon')">Ver tudo →</a></div>
+        <div class="console-card-content">
+          <div class="console-card-tag">TCG</div>
+          <div class="console-card-title">Pokémon</div>
+          <div class="console-card-meta"><span class="cat-count" data-cat-count="pokemon">0</span> produtos</div>
+        </div>
       </div>
     </div>
   </div>
@@ -568,15 +759,56 @@ footer{background:var(--bg2);border-top:1px solid var(--border-red);padding:2rem
       <button class="filter-btn" onclick="setFiltro('pokemon',this)">Pokémon</button>
       <button class="filter-btn" onclick="setFiltro('acessorios',this)">Acessórios</button>
       <button class="filter-btn" id="btnFavoritos" onclick="toggleFavFilter(this)">♡ Favoritos</button>
+      <button class="filter-btn" id="btnDisponiveis" onclick="toggleDisponiveis(this)" style="margin-left:auto;border-color:var(--green);color:var(--green);">🟢 Disponíveis</button>
     </div>
 
-    <div class="produtos-grid" id="produtosGrid">
-      <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line xshort"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
-      <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line xshort"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
-      <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line xshort"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
-      <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line xshort"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+    <div class="produtos-layout">
+      <!-- Sidebar de filtros -->
+      <aside class="filtro-sidebar reveal">
+        <h4>// FILTROS</h4>
+
+        <div class="filtro-grupo">
+          <div class="filtro-grupo-title">💰 Faixa de preço</div>
+          <div class="preco-range">
+            <input type="number" id="precoMin" placeholder="Min" min="0" oninput="aplicarFiltrosLaterais()">
+            <span>—</span>
+            <input type="number" id="precoMax" placeholder="Max" min="0" oninput="aplicarFiltrosLaterais()">
+          </div>
+          <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:5px">
+            <button class="preco-chip" onclick="setPrecoRange(0,100)">Até R$100</button>
+            <button class="preco-chip" onclick="setPrecoRange(100,300)">R$100-300</button>
+            <button class="preco-chip" onclick="setPrecoRange(300,600)">R$300-600</button>
+            <button class="preco-chip" onclick="setPrecoRange(600,99999)">R$600+</button>
+          </div>
+        </div>
+
+        <div class="filtro-grupo">
+          <div class="filtro-grupo-title">🏷️ Condição</div>
+          <label class="filtro-check"><input type="checkbox" value="Novo" onchange="aplicarFiltrosLaterais()"> Novo <span class="count" data-cond-count="Novo">0</span></label>
+          <label class="filtro-check"><input type="checkbox" value="Seminovo" onchange="aplicarFiltrosLaterais()"> Seminovo <span class="count" data-cond-count="Seminovo">0</span></label>
+          <label class="filtro-check"><input type="checkbox" value="Usado" onchange="aplicarFiltrosLaterais()"> Usado <span class="count" data-cond-count="Usado">0</span></label>
+        </div>
+
+        <div class="filtro-grupo">
+          <div class="filtro-grupo-title">⚡ Outros</div>
+          <label class="filtro-check"><input type="checkbox" id="filtroFreteFree" onchange="aplicarFiltrosLaterais()"> 🚚 Frete grátis</label>
+          <label class="filtro-check"><input type="checkbox" id="filtroDestaque" onchange="aplicarFiltrosLaterais()"> ⭐ Destaques</label>
+          <label class="filtro-check"><input type="checkbox" id="filtroDisponivel" onchange="aplicarFiltrosLaterais()"> 🟢 Apenas disponíveis</label>
+        </div>
+
+        <button class="btn-limpar-filtros" onclick="limparFiltros()">✕ Limpar filtros</button>
+      </aside>
+
+      <div>
+        <div class="produtos-grid" id="produtosGrid">
+          <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line xshort"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+          <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line xshort"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+          <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line xshort"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+          <div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-body"><div class="skeleton-line xshort"></div><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+        </div>
+        <button id="loadMoreBtn" class="load-more-btn" onclick="carregarMais()">⬇ Carregar mais produtos</button>
+      </div>
     </div>
-    <button id="loadMoreBtn" class="load-more-btn" onclick="carregarMais()">⬇ Carregar mais produtos</button>
 
     <div id="modal-overlay" onclick="fecharModal(event)">
       <div id="modal-box" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;position:relative;">
@@ -756,6 +988,7 @@ let todosOsProdutos = [];
 const produtosMap   = new Map(); // ← chave: id (string), valor: objeto produto
 let filtroAtivo     = 'todos';
 let mostrarFavs     = false;
+let mostrarSomenteDisponiveis = false;
 
 function consoleKey(str) {
   if (!str) return 'outros';
@@ -1037,7 +1270,16 @@ async function processarPedido(e) {
     });
     const data = await r.json();
     pedidoId = Array.isArray(data) ? data[0]?.id : data?.id;
-    if (pedidoId) localStorage.setItem('ng_last_pedido_id', pedidoId);
+    if (pedidoId) {
+      localStorage.setItem('ng_last_pedido_id', pedidoId);
+      
+      // Notifica WhatsApp (background)
+      fetch('/api/webhook-pedido', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pedido: { ...pedidoPayload, id: pedidoId, created_at: new Date().toISOString() } })
+      }).catch(() => {});
+    }
   } catch(e) { console.warn('Erro ao salvar pedido:', e.message); }
 
   try {
@@ -1136,6 +1378,10 @@ function renderizarResumoCheckout() {
 
 async function abrirCheckout() {
   if (meuCarrinho.length===0) return;
+  
+  // Toca a Toccata de Bach (Ritual do Drácula) 🦇
+  tocarRitual();
+  
   const reservasFalhadas=[];
   for (const p of meuCarrinho) {
     try {
@@ -1194,26 +1440,50 @@ function checkPaymentReturn() {
 // ── cardHtml — SEM JSON inline em onclick ─────────────────────
 function cardHtml(p) {
   const key    = consoleKey(p.console);
-  const preco  = p.preco ? `R$ ${Number(p.preco).toLocaleString('pt-BR')}` : 'Consulte';
+  const precoNum = Number(p.preco)||0;
+  const preco  = precoNum ? `R$ ${precoNum.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}` : 'Consulte';
   const wppMsg = encodeURIComponent(`Olá! Quero o ${p.nome}! Vi no site da Nosferatu Games.`);
   const imgs   = (p.imagens&&p.imagens.length) ? p.imagens : (p.imagem_url ? [p.imagem_url] : []);
   const imgTag = imgs.length
     ? `<img src="${imgs[0]}" alt="${p.nome.replace(/"/g,'&quot;')} - Nosferatu Games" loading="lazy" style="width:100%;height:100%;object-fit:cover;" onload="this.classList.add('loaded')">`
     : `<span style="font-size:60px">${consoleEmoji(key)}</span>`;
   const isVendido = p.vendido === true;
+  const isReservado = p.reservado === true && !isVendido;
   const fav       = isFav(p.id);
-  const pid       = p.id; // UUID seguro para usar em atributos
+  const pid       = p.id;
+
+  // Parcelamento (até 12x sem juros se >= R$ 100, senão 6x)
+  const maxParc = precoNum >= 600 ? 12 : precoNum >= 300 ? 6 : precoNum >= 100 ? 3 : 1;
+  const parcela = maxParc > 1 ? (precoNum / maxParc) : 0;
+  const parcelaStr = parcela ? `<strong>${maxParc}x</strong> de R$ ${parcela.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})} <span style="opacity:0.7">sem juros</span>` : '';
+
+  // Frete grátis acima de R$ 200
+  const freteFree = precoNum >= 200;
+
+  // Rating fictício baseado em hash do ID (pra ser consistente) — TODO: substituir por avaliações reais
+  const seed = (p.id||'').split('').reduce((a,c)=>a+c.charCodeAt(0),0);
+  const rating = 4.5 + (seed%5)/10; // 4.5 a 4.9
+  const reviews = 5 + (seed%47);
+  const stars = '★★★★★';
+
+  const badgesHtml = isVendido ? '' : `
+    <div class="produto-badges">
+      ${badgeHtml(p.condicao)}
+      ${isReservado ? '<span class="produto-badge badge-reservado">📦 RESERVADO</span>' : ''}
+      ${freteFree && !isReservado ? '<span class="produto-badge badge-frete">🚚 FRETE GRÁTIS</span>' : ''}
+      ${p.destaque ? '<span class="produto-badge badge-oferta">⭐ DESTAQUE</span>' : ''}
+    </div>`;
 
   return `
   <div class="produto-card${isVendido?' vendido':''}" data-console="${key}" data-id="${pid}" onclick="abrirModalById('${pid}')">
     <div class="produto-img">
       ${imgTag}
       ${isVendido
-        ? '<div style="position:absolute;inset:0;background:rgba(5,5,8,0.75);display:flex;align-items:center;justify-content:center;z-index:2;padding:15px;text-align:center;font-family:\'Press Start 2P\',monospace;font-size:9px;color:var(--text-muted);line-height:1.6;">⚔️ REIVINDICADO POR OUTRO CAÇADOR</div>'
-        : badgeHtml(p.condicao)}
-      ${p.destaque&&!isVendido?'<span class="produto-badge" style="top:10px;right:10px;left:auto;background:rgba(255,184,0,.2);color:#FFB800;border:1px solid #713f12;z-index:1">⭐</span>':''}
+        ? '<div style="position:absolute;inset:0;background:rgba(5,5,8,0.78);display:flex;align-items:center;justify-content:center;z-index:2;padding:15px;text-align:center;font-family:\'Press Start 2P\',monospace;font-size:9px;color:var(--text-muted);line-height:1.6;">⚔️ REIVINDICADO POR OUTRO CAÇADOR</div>'
+        : badgesHtml}
     </div>
     <div class="card-quick-actions" onclick="event.stopPropagation()">
+      ${!isVendido && !isReservado ? `
       <button class="quick-btn btn-quick-cart${isInCart(pid)?' in-cart':''}"
               title="${isInCart(pid)?'No Caixão':'Adicionar ao Caixão'}"
               onclick="addAoCarrinhoById('${pid}',event,false)">
@@ -1221,21 +1491,25 @@ function cardHtml(p) {
           ? '<svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:var(--gold)"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>'
           : '<svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:var(--text-dim)"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>'}
       </button>
+      ` : ''}
       <button class="quick-btn${fav?' fav-on':''}" title="Favoritar" onclick="onFavClick(this,'${pid}')">${fav?'♥':'♡'}</button>
       <button class="quick-btn" title="Compartilhar" onclick="compartilharById('${pid}',event)">⬆</button>
     </div>
     <div class="produto-info">
       <div class="produto-console">${p.console||''}</div>
       <div class="produto-nome">${p.nome.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
-      <div class="produto-preco">${preco}</div>
-      ${!isVendido?`<div class="produto-actions">
-        <a href="https://wa.me/5195108970?text=${wppMsg}" class="produto-wpp" target="_blank" onclick="event.stopPropagation()">
-          <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-          Zap
-        </a>
-        ${p.preco?`<button class="produto-comprar" onclick="addAoCarrinhoById('${pid}',event)">💳 Comprar</button>`:''}
-      </div>`:''}
+      ${!isVendido ? `<div class="produto-rating"><span class="stars">${stars}</span><span>${rating.toFixed(1)}</span><span class="count">(${reviews})</span></div>` : ''}
+      <div class="produto-preco-wrap">
+        <div class="produto-preco">${preco}</div>
+        ${parcelaStr ? `<div class="produto-parcelas">${parcelaStr}</div>` : ''}
+      </div>
     </div>
+    ${!isVendido&&!isReservado?`<div class="produto-actions">
+      <a href="https://wa.me/5195108970?text=${wppMsg}" class="produto-wpp" target="_blank" onclick="event.stopPropagation()" title="WhatsApp">
+        <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      </a>
+      ${p.preco?`<button class="produto-comprar" onclick="addAoCarrinhoById('${pid}',event)">💳 Comprar</button>`:`<button class="produto-comprar" style="opacity:0.6;cursor:default" onclick="event.stopPropagation()">Consulte</button>`}
+    </div>`:''}
   </div>`;
 }
 
@@ -1282,7 +1556,22 @@ function renderGrid() {
   let lista=[...todosOsProdutos];
   if (filtroAtivo!=='todos') lista=lista.filter(p=>consoleKey(p.console)===filtroAtivo);
   if (mostrarFavs) lista=lista.filter(p=>favs.includes(String(p.id)));
+  if (mostrarSomenteDisponiveis) lista=lista.filter(p=>!p.vendido);
   if (query) lista=lista.filter(p=>p.nome.toLowerCase().includes(query)||(p.console||'').toLowerCase().includes(query)||(p.descricao||'').toLowerCase().includes(query));
+
+  // ── Filtros laterais ──────────────────────────────────
+  const precoMin = parseFloat(document.getElementById('precoMin')?.value)||0;
+  const precoMax = parseFloat(document.getElementById('precoMax')?.value)||999999;
+  const condChecks = [...document.querySelectorAll('.filtro-check input[type=checkbox][value]:checked')].map(i=>i.value);
+  const filtroFreteFree = document.getElementById('filtroFreteFree')?.checked;
+  const filtroDestaque = document.getElementById('filtroDestaque')?.checked;
+  const filtroDisponivel = document.getElementById('filtroDisponivel')?.checked;
+  if (precoMin>0 || precoMax<999999) lista=lista.filter(p=>{const pr=Number(p.preco)||0;return pr>=precoMin && pr<=precoMax});
+  if (condChecks.length) lista=lista.filter(p=>condChecks.includes(p.condicao));
+  if (filtroFreteFree) lista=lista.filter(p=>(Number(p.preco)||0)>=200);
+  if (filtroDestaque) lista=lista.filter(p=>p.destaque);
+  if (filtroDisponivel) lista=lista.filter(p=>!p.vendido);
+
   lista.sort((a,b)=>{
     if (sort==='preco_asc')  return (a.preco||0)-(b.preco||0);
     if (sort==='preco_desc') return (b.preco||0)-(a.preco||0);
@@ -1313,6 +1602,7 @@ async function carregarProdutos() {
     // Popular o Map para acesso por ID (fix do bug de onclick com JSON inline)
     produtosMap.clear();
     todosOsProdutos.forEach(p => produtosMap.set(String(p.id), p));
+    atualizarContagensCondicao();
     renderGrid();
     atualizarBadgeCarrinho();
   } catch(e) {
@@ -1321,10 +1611,70 @@ async function carregarProdutos() {
   }
 }
 
+function toggleDisponiveis(btn) {
+  filtroDisponiveisAtivo = !filtroDisponiveisAtivo;
+  if (filtroDisponiveisAtivo) {
+    btn.style.background = 'rgba(37,211,102,0.2)';
+    btn.style.borderColor = 'var(--green)';
+    btn.textContent = '✅ DISPONÍVEIS';
+  } else {
+    btn.style.background = '';
+    btn.style.borderColor = 'var(--green)';
+    btn.textContent = '🟢 DISPONÍVEIS';
+  }
+  renderGrid();
+}
+
+function setPrecoRange(min, max) {
+  document.getElementById('precoMin').value = min || '';
+  document.getElementById('precoMax').value = max>=99999 ? '' : max;
+  document.querySelectorAll('.preco-chip').forEach(c=>c.classList.remove('active'));
+  if (event && event.target) event.target.classList.add('active');
+  renderGrid();
+}
+
+function aplicarFiltrosLaterais() { renderGrid(); }
+
+function limparFiltros() {
+  document.getElementById('precoMin').value = '';
+  document.getElementById('precoMax').value = '';
+  document.querySelectorAll('.filtro-check input[type=checkbox]').forEach(c=>c.checked=false);
+  document.querySelectorAll('.preco-chip').forEach(c=>c.classList.remove('active'));
+  renderGrid();
+}
+
+function atualizarContagensCondicao() {
+  const conds = ['Novo','Seminovo','Usado'];
+  conds.forEach(c=>{
+    const el = document.querySelector(`[data-cond-count="${c}"]`);
+    if (el) el.textContent = todosOsProdutos.filter(p=>p.condicao===c && !p.vendido).length;
+  });
+  // Contagens por categoria nos cards visuais
+  const cats = ['ps5','ps4','switch','3ds','retro','pokemon'];
+  cats.forEach(cat=>{
+    const el = document.querySelector(`[data-cat-count="${cat}"]`);
+    if (el) el.textContent = todosOsProdutos.filter(p=>consoleKey(p.console)===cat && !p.vendido).length;
+  });
+}
+
 function setFiltro(console, btn) {
   filtroAtivo=console;
-  document.querySelectorAll('.filter-btn:not(#btnFavoritos)').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.filter-btn:not(#btnFavoritos):not(#btnDisponiveis)').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active'); renderGrid();
+}
+
+function toggleDisponiveis(btn) {
+  mostrarSomenteDisponiveis = !mostrarSomenteDisponiveis;
+  if (mostrarSomenteDisponiveis) {
+    btn.style.background = 'rgba(37,211,102,0.2)';
+    btn.style.color = '#fff';
+    btn.textContent = '✅ Disponíveis';
+  } else {
+    btn.style.background = '';
+    btn.style.color = 'var(--green)';
+    btn.textContent = '🟢 Disponíveis';
+  }
+  renderGrid();
 }
 
 // ── Modal ─────────────────────────────────────────────────────
