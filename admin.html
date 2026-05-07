@@ -1885,11 +1885,195 @@ const InfraPage = () => {
 // ── App ───────────────────────────────────────────────────────
 // ════════════════════════════════════════════════════════════
 
+
+// ── HermesPage ───────────────────────────────────────────────
+const HermesPage = () => {
+  const [tab, setTab]             = React.useState('espera');
+  const [espera, setEspera]       = React.useState([]);
+  const [conversas, setConversas] = React.useState([]);
+  const [blacklist, setBlacklist] = React.useState([]);
+  const [loading, setLoading]     = React.useState(true);
+  const [toast, setToast]         = React.useState('');
+  const [novoBlack, setNovoBlack] = React.useState({ phone:'', motivo:'' });
+
+  const showToast = (msg) => { setToast(msg); setTimeout(()=>setToast(''),3000); };
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const [e, c, b] = await Promise.all([
+        supa('lista_espera?order=created_at.desc&limit=100'),
+        supa('conversas_ativas?order=ultima_mensagem_at.desc&limit=100'),
+        supa('blacklist?order=created_at.desc'),
+      ]);
+      setEspera(e||[]);
+      setConversas(c||[]);
+      setBlacklist(b||[]);
+    } catch(err) { showToast('✕ Erro ao carregar: '+err.message); }
+    setLoading(false);
+  };
+
+  React.useEffect(()=>{ load(); }, []);
+
+  const removerEspera = async (id) => {
+    await supa(`lista_espera?id=eq.${id}`, { method:'DELETE' });
+    showToast('✅ Removido da lista de espera');
+    load();
+  };
+
+  const marcarConverteu = async (id) => {
+    await supa(`conversas_ativas?id=eq.${id}`, { method:'PATCH', body: JSON.stringify({ converteu: true }) });
+    showToast('✅ Marcado como convertido');
+    load();
+  };
+
+  const addBlacklist = async () => {
+    if (!novoBlack.phone) { showToast('✕ Informe o número'); return; }
+    const phone = novoBlack.phone.replace(/\D/g,'');
+    await supa('blacklist', { method:'POST', body: JSON.stringify({ phone, motivo: novoBlack.motivo, ativo: true }) });
+    showToast('✅ Número bloqueado');
+    setNovoBlack({ phone:'', motivo:'' });
+    load();
+  };
+
+  const toggleBlacklist = async (id, ativo) => {
+    await supa(`blacklist?id=eq.${id}`, { method:'PATCH', body: JSON.stringify({ ativo: !ativo }) });
+    showToast(ativo ? '⚠️ Desbloqueado' : '🚫 Bloqueado');
+    load();
+  };
+
+  const TABS = [
+    { id:'espera',    label:'Lista de Espera',   icon:'⏳' },
+    { id:'conversas', label:'Conversas Ativas',  icon:'💬' },
+    { id:'blacklist', label:'Blacklist',          icon:'🚫' },
+  ];
+
+  if (loading) return <div style={{textAlign:'center',padding:40,color:'var(--muted)'}}>Carregando...</div>;
+
+  return (
+    <div>
+      {toast && <div style={{position:'fixed',top:20,right:20,background:'var(--surface2)',border:'1px solid var(--border)',borderRadius:6,padding:'12px 20px',zIndex:999,fontFamily:'Share Tech Mono, monospace',fontSize:13,color:'var(--text)',animation:'slideIn .2s ease'}}>{toast}</div>}
+
+      <div style={{marginBottom:20}}>
+        <div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>🦇 Hermes Bot</div>
+        <div style={{fontSize:14,color:'var(--muted)'}}>Lista de espera · Conversas · Blacklist</div>
+      </div>
+
+      {/* Stats */}
+      <div className="ng-grid4" style={{...S.grid4, marginBottom:20}}>
+        <StatCard label="Aguardando produto" value={espera.filter(e=>!e.notificado).length} sub={`${espera.length} total`} color="var(--gold)" icon="⏳"/>
+        <StatCard label="Notificados" value={espera.filter(e=>e.notificado).length} sub="receberam aviso" color="var(--green)" icon="✅"/>
+        <StatCard label="Conversas ativas" value={conversas.filter(c=>!c.converteu&&!c.follow_up_enviado).length} sub="sem follow-up" color="var(--purple)" icon="💬"/>
+        <StatCard label="Bloqueados" value={blacklist.filter(b=>b.ativo).length} sub="na blacklist" color="var(--red-b)" icon="🚫"/>
+      </div>
+
+      {/* Sub-tabs */}
+      <div style={{display:'flex',gap:8,marginBottom:20,flexWrap:'wrap'}}>
+        {TABS.map(t=>(
+          <button key={t.id} onClick={()=>setTab(t.id)} style={{...S.btn,background:tab===t.id?'rgba(204,20,20,.15)':'var(--surface)',border:`1px solid ${tab===t.id?'rgba(204,20,20,.4)':'var(--border)'}`,color:tab===t.id?'var(--red-b)':'var(--dim)',fontSize:13}}>
+            {t.icon} {t.label}
+          </button>
+        ))}
+        <button onClick={load} style={{...S.btn,background:'var(--surface)',border:'1px solid var(--border)',color:'var(--dim)',fontSize:13,marginLeft:'auto'}}>↻ Atualizar</button>
+      </div>
+
+      {/* Lista de Espera */}
+      {tab==='espera' && (
+        <div style={S.card}>
+          <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',marginBottom:16}}>// CLIENTES AGUARDANDO PRODUTO</div>
+          {espera.length===0
+            ? <div style={{fontSize:14,color:'var(--muted)',textAlign:'center',padding:24}}>Nenhum cliente na lista de espera</div>
+            : espera.map(e=>(
+              <div key={e.id} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 0',borderBottom:'1px solid var(--border)',flexWrap:'wrap'}}>
+                <div style={{flex:1,minWidth:200}}>
+                  <div style={{fontSize:15,fontWeight:700,color:e.notificado?'var(--muted)':'var(--text)'}}>{e.cliente_name||'Desconhecido'}</div>
+                  <div style={{fontSize:13,color:'var(--dim)'}}>📱 {e.phone} · 🎮 <strong>{e.termo_buscado}</strong>{e.console?' ('+e.console+')':''}</div>
+                  <div style={{fontSize:11,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>{fmtDateFull(e.created_at)}</div>
+                </div>
+                <div style={{display:'flex',gap:8,alignItems:'center'}}>
+                  {e.notificado
+                    ? <MonoTag color="var(--green)" bg="rgba(37,211,102,.1)">✅ Notificado</MonoTag>
+                    : <MonoTag color="var(--gold)" bg="rgba(255,184,0,.1)">⏳ Aguardando</MonoTag>}
+                  <Btn color="danger" onClick={()=>removerEspera(e.id)} style={{fontSize:12,padding:'4px 10px'}}>✕</Btn>
+                </div>
+              </div>
+            ))}
+        </div>
+      )}
+
+      {/* Conversas Ativas */}
+      {tab==='conversas' && (
+        <div style={S.card}>
+          <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',marginBottom:16}}>// CONVERSAS EM ANDAMENTO</div>
+          {conversas.length===0
+            ? <div style={{fontSize:14,color:'var(--muted)',textAlign:'center',padding:24}}>Nenhuma conversa registrada</div>
+            : conversas.map(c=>(
+              <div key={c.id} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 0',borderBottom:'1px solid var(--border)',flexWrap:'wrap'}}>
+                <div style={{flex:1,minWidth:200}}>
+                  <div style={{fontSize:15,fontWeight:700,color:c.converteu?'var(--muted)':'var(--text)'}}>{c.cliente_name||'Desconhecido'}</div>
+                  <div style={{fontSize:13,color:'var(--dim)'}}>📱 {c.phone}{c.ultimo_interesse?' · 🎮 '+c.ultimo_interesse:''}{c.console?' ('+c.console+')':''}</div>
+                  <div style={{fontSize:11,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>Última msg: {fmtDateFull(c.ultima_mensagem_at)}</div>
+                </div>
+                <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+                  {c.converteu && <MonoTag color="var(--green)" bg="rgba(37,211,102,.1)">✅ Converteu</MonoTag>}
+                  {c.follow_up_enviado && !c.converteu && <MonoTag color="var(--purple)" bg="rgba(168,85,247,.1)">📤 Follow-up enviado</MonoTag>}
+                  {!c.converteu && !c.follow_up_enviado && <MonoTag color="var(--gold)" bg="rgba(255,184,0,.1)">⏳ Ativo</MonoTag>}
+                  {!c.converteu && <Btn color="green" onClick={()=>marcarConverteu(c.id)} style={{fontSize:12,padding:'4px 10px'}}>✅ Converteu</Btn>}
+                </div>
+              </div>
+            ))}
+        </div>
+      )}
+
+      {/* Blacklist */}
+      {tab==='blacklist' && (
+        <div>
+          <div style={{...S.card, marginBottom:16}}>
+            <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',marginBottom:16}}>// ADICIONAR À BLACKLIST</div>
+            <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
+              <div style={{flex:1,minWidth:180}}>
+                <label style={S.label}>Número (somente dígitos)</label>
+                <input value={novoBlack.phone} onChange={e=>setNovoBlack(p=>({...p,phone:e.target.value}))} placeholder="5551999887766" style={S.input}/>
+              </div>
+              <div style={{flex:2,minWidth:180}}>
+                <label style={S.label}>Motivo</label>
+                <input value={novoBlack.motivo} onChange={e=>setNovoBlack(p=>({...p,motivo:e.target.value}))} placeholder="Ex: não compra, só enrola..." style={S.input}/>
+              </div>
+              <div style={{display:'flex',alignItems:'flex-end'}}>
+                <Btn color="danger" onClick={addBlacklist}>🚫 Bloquear</Btn>
+              </div>
+            </div>
+          </div>
+          <div style={S.card}>
+            <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',marginBottom:16}}>// NÚMEROS BLOQUEADOS</div>
+            {blacklist.length===0
+              ? <div style={{fontSize:14,color:'var(--muted)',textAlign:'center',padding:24}}>Nenhum número bloqueado</div>
+              : blacklist.map(b=>(
+                <div key={b.id} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 0',borderBottom:'1px solid var(--border)'}}>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:15,fontWeight:700,color:b.ativo?'var(--red-b)':'var(--muted)'}}>{b.phone}</div>
+                    {b.motivo && <div style={{fontSize:13,color:'var(--dim)'}}>{b.motivo}</div>}
+                    <div style={{fontSize:11,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>{fmtDateFull(b.created_at)}</div>
+                  </div>
+                  <div style={{display:'flex',gap:8}}>
+                    {b.ativo ? <MonoTag color="var(--red-b)" bg="rgba(204,20,20,.1)">🚫 Bloqueado</MonoTag> : <MonoTag color="var(--muted)" bg="var(--surface2)">Inativo</MonoTag>}
+                    <Btn color={b.ativo?'ghost':'danger'} onClick={()=>toggleBlacklist(b.id,b.ativo)} style={{fontSize:12,padding:'4px 10px'}}>{b.ativo?'Desbloquear':'Bloquear'}</Btn>
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const NAV = [
   { id:'dashboard', label:'Dashboard',  icon:'🏰' },
   { id:'produtos',  label:'Produtos',   icon:'🗡️' },
   { id:'pedidos',   label:'Pedidos',    icon:'💳' },
   { id:'garimpo',   label:'Garimpo',    icon:'🎮' },
+  { id:'hermes',    label:'Hermes Bot', icon:'🦇' },
   { id:'analytics', label:'Analytics',  icon:'🧛' },
   { id:'infra',     label:'Infra',      icon:'🖥️' },
   { id:'financeiro',label:'Financeiro',  icon:'💰' },
@@ -1971,6 +2155,7 @@ const App = () => {
           {tab==='produtos'  && <ProductsPage produtos={produtos} reload={loadProdutos} />}
           {tab==='pedidos'   && <PedidosPage />}
           {tab==='garimpo'   && <GarimpoPage />}
+          {tab==='hermes'    && <HermesPage />}
           {tab==='analytics' && <Analytics visitas={visitas} />}
           {tab==='infra'     && <InfraPage />}
           {tab==='financeiro' && <FinanceiroPage />}
