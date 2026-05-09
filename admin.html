@@ -1130,16 +1130,159 @@ const PiMonitor = () => {
 // ── FINANCEIRO PAGE ──────────────────────────────────────────
 // ════════════════════════════════════════════════════════════
 
-const EMPTY_FIN = { produto:'', console:'PS4', preco_compra:'', preco_venda:'', custo_extra:'', data_compra: new Date().toISOString().slice(0,10), origem:'proprio', status:'estoque', observacao:'' };
+
+// ── FinanceiroModal ───────────────────────────────────────────
+const FinanceiroModal = ({ editando, setEditando, salvar, saving, ORIGENS, ORIGEM_LABEL, CONSOLES_FIN, FORMAS_PAG, FORMA_LABEL }) => {
+  const [produtos, setProdutos]   = useState([]);
+  const [busca, setBusca]         = useState('');
+  const [mostraLista, setMostraLista] = useState(false);
+
+  useEffect(() => {
+    supa('produtos?select=id,nome,console,preco&ativo=eq.true&vendido=eq.false&order=nome.asc&limit=200')
+      .then(r => setProdutos(r||[]));
+  }, []);
+
+  const produtosFiltrados = busca.length >= 2
+    ? produtos.filter(p => p.nome.toLowerCase().includes(busca.toLowerCase()))
+    : produtos;
+
+  const selecionarProduto = (p) => {
+    setEditando(prev => ({
+      ...prev,
+      produto: p.nome,
+      console: p.console || prev.console,
+      preco_venda: p.preco ? String(p.preco) : prev.preco_venda,
+      produto_site_id: p.id
+    }));
+    setBusca(p.nome);
+    setMostraLista(false);
+  };
+
+  const lucroEstimado = editando.preco_compra && editando.preco_venda
+    ? Number(editando.preco_venda) - Number(editando.preco_compra) - Number(editando.custo_extra||0)
+    : null;
+  const margemEstimada = lucroEstimado !== null && Number(editando.preco_compra) > 0
+    ? Math.round((lucroEstimado / (Number(editando.preco_compra) + Number(editando.custo_extra||0))) * 100)
+    : null;
+
+  return (
+    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.85)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
+      <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:8, width:'100%', maxWidth:560, maxHeight:'90vh', overflow:'auto', padding:24, position:'relative' }}>
+        <button onClick={()=>setEditando(null)} style={{ position:'absolute', top:14, right:14, background:'none', border:'none', color:'var(--dim)', fontSize:20, cursor:'pointer' }}>✕</button>
+        <div style={{ fontFamily:'Press Start 2P, monospace', fontSize:11, color:'var(--text)', marginBottom:20 }}>{editando.id?'EDITAR ITEM':'NOVO ITEM'}</div>
+
+        {/* Seletor produto do site */}
+        <div style={{ marginBottom:14 }}>
+          <label style={S.label}>Produto do Site <span style={{color:'var(--muted)',fontWeight:400}}>(opcional — ou preencha manualmente)</span></label>
+          <div style={{ position:'relative' }}>
+            <input
+              value={busca}
+              onChange={e=>{ setBusca(e.target.value); setMostraLista(true); if(!e.target.value) setEditando(p=>({...p,produto:'',produto_site_id:null})); }}
+              onFocus={()=>setMostraLista(true)}
+              placeholder="🔍 Buscar produto cadastrado no site..."
+              style={{ ...S.input, width:'100%', paddingRight:32 }}
+            />
+            {busca && <button onClick={()=>{ setBusca(''); setMostraLista(false); setEditando(p=>({...p,produto:'',produto_site_id:null})); }} style={{ position:'absolute', right:8, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', color:'var(--muted)', cursor:'pointer', fontSize:16 }}>✕</button>}
+            {mostraLista && produtosFiltrados.length > 0 && (
+              <div style={{ position:'absolute', top:'100%', left:0, right:0, background:'var(--surface2)', border:'1px solid var(--border)', borderRadius:4, zIndex:100, maxHeight:200, overflowY:'auto', marginTop:2 }}>
+                {produtosFiltrados.slice(0,20).map(p=>(
+                  <div key={p.id} onClick={()=>selecionarProduto(p)} style={{ padding:'8px 12px', cursor:'pointer', borderBottom:'1px solid var(--border)', display:'flex', justifyContent:'space-between', alignItems:'center' }}
+                    onMouseEnter={e=>e.currentTarget.style.background='var(--bg3)'}
+                    onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                    <div>
+                      <div style={{ fontSize:13, color:'var(--text)', fontWeight:600 }}>{p.nome}</div>
+                      <div style={{ fontSize:11, color:'var(--muted)', fontFamily:'Share Tech Mono, monospace' }}>{p.console||'—'}</div>
+                    </div>
+                    <div style={{ fontSize:12, color:'var(--gold)', fontFamily:'Share Tech Mono, monospace' }}>R${Number(p.preco||0).toLocaleString('pt-BR')}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          {editando.produto_site_id && (
+            <div style={{ fontSize:11, color:'var(--green)', fontFamily:'Share Tech Mono, monospace', marginTop:4 }}>✔ Vinculado ao produto do site</div>
+          )}
+        </div>
+
+        <div className="ng-grid2" style={S.grid2}>
+          <Input label="Nome do Produto" value={editando.produto} onChange={e=>setEditando(p=>({...p,produto:e.target.value}))} placeholder="Ex: PS4 Slim 500GB" />
+          <div style={{ marginBottom:14 }}>
+            <label style={S.label}>Console</label>
+            <select value={editando.console} onChange={e=>setEditando(p=>({...p,console:e.target.value}))} style={{ ...S.input, cursor:'pointer' }}>
+              {CONSOLES_FIN.map(c=><option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <div className="ng-grid2" style={S.grid2}>
+          <Input label="Preço de Compra (R$)" type="number" value={editando.preco_compra} onChange={e=>setEditando(p=>({...p,preco_compra:e.target.value}))} placeholder="800" />
+          <Input label="Preço de Venda (R$)" type="number" value={editando.preco_venda||''} onChange={e=>setEditando(p=>({...p,preco_venda:e.target.value}))} placeholder="1100" />
+        </div>
+
+        <Input label="Custos Extras (R$) — reparo, desbloqueio, frete..." type="number" value={editando.custo_extra||''} onChange={e=>setEditando(p=>({...p,custo_extra:e.target.value}))} placeholder="0" />
+
+        <div className="ng-grid2" style={S.grid2}>
+          <div style={{ marginBottom:14 }}>
+            <label style={S.label}>Origem</label>
+            <select value={editando.origem} onChange={e=>setEditando(p=>({...p,origem:e.target.value}))} style={{ ...S.input, cursor:'pointer' }}>
+              {ORIGENS.map(o=><option key={o} value={o}>{ORIGEM_LABEL[o]}</option>)}
+            </select>
+          </div>
+          <div style={{ marginBottom:14 }}>
+            <label style={S.label}>Forma de Pagamento</label>
+            <select value={editando.forma_pagamento||'pix'} onChange={e=>setEditando(p=>({...p,forma_pagamento:e.target.value}))} style={{ ...S.input, cursor:'pointer' }}>
+              {FORMAS_PAG.map(f=><option key={f} value={f}>{FORMA_LABEL[f]}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <div className="ng-grid2" style={S.grid2}>
+          <div style={{ marginBottom:14 }}>
+            <label style={S.label}>Status</label>
+            <select value={editando.status} onChange={e=>setEditando(p=>({...p,status:e.target.value}))} style={{ ...S.input, cursor:'pointer' }}>
+              <option value="estoque">📦 Em Estoque</option>
+              <option value="vendido">✅ Vendido</option>
+            </select>
+          </div>
+          <Input label="Data de Compra" type="date" value={editando.data_compra||''} onChange={e=>setEditando(p=>({...p,data_compra:e.target.value}))} />
+        </div>
+
+        <Input label="Data de Venda" type="date" value={editando.data_venda||''} onChange={e=>setEditando(p=>({...p,data_venda:e.target.value}))} />
+        <Input label="Observação" as="textarea" rows={2} value={editando.observacao||''} onChange={e=>setEditando(p=>({...p,observacao:e.target.value}))} placeholder="Link do anúncio, condição, etc..." />
+
+        {lucroEstimado !== null && (
+          <div style={{ background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:4, padding:'10px 14px', marginBottom:14, fontFamily:'Share Tech Mono, monospace', fontSize:12 }}>
+            💰 Lucro estimado: <span style={{ color:lucroEstimado>=0?'var(--gold)':'var(--red-b)', fontWeight:700 }}>
+              R${lucroEstimado.toLocaleString('pt-BR')}
+            </span>
+            {margemEstimada !== null && <span style={{ color:'var(--muted)' }}> ({margemEstimada}%)</span>}
+            {Number(editando.custo_extra) > 0 && <span style={{ color:'var(--muted)', display:'block', marginTop:4 }}>📦 Compra: R${Number(editando.preco_compra).toLocaleString('pt-BR')} + 🔧 Extras: R${Number(editando.custo_extra).toLocaleString('pt-BR')}</span>}
+          </div>
+        )}
+
+        <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>
+          <Btn color="ghost" onClick={()=>setEditando(null)}>Cancelar</Btn>
+          <Btn onClick={salvar} disabled={saving}>{saving?'Salvando...':'Salvar'}</Btn>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const EMPTY_FIN = { produto:'', console:'PS4', preco_compra:'', preco_venda:'', custo_extra:'', data_compra: new Date().toISOString().slice(0,10), origem:'proprio', status:'estoque', forma_pagamento:'pix', observacao:'' };
 
 const FinanceiroPage = () => {
-  const [itens, setItens]       = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [editando, setEditando] = useState(null);
-  const [saving, setSaving]     = useState(false);
-  const [filtroMes, setFiltroMes] = useState(new Date().toISOString().slice(0,7));
+  const [itens, setItens]           = useState([]);
+  const [loading, setLoading]       = useState(true);
+  const [editando, setEditando]     = useState(null);
+  const [saving, setSaving]         = useState(false);
+  const [filtroMes, setFiltroMes]   = useState(new Date().toISOString().slice(0,7));
   const [filtroStatus, setFiltroStatus] = useState('todos');
-  const [toast, setToast]       = useState('');
+  const [subTab, setSubTab]         = useState('tabela');
+  const [metaMes, setMetaMes]       = useState(() => Number(localStorage.getItem('fin_meta')||0));
+  const [editMeta, setEditMeta]     = useState(false);
+  const [metaInput, setMetaInput]   = useState('');
+  const [toast, setToast]           = useState('');
 
   const showToast = (msg) => { setToast(msg); setTimeout(()=>setToast(''), 3000); };
 
@@ -1173,7 +1316,7 @@ const FinanceiroPage = () => {
         +'<td style="padding:8px 10px;border-bottom:1px solid #eee;color:#27ae60;font-family:monospace">'+(item.preco_venda?fmt(item.preco_venda):'--')+'</td>'
         +'<td style="padding:8px 10px;border-bottom:1px solid #eee;color:'+lc+';font-family:monospace;font-weight:bold">'+(li===null?'--':(li>=0?'+':'')+fmt(li))+'</td>'
         +'<td style="padding:8px 10px;border-bottom:1px solid #eee"><span style="background:'+sbg+';color:'+sc+';padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">'+st+'</span></td>'
-        +'<td style="padding:8px 10px;border-bottom:1px solid #eee;color:#888;font-size:12px">'+(item.data_compra||'--')+'</td></tr>';
+        +'<td style="padding:8px 10px;border-bottom:1px solid #eee;color:#888;font-size:12px">'+(item.data_venda||item.data_compra||'--')+'</td></tr>';
     }).join('');
     const geradoEm = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
     const html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Financeiro Nosferatu Games</title>'
@@ -1237,176 +1380,372 @@ const FinanceiroPage = () => {
   };
 
   // Filtros
+  const showToast = (msg) => { setToast(msg); setTimeout(()=>setToast(''), 3000); };
+
+  const carregar = async () => {
+    setLoading(true);
+    try { setItens(await supa('financeiro?order=data_compra.desc&limit=500') || []); }
+    catch(e) { console.error(e); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { carregar(); }, []);
+
+  const salvar = async () => {
+    if (!editando.produto.trim()) { showToast('✕ Nome obrigatório'); return; }
+    setSaving(true);
+    try {
+      const { id, ...dados } = editando;
+      dados.preco_compra = dados.preco_compra ? Number(dados.preco_compra) : null;
+      dados.preco_venda  = dados.preco_venda  ? Number(dados.preco_venda)  : null;
+      dados.custo_extra  = dados.custo_extra  ? Number(dados.custo_extra)  : 0;
+      if (id) await supa(`financeiro?id=eq.${id}`, { method:'PATCH', body: JSON.stringify(dados) });
+      else    await supa('financeiro',               { method:'POST',  body: JSON.stringify(dados) });
+      setEditando(null);
+      showToast('✔ Salvo!');
+      carregar();
+    } catch(e) { showToast('✕ '+e.message); }
+    finally { setSaving(false); }
+  };
+
+  const deletar = async (id) => {
+    if (!confirm('Excluir este item?')) return;
+    await supa(`financeiro?id=eq.${id}`, { method:'DELETE' });
+    carregar();
+  };
+
+  const marcarVendido = async (item) => {
+    await supa(`financeiro?id=eq.${item.id}`, { method:'PATCH', body: JSON.stringify({ status:'vendido', data_venda: new Date().toISOString().slice(0,10) }) });
+    showToast('✔ Marcado como vendido!');
+    carregar();
+  };
+
+  const salvarMeta = () => {
+    const v = Number(metaInput);
+    if (v > 0) { setMetaMes(v); localStorage.setItem('fin_meta', v); }
+    setEditMeta(false);
+  };
+
+  // helpers
+  const diasNoEstoque = (item) => {
+    if (!item.data_compra) return null;
+    const diff = Date.now() - new Date(item.data_compra).getTime();
+    return Math.floor(diff / 86400000);
+  };
+
   const filtrados = itens.filter(i => {
-    const mesOk = !filtroMes || (i.data_compra||'').startsWith(filtroMes) || (i.data_venda||i.criado_em||''). startsWith(filtroMes);
+    const mesOk = !filtroMes || (i.data_compra||'').startsWith(filtroMes) || (i.data_venda||i.criado_em||'').startsWith(filtroMes);
     const statusOk = filtroStatus === 'todos' || i.status === filtroStatus;
     return mesOk && statusOk;
   });
 
   // Métricas do mês
-  const doMes = itens.filter(i => {
-    const ref = i.data_venda || i.data_compra || '';
-    return ref.startsWith(filtroMes);
-  });
+  const doMes = itens.filter(i => { const ref = i.data_venda || i.data_compra || ''; return ref.startsWith(filtroMes); });
   const totalCompras  = doMes.reduce((a,i) => a + Number(i.preco_compra||0), 0);
   const totalVendas   = doMes.filter(i=>i.status==='vendido').reduce((a,i) => a + Number(i.preco_venda||0), 0);
   const lucro         = totalVendas - doMes.filter(i=>i.status==='vendido').reduce((a,i) => a + Number(i.preco_compra||0) + Number(i.custo_extra||0), 0);
   const emEstoque     = itens.filter(i=>i.status==='estoque').length;
+  const vendidosMes   = doMes.filter(i=>i.status==='vendido');
+  const ticketMedio   = vendidosMes.length ? Math.round(vendidosMes.reduce((a,i)=>a+Number(i.preco_venda||0),0)/vendidosMes.length) : 0;
+  const parados90     = itens.filter(i=>i.status==='estoque' && diasNoEstoque(i) >= 90);
 
-  const ORIGENS = ['proprio','olx_garimpo','fornecedor','troca'];
-  const ORIGEM_LABEL = { proprio:'Próprio', olx_garimpo:'🎯 Garimpo OLX', fornecedor:'Fornecedor', troca:'Troca' };
+  // Dados para gráfico últimos 6 meses
+  const ultimos6 = Array.from({length:6},(_,i)=>{ const d=new Date(); d.setMonth(d.getMonth()-5+i); return d.toISOString().slice(0,7); });
+  const dadosMeses = ultimos6.map(mes=>{
+    const it = itens.filter(i=>(i.data_venda||i.data_compra||'').startsWith(mes));
+    const v = it.filter(i=>i.status==='vendido').reduce((a,i)=>a+Number(i.preco_venda||0),0);
+    const c = it.filter(i=>i.status==='vendido').reduce((a,i)=>a+Number(i.preco_compra||0)+Number(i.custo_extra||0),0);
+    const label = new Date(mes+'-02').toLocaleDateString('pt-BR',{month:'short'}).slice(0,3);
+    return { mes, label, lucro: v-c, vendas: v };
+  });
+  const maxLucro = Math.max(...dadosMeses.map(d=>Math.abs(d.lucro)), 1);
+
+  // Ranking por console
+  const rankConsole = Object.entries(
+    itens.filter(i=>i.status==='vendido').reduce((acc,i)=>{
+      const c = i.console||'Outro';
+      if(!acc[c]) acc[c]={lucro:0,qtd:0};
+      acc[c].lucro += Number(i.preco_venda||0)-Number(i.preco_compra||0)-Number(i.custo_extra||0);
+      acc[c].qtd++;
+      return acc;
+    },{})
+  ).sort((a,b)=>b[1].lucro-a[1].lucro).slice(0,6);
+  const maxRank = rankConsole.length ? Math.max(...rankConsole.map(r=>r[1].lucro),1) : 1;
+
+  const ORIGENS = ['proprio','olx_garimpo','facebook','enjoei','mercadolivre','site','fornecedor','troca'];
+  const ORIGEM_LABEL = { proprio:'Próprio', olx_garimpo:'🎯 OLX', facebook:'📘 Facebook', enjoei:'🛍 Enjoei', mercadolivre:'🛒 ML', site:'🏰 Site', fornecedor:'Fornecedor', troca:'Troca' };
+  const ORIGEM_COLOR = { olx_garimpo:'var(--purple)', facebook:'#1877F2', enjoei:'#E91E8C', mercadolivre:'#FFE600', site:'var(--gold)' };
   const CONSOLES_FIN = ['PS5','PS4 Pro','PS4 Slim','PS4 Fat','PS3','PS2','PSP','Xbox Series S','Xbox One','Xbox 360','Switch OLED','Switch V2','Switch Lite','Switch','3DS','DS','Wii U','Wii','Outro'];
+  const FORMAS_PAG = ['pix','dinheiro','cartao','transferencia'];
+  const FORMA_LABEL = { pix:'PIX', dinheiro:'Dinheiro', cartao:'Cartão', transferencia:'Transferência' };
+
+  const gerarPDF = () => {
+    const mesLabel = new Date(filtroMes + '-02').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+    const doMesPDF = itens.filter(i => { const ref = i.data_venda || i.data_compra || ''; return ref.startsWith(filtroMes); });
+    const totalC = doMesPDF.reduce((a,i) => a + Number(i.preco_compra||0), 0);
+    const totalE = doMesPDF.reduce((a,i) => a + Number(i.custo_extra||0), 0);
+    const totalV = doMesPDF.filter(i=>i.status==='vendido').reduce((a,i) => a + Number(i.preco_venda||0), 0);
+    const lucroL = totalV - doMesPDF.filter(i=>i.status==='vendido').reduce((a,i) => a + Number(i.preco_compra||0) + Number(i.custo_extra||0), 0);
+    const fmt = v => 'R$' + Math.round(v).toLocaleString('pt-BR');
+    const rows = filtrados.map(function(item) {
+      const li = item.status==='vendido' ? Number(item.preco_venda||0) - Number(item.preco_compra||0) - Number(item.custo_extra||0) : null;
+      const lc = li===null?'#888':li>=0?'#27ae60':'#c0392b';
+      const origem = ORIGEM_LABEL[item.origem]||item.origem;
+      const sbg = item.status==='vendido'?'#d5f5e3':'#fef9e7';
+      const sc = item.status==='vendido'?'#1e8449':'#b7950b';
+      const st = item.status==='vendido'?'VENDIDO':'ESTOQUE';
+      const dias = diasNoEstoque(item);
+      return '<tr><td style="padding:8px 10px;border-bottom:1px solid #eee;font-weight:600">'+item.produto+'</td>'
+        +'<td style="padding:8px 10px;border-bottom:1px solid #eee;color:#666">'+( item.console||'--')+'</td>'
+        +'<td style="padding:8px 10px;border-bottom:1px solid #eee">'+origem+'</td>'
+        +'<td style="padding:8px 10px;border-bottom:1px solid #eee;color:#CC1414;font-family:monospace">'+fmt(item.preco_compra||0)+'</td>'
+        +'<td style="padding:8px 10px;border-bottom:1px solid #eee;color:#e67e22;font-family:monospace">'+(item.custo_extra>0?fmt(item.custo_extra):'--')+'</td>'
+        +'<td style="padding:8px 10px;border-bottom:1px solid #eee;color:#27ae60;font-family:monospace">'+(item.preco_venda?fmt(item.preco_venda):'--')+'</td>'
+        +'<td style="padding:8px 10px;border-bottom:1px solid #eee;color:'+lc+';font-family:monospace;font-weight:bold">'+(li===null?'--':(li>=0?'+':'')+fmt(li))+'</td>'
+        +'<td style="padding:8px 10px;border-bottom:1px solid #eee"><span style="background:'+sbg+';color:'+sc+';padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">'+st+'</span></td>'
+        +'<td style="padding:8px 10px;border-bottom:1px solid #eee;color:#888;font-size:12px">'+(item.data_venda||item.data_compra||'--')+'</td>'
+        +'<td style="padding:8px 10px;border-bottom:1px solid #eee;color:#888;font-size:12px">'+(item.status==='estoque'&&dias!==null?dias+'d':'--')+'</td></tr>';
+    }).join('');
+    const geradoEm = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    const html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Financeiro Nosferatu Games</title>'
+      +'<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Segoe UI,Arial,sans-serif;background:#fff;color:#222;padding:32px}'
+      +'table.data{width:100%;border-collapse:collapse;font-size:13px}'
+      +'table.data thead tr{background:#1a1a2e;color:#fff}'
+      +'table.data th{padding:10px;text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;white-space:nowrap}'
+      +'table.data td{padding:9px 10px;vertical-align:middle;border-bottom:1px solid #eee}'
+      +'table.data tr:nth-child(even) td{background:#f9f9fb}'
+      +'.footer{margin-top:24px;font-size:11px;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:12px}'
+      +'@media print{body{padding:16px}}</style></head><body>'
+      +'<table style="width:100%;border-collapse:collapse;background:#1a1a2e;margin-bottom:20px"><tr>'
+      +'<td style="padding:18px 24px"><div style="font-size:20px;font-weight:900;color:#CC1414;letter-spacing:2px">NOSFERATU <span style="color:#FFB800">GAMES</span></div><div style="font-size:11px;color:#888;margin-top:3px">Relatorio Financeiro Mensal</div></td>'
+      +'<td style="padding:18px 24px;text-align:right"><div style="font-size:14px;font-weight:700;color:#fff">'+mesLabel.toUpperCase()+'</div><div style="font-size:11px;color:#777;margin-top:3px">Gerado em '+geradoEm+'</div></td>'
+      +'</tr></table>'
+      +'<table style="width:100%;border-collapse:separate;border-spacing:10px;margin-bottom:20px"><tr>'
+      +'<td style="background:#fdf2f2;border-left:4px solid #CC1414;border-radius:6px;padding:14px"><div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#888;margin-bottom:5px">Total Compras</div><div style="font-size:20px;font-weight:900;color:#CC1414">'+fmt(totalC)+'</div></td>'
+      +'<td style="background:#fdf6ec;border-left:4px solid #e67e22;border-radius:6px;padding:14px"><div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#888;margin-bottom:5px">Custos Extras</div><div style="font-size:20px;font-weight:900;color:#e67e22">'+fmt(totalE)+'</div></td>'
+      +'<td style="background:#eafaf1;border-left:4px solid #27ae60;border-radius:6px;padding:14px"><div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#888;margin-bottom:5px">Total Vendas</div><div style="font-size:20px;font-weight:900;color:#27ae60">'+fmt(totalV)+'</div></td>'
+      +'<td style="background:'+(lucroL>=0?'#fefbd8':'#fdf2f2')+';border-left:4px solid '+(lucroL>=0?'#FFB800':'#CC1414')+';border-radius:6px;padding:14px"><div style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#888;margin-bottom:5px">Lucro Liquido</div><div style="font-size:20px;font-weight:900;color:'+(lucroL>=0?'#b7950b':'#CC1414')+'">'+(lucroL>=0?'+':'')+fmt(lucroL)+'</div></td>'
+      +'</tr></table>'
+      +'<table class="data"><thead><tr><th>Produto</th><th>Console</th><th>Origem</th><th>Compra</th><th>Extras</th><th>Venda</th><th>Lucro</th><th>Status</th><th>Data</th><th>Dias</th></tr></thead>'
+      +'<tbody>'+rows+'</tbody></table>'
+      +'<div class="footer">Nosferatu Games &middot; Porto Alegre, RS &middot; nosferatugames.com.br</div>'
+      +'<script>window.onload=function(){window.print();}<\/script>'
+      +'</body></html>';
+    const win = window.open('', '_blank');
+    win.document.write(html);
+    win.document.close();
+  };
 
   return (
     <div>
-      {toast && <div style={{ position:'fixed', top:70, right:24, zIndex:2000, background:'var(--surface2)', border:'1px solid var(--border)', padding:'10px 18px', borderRadius:4, fontFamily:'Share Tech Mono, monospace', fontSize:12, color:'var(--text)', animation:'slideIn .2s ease' }}>{toast}</div>}
+      {toast && <div style={{ position:'fixed', top:70, right:24, zIndex:2000, background:'var(--surface2)', border:'1px solid var(--border)', padding:'10px 18px', borderRadius:4, fontFamily:'Share Tech Mono, monospace', fontSize:12, color:'var(--text)' }}>{toast}</div>}
 
+      {/* Header */}
       <div style={{ marginBottom:20, display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
         <div>
           <div style={{ fontFamily:'Press Start 2P, monospace', fontSize:14, color:'var(--text)', marginBottom:4 }}>Financeiro</div>
           <div style={{ fontSize:14, color:'var(--muted)' }}>Controle de compra e venda</div>
         </div>
-        <div style={{ display:'flex', gap:8 }}>
+        <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
           <input type="month" value={filtroMes} onChange={e=>setFiltroMes(e.target.value)} style={{ ...S.input, width:160, height:36, fontSize:13 }} />
-          <Btn color="purple" onClick={gerarPDF}>📄 PDF</Btn>
+          <Btn color="ghost" onClick={gerarPDF}>📄 PDF</Btn>
           <Btn onClick={()=>setEditando({...EMPTY_FIN})}>+ Novo</Btn>
         </div>
       </div>
 
+      {/* Alerta parados 90 dias */}
+      {parados90.length > 0 && (
+        <div style={{ background:'rgba(204,20,20,.1)', border:'1px solid var(--red-b)', borderRadius:6, padding:'12px 16px', marginBottom:16, display:'flex', alignItems:'center', gap:10 }}>
+          <span style={{ fontSize:20 }}>⚠️</span>
+          <div>
+            <div style={{ fontSize:13, fontWeight:700, color:'var(--red-b)', marginBottom:2 }}>{parados90.length} produto{parados90.length>1?'s':''} parado{parados90.length>1?'s':''} há mais de 90 dias</div>
+            <div style={{ fontSize:12, color:'var(--dim)' }}>{parados90.map(i=>i.produto).join(', ')}</div>
+          </div>
+        </div>
+      )}
+
       {/* Métricas */}
       <div className="ng-grid4" style={S.grid4}>
-        <StatCard label="Compras no mês"  value={`R$${Math.round(totalCompras).toLocaleString('pt-BR')}`}  color="var(--red-b)"  icon="📥"/>
-        <StatCard label="Vendas no mês"   value={`R$${Math.round(totalVendas).toLocaleString('pt-BR')}`}   color="var(--green)" icon="📤"/>
-        <StatCard label="Lucro no mês"    value={`R$${Math.round(lucro).toLocaleString('pt-BR')}`}          color={lucro>=0?'var(--gold)':'var(--red-b)'} icon="💰"/>
-        <StatCard label="Em estoque"      value={emEstoque}                                                   color="var(--purple)" icon="📦"/>
+        <StatCard label="Compras no mês"  value={"R$"+Math.round(totalCompras).toLocaleString('pt-BR')}  color="var(--red-b)"  icon="📥"/>
+        <StatCard label="Vendas no mês"   value={"R$"+Math.round(totalVendas).toLocaleString('pt-BR')}   color="var(--green)" icon="📤"/>
+        <StatCard label="Lucro no mês"    value={"R$"+Math.round(lucro).toLocaleString('pt-BR')}          color={lucro>=0?'var(--gold)':'var(--red-b)'} icon="💰"/>
+        <StatCard label="Em estoque"      value={emEstoque}                                                  color="var(--purple)" icon="📦"/>
       </div>
 
-      {/* Filtros */}
+      {/* Meta mensal */}
+      <div style={{ ...S.card, marginBottom:16, padding:'14px 18px' }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, flexWrap:'wrap' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+            <span style={{ fontSize:16 }}>🎯</span>
+            <div>
+              <div style={{ fontSize:11, color:'var(--muted)', fontFamily:'Share Tech Mono, monospace', letterSpacing:'0.1em' }}>META DO MÊS</div>
+              {editMeta
+                ? <div style={{ display:'flex', gap:6, marginTop:4 }}>
+                    <input type="number" value={metaInput} onChange={e=>setMetaInput(e.target.value)} placeholder="Ex: 2000" style={{ ...S.input, width:120, height:30, fontSize:13 }} autoFocus />
+                    <Btn onClick={salvarMeta}>OK</Btn>
+                    <Btn color="ghost" onClick={()=>setEditMeta(false)}>✕</Btn>
+                  </div>
+                : <div style={{ fontSize:16, fontWeight:700, color:'var(--gold)', cursor:'pointer' }} onClick={()=>{setMetaInput(metaMes||0);setEditMeta(true);}}>
+                    {metaMes>0 ? 'R$'+metaMes.toLocaleString('pt-BR') : <span style={{color:'var(--muted)',fontSize:13}}>Clique para definir</span>}
+                  </div>
+              }
+            </div>
+          </div>
+          {metaMes > 0 && !editMeta && (
+            <div style={{ flex:1, minWidth:200 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', fontSize:11, color:'var(--muted)', marginBottom:4, fontFamily:'Share Tech Mono, monospace' }}>
+                <span>{Math.round(lucro).toLocaleString('pt-BR')} / {metaMes.toLocaleString('pt-BR')}</span>
+                <span>{Math.min(100,Math.round((lucro/metaMes)*100))}%</span>
+              </div>
+              <div style={{ height:8, background:'var(--bg3)', borderRadius:4, overflow:'hidden' }}>
+                <div style={{ height:'100%', width:Math.min(100,Math.max(0,(lucro/metaMes)*100))+'%', background:lucro>=metaMes?'var(--green)':'var(--gold)', borderRadius:4, transition:'width .5s' }}/>
+              </div>
+            </div>
+          )}
+          <div style={{ textAlign:'right' }}>
+            <div style={{ fontSize:10, color:'var(--muted)', fontFamily:'Share Tech Mono, monospace' }}>TICKET MÉDIO</div>
+            <div style={{ fontSize:16, fontWeight:700, color:'var(--purple)' }}>R${ticketMedio.toLocaleString('pt-BR')}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Sub-tabs */}
       <div style={{ display:'flex', gap:8, marginBottom:16, flexWrap:'wrap' }}>
-        {['todos','estoque','vendido'].map(s=>(
-          <button key={s} onClick={()=>setFiltroStatus(s)} style={{ ...S.btn, height:34, fontSize:12, background:filtroStatus===s?'rgba(204,20,20,.15)':'var(--surface)', border:`1px solid ${filtroStatus===s?'var(--red)':'var(--border)'}`, color:filtroStatus===s?'#fff':'var(--dim)' }}>
+        {['tabela','relatorios'].map(t=>(
+          <button key={t} onClick={()=>setSubTab(t)} style={{ ...S.btn, height:34, fontSize:12, background:subTab===t?'rgba(204,20,20,.15)':'var(--surface)', border:`1px solid ${subTab===t?'var(--red)':'var(--border)'}`, color:subTab===t?'#fff':'var(--dim)' }}>
+            {t==='tabela'?'📋 Itens':'📊 Relatórios'}
+          </button>
+        ))}
+        {subTab==='tabela' && ['todos','estoque','vendido'].map(s=>(
+          <button key={s} onClick={()=>setFiltroStatus(s)} style={{ ...S.btn, height:34, fontSize:12, background:filtroStatus===s?'rgba(123,0,255,.15)':'var(--surface)', border:`1px solid ${filtroStatus===s?'var(--purple)':'var(--border)'}`, color:filtroStatus===s?'var(--purple)':'var(--dim)' }}>
             {s==='todos'?'Todos':s==='estoque'?'📦 Estoque':'✅ Vendidos'}
           </button>
         ))}
-        <div style={{ marginLeft:'auto', fontSize:12, color:'var(--muted)', alignSelf:'center', fontFamily:'Share Tech Mono, monospace' }}>{filtrados.length} itens</div>
+        {subTab==='tabela' && <div style={{ marginLeft:'auto', fontSize:12, color:'var(--muted)', alignSelf:'center', fontFamily:'Share Tech Mono, monospace' }}>{filtrados.length} itens</div>}
       </div>
 
-      {/* Tabela */}
-      {loading ? <div style={{ textAlign:'center', padding:40, color:'var(--muted)', fontFamily:'Share Tech Mono, monospace', fontSize:12 }}>Carregando...</div> : (
-        <div style={{ ...S.card, padding:0, overflow:'hidden' }}>
-          <div style={{ overflowX:'auto' }}>
-            <table style={{ width:'100%', borderCollapse:'collapse', minWidth:800 }}>
-              <thead>
-                <tr style={{ background:'var(--bg3)' }}>
-                  {['Produto','Console','Origem','Compra','Venda','Lucro','Status','Data','Ações'].map(h=>(
-                    <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontFamily:'Share Tech Mono, monospace', fontSize:10, color:'var(--muted)', letterSpacing:'0.15em', textTransform:'uppercase', whiteSpace:'nowrap' }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filtrados.length===0 && <tr><td colSpan={9} style={{ padding:'2rem', textAlign:'center', color:'var(--muted)', fontFamily:'Share Tech Mono, monospace', fontSize:13 }}>nenhum item encontrado</td></tr>}
-                {filtrados.map(item => {
-                  const lucroItem = item.status==='vendido' ? Number(item.preco_venda||0) - Number(item.preco_compra||0) - Number(item.custo_extra||0) : null;
-                  return (
-                    <tr key={item.id} style={{ borderTop:'1px solid var(--border)', opacity:item.status==='vendido'?0.7:1 }}>
-                      <td style={{ padding:'10px 14px', fontSize:14, fontWeight:700, color:'var(--text)' }}>{item.produto}</td>
-                      <td style={{ padding:'10px 14px', fontSize:12, color:'var(--dim)' }}>{item.console||'—'}</td>
-                      <td style={{ padding:'10px 14px' }}>
-                        <span style={{ fontFamily:'Share Tech Mono, monospace', fontSize:10, padding:'2px 8px', borderRadius:2, background:item.origem==='olx_garimpo'?'rgba(168,85,247,.15)':'var(--surface2)', color:item.origem==='olx_garimpo'?'var(--purple)':'var(--dim)', border:`1px solid ${item.origem==='olx_garimpo'?'rgba(168,85,247,.3)':'var(--border)'}`}}>
-                          {ORIGEM_LABEL[item.origem]||item.origem}
-                        </span>
-                      </td>
-                      <td style={{ padding:'10px 14px', fontFamily:'Share Tech Mono, monospace', fontSize:13, color:'var(--red-b)' }}>{item.preco_compra ? `R$${Number(item.preco_compra).toLocaleString('pt-BR')}` : '—'}</td>
-                      <td style={{ padding:'10px 14px', fontFamily:'Share Tech Mono, monospace', fontSize:13, color:'var(--green)' }}>{item.preco_venda ? `R$${Number(item.preco_venda).toLocaleString('pt-BR')}` : '—'}</td>
-                      <td style={{ padding:'10px 14px', fontFamily:'Share Tech Mono, monospace', fontSize:13, color:lucroItem===null?'var(--muted)':lucroItem>=0?'var(--gold)':'var(--red-b)' }}>
-                        {lucroItem===null ? '—' : `${lucroItem>=0?'+':''}R$${lucroItem.toLocaleString('pt-BR')}`}
-                      </td>
-                      <td style={{ padding:'10px 14px' }}>
-                        <span style={{ fontFamily:'Share Tech Mono, monospace', fontSize:10, padding:'2px 8px', borderRadius:2, background:item.status==='vendido'?'rgba(37,211,102,.12)':'rgba(255,184,0,.12)', color:item.status==='vendido'?'var(--green)':'var(--gold)', border:`1px solid ${item.status==='vendido'?'rgba(37,211,102,.3)':'rgba(255,184,0,.3)'}`}}>
-                          {item.status==='vendido'?'✅ VENDIDO':'📦 ESTOQUE'}
-                        </span>
-                      </td>
-                      <td style={{ padding:'10px 14px', fontFamily:'Share Tech Mono, monospace', fontSize:11, color:'var(--muted)', whiteSpace:'nowrap' }}>{item.data_compra||'—'}</td>
-                      <td style={{ padding:'10px 14px' }}>
-                        <div style={{ display:'flex', gap:4 }}>
-                          <button onClick={()=>setEditando(item)} style={{ ...S.btn, padding:'4px 8px', fontSize:12, background:'var(--surface2)', border:'1px solid var(--border)', color:'var(--dim)' }}>✏</button>
-                          {item.status==='estoque' && <button onClick={()=>marcarVendido(item)} style={{ ...S.btn, padding:'4px 8px', fontSize:12, background:'rgba(37,211,102,.1)', border:'1px solid rgba(37,211,102,.3)', color:'var(--green)' }}>✅</button>}
-                          <button onClick={()=>deletar(item.id)} style={{ ...S.btn, padding:'4px 8px', fontSize:12, background:'rgba(204,20,20,.1)', border:'1px solid var(--border-r)', color:'var(--red-b)' }}>🗑</button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+      {/* TABELA */}
+      {subTab==='tabela' && (loading
+        ? <div style={{ textAlign:'center', padding:40, color:'var(--muted)', fontFamily:'Share Tech Mono, monospace', fontSize:12 }}>Carregando...</div>
+        : <div style={{ ...S.card, padding:0, overflow:'hidden' }}>
+            <div style={{ overflowX:'auto' }}>
+              <table style={{ width:'100%', borderCollapse:'collapse', minWidth:900 }}>
+                <thead>
+                  <tr style={{ background:'var(--bg3)' }}>
+                    {['Produto','Console','Origem','Compra','Venda','Lucro','Margem','Status','Dias','Ações'].map(h=>(
+                      <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontFamily:'Share Tech Mono, monospace', fontSize:10, color:'var(--muted)', letterSpacing:'0.15em', textTransform:'uppercase', whiteSpace:'nowrap' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtrados.length===0 && <tr><td colSpan={10} style={{ padding:'2rem', textAlign:'center', color:'var(--muted)', fontFamily:'Share Tech Mono, monospace', fontSize:13 }}>nenhum item encontrado</td></tr>}
+                  {filtrados.map(item => {
+                    const lucroItem = item.status==='vendido' ? Number(item.preco_venda||0) - Number(item.preco_compra||0) - Number(item.custo_extra||0) : null;
+                    const margemPct = lucroItem!==null && item.preco_compra>0 ? Math.round((lucroItem/(Number(item.preco_compra)+Number(item.custo_extra||0)))*100) : null;
+                    const dias = diasNoEstoque(item);
+                    const parado = item.status==='estoque' && dias !== null && dias >= 90;
+                    const oc = ORIGEM_COLOR[item.origem]||'var(--dim)';
+                    return (
+                      <tr key={item.id} style={{ borderTop:'1px solid var(--border)', background:parado?'rgba(204,20,20,.04)':'transparent' }}>
+                        <td style={{ padding:'10px 14px', fontSize:13, fontWeight:700, color:'var(--text)' }}>
+                          {parado && <span title="Parado 90+ dias" style={{marginRight:4}}>🔴</span>}{item.produto}
+                        </td>
+                        <td style={{ padding:'10px 14px', fontSize:12, color:'var(--dim)' }}>{item.console||'—'}</td>
+                        <td style={{ padding:'10px 14px' }}>
+                          <span style={{ fontFamily:'Share Tech Mono, monospace', fontSize:10, padding:'2px 6px', borderRadius:2, background:'var(--surface2)', color:oc, border:'1px solid var(--border)' }}>
+                            {ORIGEM_LABEL[item.origem]||item.origem}
+                          </span>
+                        </td>
+                        <td style={{ padding:'10px 14px', fontFamily:'Share Tech Mono, monospace', fontSize:13, color:'var(--red-b)' }}>{item.preco_compra ? 'R$'+Number(item.preco_compra).toLocaleString('pt-BR') : '—'}</td>
+                        <td style={{ padding:'10px 14px', fontFamily:'Share Tech Mono, monospace', fontSize:13, color:'var(--green)' }}>{item.preco_venda ? 'R$'+Number(item.preco_venda).toLocaleString('pt-BR') : '—'}</td>
+                        <td style={{ padding:'10px 14px', fontFamily:'Share Tech Mono, monospace', fontSize:13, color:lucroItem===null?'var(--muted)':lucroItem>=0?'var(--gold)':'var(--red-b)' }}>
+                          {lucroItem===null ? '—' : (lucroItem>=0?'+':'')+'R$'+lucroItem.toLocaleString('pt-BR')}
+                        </td>
+                        <td style={{ padding:'10px 14px', fontFamily:'Share Tech Mono, monospace', fontSize:12, color:margemPct===null?'var(--muted)':margemPct>=30?'var(--green)':margemPct>=15?'var(--gold)':'var(--red-b)' }}>
+                          {margemPct===null ? '—' : margemPct+'%'}
+                        </td>
+                        <td style={{ padding:'10px 14px' }}>
+                          <span style={{ fontFamily:'Share Tech Mono, monospace', fontSize:10, padding:'2px 8px', borderRadius:2, background:item.status==='vendido'?'rgba(37,211,102,.12)':'rgba(255,184,0,.12)', color:item.status==='vendido'?'var(--green)':'var(--gold)', border:`1px solid ${item.status==='vendido'?'rgba(37,211,102,.3)':'rgba(255,184,0,.3)'}`}}>
+                            {item.status==='vendido'?'✅ VENDIDO':'📦 ESTOQUE'}
+                          </span>
+                        </td>
+                        <td style={{ padding:'10px 14px', fontFamily:'Share Tech Mono, monospace', fontSize:12, color:parado?'var(--red-b)':'var(--muted)', whiteSpace:'nowrap' }}>
+                          {item.status==='estoque' && dias!==null ? dias+'d' : item.data_venda||'—'}
+                        </td>
+                        <td style={{ padding:'10px 14px' }}>
+                          <div style={{ display:'flex', gap:4 }}>
+                            <button onClick={()=>setEditando(item)} style={{ ...S.btn, padding:'4px 8px', fontSize:12, background:'var(--surface2)', border:'1px solid var(--border)', color:'var(--dim)' }}>✏</button>
+                            {item.status==='estoque' && <button onClick={()=>marcarVendido(item)} style={{ ...S.btn, padding:'4px 8px', fontSize:12, background:'rgba(37,211,102,.1)', border:'1px solid rgba(37,211,102,.3)', color:'var(--green)' }}>✅</button>}
+                            <button onClick={()=>deletar(item.id)} style={{ ...S.btn, padding:'4px 8px', fontSize:12, background:'rgba(204,20,20,.1)', border:'1px solid var(--border-r)', color:'var(--red-b)' }}>🗑</button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+      )}
+
+      {/* RELATÓRIOS */}
+      {subTab==='relatorios' && (
+        <div>
+          {/* Gráfico de lucro últimos 6 meses */}
+          <div style={{ ...S.card, marginBottom:16 }}>
+            <div style={{ fontFamily:'Share Tech Mono, monospace', fontSize:11, color:'var(--dim)', letterSpacing:'0.15em', textTransform:'uppercase', marginBottom:16 }}>// Lucro — últimos 6 meses</div>
+            <div style={{ display:'flex', alignItems:'flex-end', gap:8, height:120 }}>
+              {dadosMeses.map(d=>{
+                const h = Math.round((Math.abs(d.lucro)/maxLucro)*100);
+                const positivo = d.lucro >= 0;
+                const atual = d.mes === new Date().toISOString().slice(0,7);
+                return (
+                  <div key={d.mes} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:4 }}>
+                    <div style={{ fontSize:10, fontFamily:'Share Tech Mono, monospace', color:positivo?'var(--gold)':'var(--red-b)' }}>{d.lucro!==0?(positivo?'+':'')+'R$'+Math.abs(Math.round(d.lucro)).toLocaleString('pt-BR'):''}</div>
+                    <div style={{ width:'100%', height:h+'%', background:positivo?'var(--gold)':'var(--red-b)', borderRadius:'3px 3px 0 0', opacity:atual?1:0.6, minHeight:4 }}/>
+                    <div style={{ fontSize:10, color:atual?'var(--text)':'var(--muted)', fontFamily:'Share Tech Mono, monospace' }}>{d.label}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Ranking por console */}
+          <div style={{ ...S.card }}>
+            <div style={{ fontFamily:'Share Tech Mono, monospace', fontSize:11, color:'var(--dim)', letterSpacing:'0.15em', textTransform:'uppercase', marginBottom:16 }}>// Ranking — console mais lucrativo</div>
+            {rankConsole.length===0
+              ? <div style={{ fontSize:13, color:'var(--muted)', textAlign:'center', padding:20 }}>Sem vendas registradas ainda.</div>
+              : rankConsole.map(([console, dados], i) => (
+                <div key={console} style={{ display:'flex', alignItems:'center', gap:12, marginBottom:12 }}>
+                  <div style={{ width:20, fontFamily:'Share Tech Mono, monospace', fontSize:12, color:'var(--muted)' }}>#{i+1}</div>
+                  <div style={{ width:120, fontSize:13, color:'var(--text)', fontWeight:i===0?700:400 }}>{console}</div>
+                  <div style={{ flex:1, height:8, background:'var(--bg3)', borderRadius:4, overflow:'hidden' }}>
+                    <div style={{ height:'100%', width:Math.round((dados.lucro/maxRank)*100)+'%', background:i===0?'var(--gold)':'var(--purple)', borderRadius:4 }}/>
+                  </div>
+                  <div style={{ width:100, textAlign:'right', fontFamily:'Share Tech Mono, monospace', fontSize:12, color:'var(--gold)' }}>+R${Math.round(dados.lucro).toLocaleString('pt-BR')}</div>
+                  <div style={{ width:50, textAlign:'right', fontFamily:'Share Tech Mono, monospace', fontSize:11, color:'var(--muted)' }}>{dados.qtd} vnd</div>
+                </div>
+              ))
+            }
           </div>
         </div>
       )}
 
       {/* Modal */}
       {editando && (
-        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.85)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
-          <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:8, width:'100%', maxWidth:520, maxHeight:'90vh', overflow:'auto', padding:24, position:'relative' }}>
-            <button onClick={()=>setEditando(null)} style={{ position:'absolute', top:14, right:14, background:'none', border:'none', color:'var(--dim)', fontSize:20, cursor:'pointer' }}>✕</button>
-            <div style={{ fontFamily:'Press Start 2P, monospace', fontSize:11, color:'var(--text)', marginBottom:20 }}>{editando.id?'EDITAR ITEM':'NOVO ITEM'}</div>
-
-            <div className="ng-grid2" style={S.grid2}>
-              <Input label="Produto" value={editando.produto} onChange={e=>setEditando(p=>({...p,produto:e.target.value}))} placeholder="Ex: PS4 Slim 500GB" />
-              <div style={{ marginBottom:14 }}>
-                <label style={S.label}>Console</label>
-                <select value={editando.console} onChange={e=>setEditando(p=>({...p,console:e.target.value}))} style={{ ...S.input, cursor:'pointer' }}>
-                  {CONSOLES_FIN.map(c=><option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
-            </div>
-
-            <div className="ng-grid2" style={S.grid2}>
-              <Input label="Preço de Compra (R$)" type="number" value={editando.preco_compra} onChange={e=>setEditando(p=>({...p,preco_compra:e.target.value}))} placeholder="800" />
-              <Input label="Preço de Venda (R$)" type="number" value={editando.preco_venda||''} onChange={e=>setEditando(p=>({...p,preco_venda:e.target.value}))} placeholder="1100" />
-            </div>
-
-            <Input label="Custos Extras (R$) — reparo, desbloqueio, frete..." type="number" value={editando.custo_extra||''} onChange={e=>setEditando(p=>({...p,custo_extra:e.target.value}))} placeholder="0" />
-
-            <div className="ng-grid2" style={S.grid2}>
-              <div style={{ marginBottom:14 }}>
-                <label style={S.label}>Origem</label>
-                <select value={editando.origem} onChange={e=>setEditando(p=>({...p,origem:e.target.value}))} style={{ ...S.input, cursor:'pointer' }}>
-                  {ORIGENS.map(o=><option key={o} value={o}>{ORIGEM_LABEL[o]}</option>)}
-                </select>
-              </div>
-              <div style={{ marginBottom:14 }}>
-                <label style={S.label}>Status</label>
-                <select value={editando.status} onChange={e=>setEditando(p=>({...p,status:e.target.value}))} style={{ ...S.input, cursor:'pointer' }}>
-                  <option value="estoque">📦 Em Estoque</option>
-                  <option value="vendido">✅ Vendido</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="ng-grid2" style={S.grid2}>
-              <Input label="Data de Compra" type="date" value={editando.data_compra||''} onChange={e=>setEditando(p=>({...p,data_compra:e.target.value}))} />
-              <Input label="Data de Venda" type="date" value={editando.data_venda||''} onChange={e=>setEditando(p=>({...p,data_venda:e.target.value}))} />
-            </div>
-
-            <Input label="Observação" as="textarea" rows={2} value={editando.observacao||''} onChange={e=>setEditando(p=>({...p,observacao:e.target.value}))} placeholder="Link do anúncio, condição, etc..." />
-
-            {editando.preco_compra && editando.preco_venda && (
-              <div style={{ background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:4, padding:'10px 14px', marginBottom:14, fontFamily:'Share Tech Mono, monospace', fontSize:12 }}>
-                💰 Lucro estimado: <span style={{ color: Number(editando.preco_venda)-Number(editando.preco_compra)-Number(editando.custo_extra||0)>=0?'var(--gold)':'var(--red-b)', fontWeight:700 }}>
-                  R${(Number(editando.preco_venda)-Number(editando.preco_compra)-Number(editando.custo_extra||0)).toLocaleString('pt-BR')}
-                </span>
-                {editando.preco_compra > 0 && <span style={{ color:'var(--muted)' }}> ({Math.round(((Number(editando.preco_venda)-Number(editando.preco_compra)-Number(editando.custo_extra||0))/(Number(editando.preco_compra)+Number(editando.custo_extra||0)))*100)}%)</span>}
-                {editando.custo_extra > 0 && <span style={{ color:'var(--muted)', display:'block', marginTop:4 }}>📦 Compra: R${Number(editando.preco_compra).toLocaleString('pt-BR')} + 🔧 Extras: R${Number(editando.custo_extra).toLocaleString('pt-BR')}</span>}
-              </div>
-            )}
-
-            <div style={{ display:'flex', gap:10, justifyContent:'flex-end' }}>
-              <Btn color="ghost" onClick={()=>setEditando(null)}>Cancelar</Btn>
-              <Btn onClick={salvar} disabled={saving}>{saving?'Salvando...':'Salvar'}</Btn>
-            </div>
-          </div>
-        </div>
+        <FinanceiroModal
+          editando={editando}
+          setEditando={setEditando}
+          salvar={salvar}
+          saving={saving}
+          ORIGENS={ORIGENS}
+          ORIGEM_LABEL={ORIGEM_LABEL}
+          CONSOLES_FIN={CONSOLES_FIN}
+          FORMAS_PAG={FORMAS_PAG}
+          FORMA_LABEL={FORMA_LABEL}
+        />
       )}
+
     </div>
   );
 };
