@@ -1130,7 +1130,7 @@ const PiMonitor = () => {
 // ── FINANCEIRO PAGE ──────────────────────────────────────────
 // ════════════════════════════════════════════════════════════
 
-const EMPTY_FIN = { produto:'', console:'PS4', preco_compra:'', preco_venda:'', data_compra: new Date().toISOString().slice(0,10), origem:'proprio', status:'estoque', observacao:'' };
+const EMPTY_FIN = { produto:'', console:'PS4', preco_compra:'', preco_venda:'', custo_extra:'', data_compra: new Date().toISOString().slice(0,10), origem:'proprio', status:'estoque', observacao:'' };
 
 const FinanceiroPage = () => {
   const [itens, setItens]       = useState([]);
@@ -1150,6 +1150,82 @@ const FinanceiroPage = () => {
     finally { setLoading(false); }
   };
 
+  const gerarPDF = () => {
+    const mesLabel = new Date(filtroMes + '-02').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+    const doMesPDF = itens.filter(i => {
+      const ref = i.data_venda || i.data_compra || '';
+      return ref.startsWith(filtroMes);
+    });
+    const totalC = doMesPDF.reduce((a,i) => a + Number(i.preco_compra||0), 0);
+    const totalE = doMesPDF.reduce((a,i) => a + Number(i.custo_extra||0), 0);
+    const totalV = doMesPDF.filter(i=>i.status==='vendido').reduce((a,i) => a + Number(i.preco_venda||0), 0);
+    const lucroL = totalV - doMesPDF.filter(i=>i.status==='vendido').reduce((a,i) => a + Number(i.preco_compra||0) + Number(i.custo_extra||0), 0);
+    const rows = filtrados.map(item => {
+      const lucroItem = item.status==='vendido' ? Number(item.preco_venda||0) - Number(item.preco_compra||0) - Number(item.custo_extra||0) : null;
+      return `<tr>
+        <td>${item.produto}</td>
+        <td>${item.console||'—'}</td>
+        <td>${item.origem==='olx_garimpo'?'Garimpo OLX':item.origem==='proprio'?'Próprio':item.origem==='fornecedor'?'Fornecedor':'Troca'}</td>
+        <td>R$${Number(item.preco_compra||0).toLocaleString('pt-BR')}</td>
+        <td>${item.custo_extra>0?'R$'+Number(item.custo_extra).toLocaleString('pt-BR'):'—'}</td>
+        <td>${item.preco_venda?'R$'+Number(item.preco_venda).toLocaleString('pt-BR'):'—'}</td>
+        <td style="color:${lucroItem===null?'#888':lucroItem>=0?'#27ae60':'#c0392b'};font-weight:bold">${lucroItem===null?'—':(lucroItem>=0?'+':'')+' R$'+lucroItem.toLocaleString('pt-BR')}</td>
+        <td><span style="background:${item.status==='vendido'?'#d5f5e3':'#fef9e7'};color:${item.status==='vendido'?'#1e8449':'#b7950b'};padding:2px 8px;border-radius:4px;font-size:11px">${item.status==='vendido'?'VENDIDO':'ESTOQUE'}</span></td>
+        <td>${item.data_compra||'—'}</td>
+      </tr>`;
+    }).join('');
+    const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+    <title>Financeiro Nosferatu Games — ${mesLabel}</title>
+    <style>
+      *{margin:0;padding:0;box-sizing:border-box}
+      body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#222;padding:32px}
+      .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;padding-bottom:16px;border-bottom:3px solid #CC1414}
+      .logo{font-size:22px;font-weight:900;color:#CC1414;letter-spacing:2px}
+      .logo span{color:#FFB800}
+      .subtitle{font-size:12px;color:#888;margin-top:4px}
+      .periodo{text-align:right;font-size:13px;color:#555}
+      .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+      .card{border-radius:8px;padding:16px;border-left:4px solid}
+      .card.compras{background:#fdf2f2;border-color:#CC1414}
+      .card.extras{background:#fdf6ec;border-color:#e67e22}
+      .card.vendas{background:#eafaf1;border-color:#27ae60}
+      .card.lucro{background:#fefbd8;border-color:#FFB800}
+      .card-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#888;margin-bottom:6px}
+      .card-value{font-size:20px;font-weight:900}
+      .card.compras .card-value{color:#CC1414}
+      .card.extras .card-value{color:#e67e22}
+      .card.vendas .card-value{color:#27ae60}
+      .card.lucro .card-value{color:#b7950b}
+      table{width:100%;border-collapse:collapse;font-size:12px}
+      thead tr{background:#1a1a2e;color:#fff}
+      th{padding:10px 10px;text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;white-space:nowrap}
+      td{padding:9px 10px;border-bottom:1px solid #eee;vertical-align:middle}
+      tr:nth-child(even) td{background:#f9f9fb}
+      .footer{margin-top:24px;font-size:11px;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:12px}
+      @media print{body{padding:16px}}
+    </style></head><body>
+    <div class="header">
+      <div><div class="logo">🏰 NOSFERATU <span>GAMES</span></div><div class="subtitle">Relatório Financeiro Mensal</div></div>
+      <div class="periodo"><strong>${mesLabel.toUpperCase()}</strong><br><span style="font-size:11px;color:#aaa">Gerado em ${new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</span></div>
+    </div>
+    <div class="cards">
+      <div class="card compras"><div class="card-label">Total Compras</div><div class="card-value">R$${Math.round(totalC).toLocaleString('pt-BR')}</div></div>
+      <div class="card extras"><div class="card-label">Custos Extras</div><div class="card-value">R$${Math.round(totalE).toLocaleString('pt-BR')}</div></div>
+      <div class="card vendas"><div class="card-label">Total Vendas</div><div class="card-value">R$${Math.round(totalV).toLocaleString('pt-BR')}</div></div>
+      <div class="card lucro"><div class="card-label">Lucro Líquido</div><div class="card-value">${lucroL>=0?'+':''}R$${Math.round(lucroL).toLocaleString('pt-BR')}</div></div>
+    </div>
+    <table>
+      <thead><tr><th>Produto</th><th>Console</th><th>Origem</th><th>Compra</th><th>Extras</th><th>Venda</th><th>Lucro</th><th>Status</th><th>Data</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="footer">Nosferatu Games · Porto Alegre, RS · nosferatugames.com.br</div>
+    <script>window.onload=()=>window.print()</script>
+    </body></html>`;
+    const win = window.open('', '_blank');
+    win.document.write(html);
+    win.document.close();
+  };
+
   useEffect(() => { carregar(); }, []);
 
   const salvar = async () => {
@@ -1159,6 +1235,7 @@ const FinanceiroPage = () => {
       const { id, ...dados } = editando;
       dados.preco_compra = dados.preco_compra ? Number(dados.preco_compra) : null;
       dados.preco_venda  = dados.preco_venda  ? Number(dados.preco_venda)  : null;
+      dados.custo_extra  = dados.custo_extra  ? Number(dados.custo_extra)  : 0;
       if (id) await supa(`financeiro?id=eq.${id}`, { method:'PATCH', body: JSON.stringify(dados) });
       else    await supa('financeiro',               { method:'POST',  body: JSON.stringify(dados) });
       setEditando(null);
@@ -1194,7 +1271,7 @@ const FinanceiroPage = () => {
   });
   const totalCompras  = doMes.reduce((a,i) => a + Number(i.preco_compra||0), 0);
   const totalVendas   = doMes.filter(i=>i.status==='vendido').reduce((a,i) => a + Number(i.preco_venda||0), 0);
-  const lucro         = totalVendas - doMes.filter(i=>i.status==='vendido').reduce((a,i) => a + Number(i.preco_compra||0), 0);
+  const lucro         = totalVendas - doMes.filter(i=>i.status==='vendido').reduce((a,i) => a + Number(i.preco_compra||0) + Number(i.custo_extra||0), 0);
   const emEstoque     = itens.filter(i=>i.status==='estoque').length;
 
   const ORIGENS = ['proprio','olx_garimpo','fornecedor','troca'];
@@ -1212,6 +1289,7 @@ const FinanceiroPage = () => {
         </div>
         <div style={{ display:'flex', gap:8 }}>
           <input type="month" value={filtroMes} onChange={e=>setFiltroMes(e.target.value)} style={{ ...S.input, width:160, height:36, fontSize:13 }} />
+          <Btn color="purple" onClick={gerarPDF}>📄 PDF</Btn>
           <Btn onClick={()=>setEditando({...EMPTY_FIN})}>+ Novo</Btn>
         </div>
       </div>
@@ -1249,7 +1327,7 @@ const FinanceiroPage = () => {
               <tbody>
                 {filtrados.length===0 && <tr><td colSpan={9} style={{ padding:'2rem', textAlign:'center', color:'var(--muted)', fontFamily:'Share Tech Mono, monospace', fontSize:13 }}>nenhum item encontrado</td></tr>}
                 {filtrados.map(item => {
-                  const lucroItem = item.status==='vendido' ? Number(item.preco_venda||0) - Number(item.preco_compra||0) : null;
+                  const lucroItem = item.status==='vendido' ? Number(item.preco_venda||0) - Number(item.preco_compra||0) - Number(item.custo_extra||0) : null;
                   return (
                     <tr key={item.id} style={{ borderTop:'1px solid var(--border)', opacity:item.status==='vendido'?0.7:1 }}>
                       <td style={{ padding:'10px 14px', fontSize:14, fontWeight:700, color:'var(--text)' }}>{item.produto}</td>
@@ -1308,6 +1386,8 @@ const FinanceiroPage = () => {
               <Input label="Preço de Venda (R$)" type="number" value={editando.preco_venda||''} onChange={e=>setEditando(p=>({...p,preco_venda:e.target.value}))} placeholder="1100" />
             </div>
 
+            <Input label="Custos Extras (R$) — reparo, desbloqueio, frete..." type="number" value={editando.custo_extra||''} onChange={e=>setEditando(p=>({...p,custo_extra:e.target.value}))} placeholder="0" />
+
             <div className="ng-grid2" style={S.grid2}>
               <div style={{ marginBottom:14 }}>
                 <label style={S.label}>Origem</label>
@@ -1333,10 +1413,11 @@ const FinanceiroPage = () => {
 
             {editando.preco_compra && editando.preco_venda && (
               <div style={{ background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:4, padding:'10px 14px', marginBottom:14, fontFamily:'Share Tech Mono, monospace', fontSize:12 }}>
-                💰 Lucro estimado: <span style={{ color: Number(editando.preco_venda)-Number(editando.preco_compra)>=0?'var(--gold)':'var(--red-b)', fontWeight:700 }}>
-                  R${(Number(editando.preco_venda)-Number(editando.preco_compra)).toLocaleString('pt-BR')}
+                💰 Lucro estimado: <span style={{ color: Number(editando.preco_venda)-Number(editando.preco_compra)-Number(editando.custo_extra||0)>=0?'var(--gold)':'var(--red-b)', fontWeight:700 }}>
+                  R${(Number(editando.preco_venda)-Number(editando.preco_compra)-Number(editando.custo_extra||0)).toLocaleString('pt-BR')}
                 </span>
-                {editando.preco_compra > 0 && <span style={{ color:'var(--muted)' }}> ({Math.round(((Number(editando.preco_venda)-Number(editando.preco_compra))/Number(editando.preco_compra))*100)}%)</span>}
+                {editando.preco_compra > 0 && <span style={{ color:'var(--muted)' }}> ({Math.round(((Number(editando.preco_venda)-Number(editando.preco_compra)-Number(editando.custo_extra||0))/(Number(editando.preco_compra)+Number(editando.custo_extra||0)))*100)}%)</span>}
+                {editando.custo_extra > 0 && <span style={{ color:'var(--muted)', display:'block', marginTop:4 }}>📦 Compra: R${Number(editando.preco_compra).toLocaleString('pt-BR')} + 🔧 Extras: R${Number(editando.custo_extra).toLocaleString('pt-BR')}</span>}
               </div>
             )}
 
