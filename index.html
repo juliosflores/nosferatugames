@@ -1123,7 +1123,12 @@ function limparErro(fieldId) {
 function atualizarTotal(frete) {
   if (frete !== undefined) valorFreteAtivo = Number(frete);
   const subtotal = meuCarrinho.reduce((acc, p) => acc + Number(p.preco || 0), 0);
-  const total = subtotal + valorFreteAtivo;
+  const desconto = calcularDesconto ? calcularDesconto(subtotal) : 0;
+  const total = subtotal + valorFreteAtivo - desconto;
+  const elDesc = document.getElementById('checkoutDesconto');
+  if (elDesc) elDesc.style.display = desconto > 0 ? 'flex' : 'none';
+  const elDescVal = document.getElementById('checkoutDescontoVal');
+  if (elDescVal) elDescVal.textContent = '-R$ ' + desconto.toLocaleString('pt-BR', {minimumFractionDigits:2});
   const elTotal = document.getElementById('checkoutTotal');
   if (elTotal) elTotal.textContent = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
 }
@@ -1229,7 +1234,9 @@ async function processarPedido(e) {
     total,
     itens: meuCarrinho.map(p=>({id:p.id,nome:p.nome,preco:Number(p.preco||0)})),
     status: 'pendente',
-    session_id: SESSION_ID
+    session_id: SESSION_ID,
+    cupon_codigo: cupomAtivo ? cupomAtivo.codigo : null,
+    desconto_aplicado: cupomAtivo ? calcularDesconto(meuCarrinho.reduce((a,p)=>a+Number(p.preco||0),0)) : 0
   };
   let pedidoId = null;
   try {
@@ -1299,6 +1306,54 @@ async function processarPedido(e) {
 // ── Carrinho ──────────────────────────────────────────────────
 let meuCarrinho = [];
 try { meuCarrinho = JSON.parse(localStorage.getItem('ng_cart')||'[]'); } catch(e) {}
+
+// ── Cupom de desconto ─────────────────────────────────────────
+let cupomAtivo = null;
+
+async function aplicarCupom() {
+  const input = document.getElementById('cupomInput');
+  const msg   = document.getElementById('cupomMsg');
+  const codigo = (input.value||'').trim().toUpperCase();
+  if (!codigo) return;
+  msg.textContent = '⌛ Verificando...';
+  msg.style.color = 'var(--gold)';
+  try {
+    const r = await fetch(`${SUPA_URL}/rest/v1/cupons?codigo=eq.${codigo}&ativo=eq.true&select=*`,
+      { headers: { apikey: SUPA_ANON, Authorization: `Bearer ${SUPA_ANON}` } });
+    const data = await r.json();
+    if (!data || data.length === 0) {
+      msg.textContent = '✕ Cupom inválido ou expirado';
+      msg.style.color = 'var(--red-bright)';
+      cupomAtivo = null;
+    } else {
+      const c = data[0];
+      if (c.validade && new Date(c.validade) < new Date()) {
+        msg.textContent = '✕ Cupom expirado';
+        msg.style.color = 'var(--red-bright)';
+        cupomAtivo = null;
+      } else if (c.usos_max && c.usos_atual >= c.usos_max) {
+        msg.textContent = '✕ Cupom esgotado';
+        msg.style.color = 'var(--red-bright)';
+        cupomAtivo = null;
+      } else {
+        cupomAtivo = c;
+        msg.textContent = `✔ ${c.desconto_pct}% de desconto aplicado!`;
+        msg.style.color = '#4ade80';
+      }
+    }
+  } catch(e) {
+    msg.textContent = '✕ Erro ao verificar cupom';
+    msg.style.color = 'var(--red-bright)';
+  }
+  atualizarTotal(valorFreteAtivo);
+}
+
+function calcularDesconto(subtotal) {
+  if (!cupomAtivo) return 0;
+  if (cupomAtivo.desconto_pct > 0) return Math.round((subtotal * cupomAtivo.desconto_pct / 100) * 100) / 100;
+  if (cupomAtivo.desconto_fixo > 0) return Math.min(cupomAtivo.desconto_fixo, subtotal);
+  return 0;
+}
 
 function salvarCarrinho() { localStorage.setItem('ng_cart', JSON.stringify(meuCarrinho)); atualizarBadgeCarrinho(); }
 function atualizarBadgeCarrinho() {
@@ -1809,6 +1864,19 @@ verificarDeepLink();
           </label>
         </div>
         <div id="shipping-loading" style="display:none;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--gold);margin-top:10px;animation:pulse 1s infinite;">⌛ Calculando frete...</div>
+      </div>
+      <!-- Campo cupom -->
+      <div style="margin-bottom:12px;">
+        <div style="display:flex;gap:8px;">
+          <input id="cupomInput" type="text" placeholder="🏷 Código do cupom" onkeydown="if(event.key==='Enter'){event.preventDefault();aplicarCupom();}" style="flex:1;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;text-transform:uppercase;outline:none;" />
+          <button type="button" onclick="aplicarCupom()" style="padding:8px 14px;background:var(--surface);border:1px solid var(--border);border-radius:4px;color:var(--text-dim);font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">Aplicar</button>
+        </div>
+        <div id="cupomMsg" style="font-size:11px;margin-top:4px;font-family:'Share Tech Mono',monospace;min-height:16px;"></div>
+      </div>
+      <!-- Desconto -->
+      <div id="checkoutDesconto" style="display:none;justify-content:space-between;align-items:center;padding:6px 10px;margin-bottom:8px;background:rgba(37,211,102,.08);border:1px solid rgba(37,211,102,.2);border-radius:4px;">
+        <span style="font-family:'Share Tech Mono',monospace;font-size:11px;color:#4ade80;">DESCONTO CUPOM:</span>
+        <span id="checkoutDescontoVal" style="font-family:'Share Tech Mono',monospace;font-size:12px;color:#4ade80;font-weight:700;">-R$ 0,00</span>
       </div>
       <div style="background:var(--bg3);padding:1rem;border-radius:4px;margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--border);">
         <span style="font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--text-muted);">TOTAL A PAGAR:</span>
