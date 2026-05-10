@@ -1859,6 +1859,15 @@ const InfraPage = () => {
     } catch (e) { showToast('✕ ' + e.message); }
   };
 
+  const handleManualTokenSync = async () => {
+    setLoading(true);
+    showToast('🔑 Sincronizando token ChatGPT...');
+    const ok = await forceRenovarToken();
+    setLoading(false);
+    if (ok) showToast('✅ Token atualizado na VPS!');
+    else    showToast('✕ Erro: Verifique se está logado no ChatGPT.');
+  };
+
   // ── Derived state ──
   const hermesOk    = health?.status === 'ok';
   const activeSess  = healthEx?.active_sessions ?? dashStatus?.active_session_count ?? '—';
@@ -1911,6 +1920,7 @@ const InfraPage = () => {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
+          <Btn color="purple" onClick={handleManualTokenSync} disabled={loading}>🔑 Sincronizar ChatGPT</Btn>
           <Btn color="ghost" onClick={fetchAll} disabled={loading}>{loading ? '...' : '↻ Refresh'}</Btn>
           <a href={N8N_URL} target="_blank" rel="noopener" style={{ ...S.btn, background: 'rgba(255,140,0,.12)', border: '1px solid rgba(255,140,0,.35)', color: '#ff9500', textDecoration: 'none', fontSize: 13 }}>↗ N8N</a>
         </div>
@@ -3439,6 +3449,8 @@ const PhotoStudioPage = () => {
 
 // ── Publicar Produto v2 — Fila + Auto-correção + Studio ──────
 // ── Token ChatGPT: renovação automática via sessão do browser ──
+let forceRenovarToken = async () => { console.log('Hook useChatGPTToken não montado'); return false; };
+
 const useChatGPTToken = () => {
   const renovarToken = async () => {
     try {
@@ -3464,6 +3476,8 @@ const useChatGPTToken = () => {
       return vpsR.ok;
     } catch { return false; }
   };
+
+  forceRenovarToken = renovarToken;
 
   useEffect(() => {
     // Roda silenciosamente ao montar o componente
