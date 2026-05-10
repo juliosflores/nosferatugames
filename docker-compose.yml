@@ -1,0 +1,20 @@
+services:
+  chat2api:
+    image: lanqian528/chat2api:latest
+    container_name: chat2api
+    restart: always
+    ports:
+      - '5007:5005'
+    environment:
+      - TZ=America/Sao_Paulo
+      # Chave de autenticação interna — mesma que vai no Vercel
+      # como variável CHAT2API_AUTHORIZATION
+      - AUTHORIZATION=nosferatu_chat2api_key
+      # Renova AccessToken automaticamente a cada 4 dias (usando RefreshToken)
+      - SCHEDULED_REFRESH=true
+      # Tenta 3x antes de desistir
+      - RETRY_TIMES=3
+      # Não força uso além do limite (evita ban)
+      - ENABLE_LIMIT=true
+      # Não salva histórico no ChatGPT (mais rápido e privado)
+      - HISTORY_DISABLED=true
