@@ -1497,14 +1497,6 @@ const FinanceiroPage = () => {
     carregar();
   };
 
-
-  const marcarVendido = async (item) => {
-    await supa(`financeiro?id=eq.${item.id}`, { method:'PATCH', body: JSON.stringify({ status:'vendido', data_venda: new Date().toISOString().slice(0,10) }) });
-    registrarLog('vender', 'financeiro', item.produto + ' marcado como vendido');
-    showToast('✔ Marcado como vendido!');
-    carregar();
-  };
-
   const salvarMeta = () => {
     const v = Number(metaInput);
     if (v > 0) { setMetaMes(v); localStorage.setItem('fin_meta', v); }
