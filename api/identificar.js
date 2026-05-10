@@ -10,10 +10,9 @@ export default async function handler(req, res) {
     const { image_base64, media_type } = req.body;
     if (!image_base64) return res.status(400).json({ error: 'image_base64 required' });
 
-    // AURORA (VPS) - Prioridade Máxima
-    const AURORA_URL = 'http://2.24.217.31:8008/v1/chat/completions';
-    const SESSION_TOKEN = process.env.CHATGPT_SESSION_TOKEN; // Pegar do Vercel
-
+    // AURORA (VPS) - HTTPS Seguro
+    const AURORA_URL = 'https://hermes.nosferatugames.com.br/aurora/v1/chat/completions';
+    
     // GEMINI - Fallback Grátis
     const GEMINI_KEY = process.env.GEMINI_API_KEY;
 
@@ -24,39 +23,39 @@ Regras: identifique o título exato pela capa. Se seminovo/usado mencione conser
     const imageUrl = `data:${media_type || 'image/jpeg'};base64,${image_base64}`;
 
     // ── 1. Tentar via Aurora (ChatGPT Plus do dono) ──
-    if (SESSION_TOKEN) {
-      try {
-        console.log('Trying Aurora (ChatGPT Plus)...');
-        const resp = await fetch(AURORA_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${SESSION_TOKEN}`
-          },
-          body: JSON.stringify({
-            model: 'gpt-4o', // Usando o melhor do Plus
-            messages: [{
-              role: 'user',
-              content: [
-                { type: 'text', text: PROMPT },
-                { type: 'image_url', image_url: { url: imageUrl } }
-              ]
-            }],
-          }),
-        });
+    try {
+      console.log('Trying Aurora HTTPS (ChatGPT Plus)...');
+      const resp = await fetch(AURORA_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+          // Token já está configurado no ambiente da VPS (Aurora)
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'text', text: PROMPT },
+              { type: 'image_url', image_url: { url: imageUrl } }
+            ]
+          }],
+        }),
+      });
 
+      if (resp.ok) {
         const data = await resp.json();
         if (data.choices && data.choices[0]) {
           const text = data.choices[0].message.content;
           const clean = text.replace(/```json|```/g, '').trim();
           const parsed = JSON.parse(clean);
-          console.log('Success via Aurora');
+          console.log('Success via Aurora HTTPS');
           return res.status(200).json(parsed);
         }
-        throw new Error('Aurora response invalid');
-      } catch (e) {
-        console.log('Aurora failed:', e.message);
       }
+      console.log('Aurora HTTPS returned error status:', resp.status);
+    } catch (e) {
+      console.log('Aurora HTTPS failed:', e.message);
     }
 
     // ── 2. Fallback Gemini Flash (Grátis) ──
