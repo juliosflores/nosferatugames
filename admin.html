@@ -1919,10 +1919,20 @@ const InfraPage = () => {
             Hermes {hermesVer} · VPS {VPS_IP} · {lastRefresh ? `atualizado ${lastRefresh.toLocaleTimeString('pt-BR')}` : 'carregando...'}
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Btn color="purple" onClick={handleManualTokenSync} disabled={loading}>🔑 Sincronizar ChatGPT</Btn>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <Btn color="purple" onClick={handleManualTokenSync} disabled={loading}>🔑 Sincronizar via Admin</Btn>
+          <a 
+            href="javascript:(async()=>{const VPS='https://hermes.nosferatugames.com.br/atualizar-token';const KEY='nosferatu_chat2api_key';try{const r=await fetch('https://chatgpt.com/api/auth/session');const d=await r.json();const t=d?.accessToken;if(!t)throw new Error('ChatGPT não logado');const v=await fetch(VPS,{method:'POST',headers:{'Content-Type':'application/json','X-Admin-Key':KEY},body:JSON.stringify({token:t})});if(v.ok)alert('✅ Sincronizado com Sucesso!');else alert('❌ Erro na VPS');}catch(e){alert('✕ Erro: '+e.message);}})();"
+            style={{ ...S.btn, background: 'var(--cyan)', color: '#000', textDecoration: 'none', fontSize: 13, fontWeight: 700 }}
+            onDragStart={(e) => { e.dataTransfer.setData('text/plain', e.target.href); }}
+          >
+            ⭐ Sincronizar Hermes (Arraste p/ Favoritos)
+          </a>
           <Btn color="ghost" onClick={fetchAll} disabled={loading}>{loading ? '...' : '↻ Refresh'}</Btn>
           <a href={N8N_URL} target="_blank" rel="noopener" style={{ ...S.btn, background: 'rgba(255,140,0,.12)', border: '1px solid rgba(255,140,0,.35)', color: '#ff9500', textDecoration: 'none', fontSize: 13 }}>↗ N8N</a>
+        </div>
+        <div style={{ marginTop: 8, fontSize: 11, color: 'var(--muted)', fontStyle: 'italic' }}>
+          💡 <b>Dica:</b> Se o botão roxo falhar (bloqueio do navegador), use o botão azul: arraste-o para sua barra de favoritos e clique nele enquanto estiver na aba do ChatGPT.
         </div>
       </div>
 
