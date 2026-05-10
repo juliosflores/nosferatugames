@@ -1472,6 +1472,45 @@ const FinanceiroPage = () => {
     win.document.close();
   };
 
+  // ── Métricas ──────────────────────────────────────────────────
+  const doMes       = itens.filter(i => { const ref = i.data_venda || i.data_compra || ''; return ref.startsWith(filtroMes); });
+  const totalCompras = doMes.reduce((a,i) => a + Number(i.preco_compra||0), 0);
+  const totalVendas  = doMes.filter(i=>i.status==='vendido').reduce((a,i) => a + Number(i.preco_venda||0), 0);
+  const lucro        = totalVendas - doMes.filter(i=>i.status==='vendido').reduce((a,i) => a + Number(i.preco_compra||0) + Number(i.custo_extra||0), 0);
+  const emEstoque    = itens.filter(i=>i.status==='estoque').length;
+  const vendidosMes  = doMes.filter(i=>i.status==='vendido');
+  const ticketMedio  = vendidosMes.length ? Math.round(vendidosMes.reduce((a,i)=>a+Number(i.preco_venda||0),0)/vendidosMes.length) : 0;
+  const parados90    = itens.filter(i=>i.status==='estoque' && diasNoEstoque(i) >= 90);
+
+  const filtrados = itens.filter(i => {
+    const mesOk = !filtroMes || (i.data_compra||'').startsWith(filtroMes) || (i.data_venda||i.created_at||'').startsWith(filtroMes);
+    const statusOk = filtroStatus === 'todos' || i.status === filtroStatus;
+    return mesOk && statusOk;
+  });
+
+  // Gráfico últimos 6 meses
+  const ultimos6 = Array.from({length:6},(_,i)=>{ const d=new Date(); d.setMonth(d.getMonth()-5+i); return d.toISOString().slice(0,7); });
+  const dadosMeses = ultimos6.map(mes=>{
+    const it = itens.filter(i=>(i.data_venda||i.data_compra||'').startsWith(mes));
+    const v = it.filter(i=>i.status==='vendido').reduce((a,i)=>a+Number(i.preco_venda||0),0);
+    const c = it.filter(i=>i.status==='vendido').reduce((a,i)=>a+Number(i.preco_compra||0)+Number(i.custo_extra||0),0);
+    const label = new Date(mes+'-02').toLocaleDateString('pt-BR',{month:'short'}).slice(0,3);
+    return { mes, label, lucro: v-c, vendas: v };
+  });
+  const maxLucro = Math.max(...dadosMeses.map(d=>Math.abs(d.lucro)), 1);
+
+  // Ranking por console
+  const rankConsole = Object.entries(
+    itens.filter(i=>i.status==='vendido').reduce((acc,i)=>{
+      const c = i.console||'Outro';
+      if(!acc[c]) acc[c]={lucro:0,qtd:0};
+      acc[c].lucro += Number(i.preco_venda||0)-Number(i.preco_compra||0)-Number(i.custo_extra||0);
+      acc[c].qtd++;
+      return acc;
+    },{})
+  ).sort((a,b)=>b[1].lucro-a[1].lucro).slice(0,6);
+  const maxRank = rankConsole.length ? Math.max(...rankConsole.map(r=>r[1].lucro),1) : 1;
+
   return (
     <div>
       {toast && <div style={{ position:'fixed', top:70, right:24, zIndex:2000, background:'var(--surface2)', border:'1px solid var(--border)', padding:'10px 18px', borderRadius:4, fontFamily:'Share Tech Mono, monospace', fontSize:12, color:'var(--text)' }}>{toast}</div>}
