@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 280px;
+    font-family: 'Segoe UI', sans-serif;
+    background: #08050f;
+    color: #e8e0f0;
+    padding: 16px;
+  }
+  .header {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #2a1a3a;
+  }
+  .title { font-size: 13px; font-weight: 700; color: #fff; }
+  .sub   { font-size: 10px; color: #9080a0; margin-top: 2px; }
+  .card {
+    background: #12121e;
+    border: 1px solid #2a1a3a;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+  .label { font-size: 10px; color: #9080a0; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+  .value { font-size: 12px; color: #e8e0f0; font-family: monospace; word-break: break-all; }
+  .status-ok    { color: #4ade80; }
+  .status-error { color: #ff2222; }
+  .status-none  { color: #9080a0; }
+  .btn {
+    width: 100%; padding: 9px; border-radius: 4px;
+    border: none; cursor: pointer; font-size: 13px; font-weight: 700;
+    background: #cc1414; color: #fff; margin-top: 4px;
+  }
+  .btn:hover { background: #ff2222; }
+  .btn-ghost {
+    background: transparent; border: 1px solid #2a1a3a; color: #9080a0;
+  }
+  .btn-ghost:hover { border-color: #cc1414; color: #fff; }
+  .emoji { font-size: 28px; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="emoji">🦇</div>
+  <div>
+    <div class="title">Nosferatu Token Sync</div>
+    <div class="sub">ChatGPT → VPS automático</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="label">Status</div>
+  <div class="value" id="status">Carregando...</div>
+</div>
+
+<div class="card">
+  <div class="label">Última sincronização</div>
+  <div class="value" id="last_sync">—</div>
+</div>
+
+<div class="card">
+  <div class="label">Última verificação</div>
+  <div class="value" id="last_check">—</div>
+</div>
+
+<button class="btn" id="btn_sync">🔄 Sincronizar agora</button>
+<button class="btn btn-ghost" id="btn_admin" style="margin-top:6px">↗ Abrir Admin</button>
+
+<script>
+const fmtDate = (iso) => {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('pt-BR', {
+    day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'
+  });
+};
+
+const STATUS_MAP = {
+  ok:         { text: '✅ Token sincronizado com VPS', cls: 'status-ok' },
+  error:      { text: '❌ Falha ao enviar para VPS',   cls: 'status-error' },
+  not_logged: { text: '⚠️ ChatGPT não está logado',   cls: 'status-none' },
+};
+
+async function loadStatus() {
+  const data = await chrome.storage.local.get(['last_status', 'last_sync', 'last_check']);
+  
+  const s = STATUS_MAP[data.last_status] || { text: 'Aguardando primeira sync...', cls: 'status-none' };
+  const el = document.getElementById('status');
+  el.textContent = s.text;
+  el.className = 'value ' + s.cls;
+
+  document.getElementById('last_sync').textContent  = fmtDate(data.last_sync);
+  document.getElementById('last_check').textContent = fmtDate(data.last_check);
+}
+
+document.getElementById('btn_sync').addEventListener('click', async () => {
+  const btn = document.getElementById('btn_sync');
+  btn.textContent = '⏳ Sincronizando...';
+  btn.disabled = true;
+  // Envia mensagem para o background worker
+  await chrome.runtime.sendMessage({ action: 'sincronizar' });
+  await new Promise(r => setTimeout(r, 2000));
+  await loadStatus();
+  btn.textContent = '🔄 Sincronizar agora';
+  btn.disabled = false;
+});
+
+document.getElementById('btn_admin').addEventListener('click', () => {
+  chrome.tabs.create({ url: 'https://nosferatugames.com.br/admin.html' });
+});
+
+loadStatus();
+</script>
+</body>
+</html>
