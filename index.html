@@ -1430,10 +1430,6 @@ async function processarPedido(e) {
   }
 }
 
-// ── Carrinho ──────────────────────────────────────────────────
-let meuCarrinho = [];
-try { meuCarrinho = JSON.parse(localStorage.getItem('ng_cart')||'[]'); } catch(e) {}
-
 // ── Cupom de desconto ─────────────────────────────────────────
 let cupomAtivo = null;
 
