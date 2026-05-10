@@ -3438,7 +3438,47 @@ const PhotoStudioPage = () => {
 };
 
 // ── Publicar Produto v2 — Fila + Auto-correção + Studio ──────
+// ── Token ChatGPT: renovação automática via sessão do browser ──
+const useChatGPTToken = () => {
+  const renovarToken = async () => {
+    try {
+      // Busca sessão do ChatGPT usando cookies do browser (mesmo domínio não é necessário,
+      // o browser envia cookies de chatgpt.com para chatgpt.com automaticamente)
+      const r = await fetch('https://chatgpt.com/api/auth/session', {
+        credentials: 'include', // envia cookies do chatgpt.com
+        signal: AbortSignal.timeout(8000),
+      });
+      if (!r.ok) return false;
+      const data = await r.json();
+      const token = data?.accessToken;
+      if (!token) return false;
+
+      // Envia token para VPS salvar no Chat2API
+      const vpsUrl = 'https://hermes.nosferatugames.com.br/atualizar-token';
+      const vpsR = await fetch(vpsUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Admin-Key': 'nosferatu_chat2api_key' },
+        body: JSON.stringify({ token }),
+        signal: AbortSignal.timeout(6000),
+      });
+      return vpsR.ok;
+    } catch { return false; }
+  };
+
+  useEffect(() => {
+    // Roda silenciosamente ao montar o componente
+    renovarToken().then(ok => {
+      if (ok) console.log('[Token] ✅ ChatGPT token renovado automaticamente');
+      else    console.log('[Token] ⚠ Token não renovado (ChatGPT não logado ou VPS offline)');
+    });
+    // Renova a cada 6h enquanto a aba estiver aberta
+    const t = setInterval(renovarToken, 6 * 60 * 60 * 1000);
+    return () => clearInterval(t);
+  }, []);
+};
+
 const PublicarPage = () => {
+  useChatGPTToken(); // 🔑 Renovação automática de token
   const REMOVEBG_KEY  = localStorage.getItem('ng_removebg_key') || 'bLTvxEPqTP8tW7wvU5wvuHJx';
   const MAKE_WEBHOOK  = localStorage.getItem('ng_make_webhook') || '';
 
@@ -3456,9 +3496,21 @@ const PublicarPage = () => {
   const canvasRef  = useRef(null);
   const logoRef    = useRef(null);
 
+  // Logo: carrega do localStorage e mantém sempre atualizado
   useEffect(() => {
     const saved = localStorage.getItem('ng_studio_logo');
-    if (saved) { const i=new Image(); i.onload=()=>{logoRef.current=i;}; i.src=saved; }
+    if (saved) {
+      const i = new Image();
+      i.onload = () => { logoRef.current = i; };
+      i.src = saved;
+    } else {
+      // Tenta carregar logo.png do próprio site como fallback
+      const i = new Image();
+      i.crossOrigin = 'anonymous';
+      i.onload = () => { logoRef.current = i; };
+      i.onerror = () => { logoRef.current = null; };
+      i.src = '/logo.png';
+    }
   }, []);
 
   // ── helpers de fila ──────────────────────────────────────
@@ -3522,8 +3574,8 @@ const PublicarPage = () => {
     // Se muito escuro (<80) ou muito claro (>200): corrige
     const fixes = [];
     let factor=1, bright=0;
-    if(avgLum<80)  { factor=1.4; bright=20; fixes.push('brilho aumentado'); }
-    if(avgLum>200) { factor=0.85; bright=-10; fixes.push('exposição reduzida'); }
+    if(avgLum<80)  { factor=1.15; bright=10; fixes.push('brilho aumentado'); }
+    if(avgLum>200) { factor=0.88; bright=-8; fixes.push('exposição reduzida'); }
     if(orientation>1) fixes.push(`rotação EXIF corrigida (${orientation})`);
 
     if(factor!==1||bright!==0) {
@@ -3593,12 +3645,12 @@ const PublicarPage = () => {
       ctx.drawImage(img,x0,y0,cW,cH,px,0,pW,pH*.25);
       ctx.fillStyle=refGrad; ctx.fillRect(px,0,pW,pH*.25);
       ctx.restore(); ctx.globalAlpha=1;
-      // Logo
+      // Logo — canto inferior direito com tamanho maior
       if(logoRef.current){
         const l=logoRef.current;
-        const lW=W*.17, lH=lW*(l.height/l.width), mg=W*.028;
-        ctx.globalAlpha=0.88;
-        ctx.drawImage(l,W-lW-mg,H-lH-mg,lW,lH);
+        const lW=W*.22, lH=lW*(l.height/l.width), mg=W*.03;
+        ctx.globalAlpha=0.90;
+        ctx.drawImage(l, W-lW-mg, H-lH-mg, lW, lH);
         ctx.globalAlpha=1;
       }
       resolve(canvas.toDataURL('image/jpeg',0.95));
@@ -3899,7 +3951,7 @@ const NAV = [
   { id:'cupons',     label:'Cupons',      icon:'🏷️' },
   { id:'csv',        label:'Import CSV',  icon:'📂' },
   { id:'garimpo',    label:'Garimpo',     icon:'🎮' },
-  { id:'studio',     label:'Photo Studio',icon:'📸' },
+
   { id:'hermes',     label:'Hermes Bot',  icon:'🦇' },
   { id:'analytics',  label:'Analytics',   icon:'🧛' },
   { id:'infra',      label:'Infra',       icon:'🖥️' },
@@ -4013,7 +4065,7 @@ const App = () => {
           {tab==='cupons'    && <CuponsPage />}
           {tab==='csv'       && <UploadCSVPage />}
           {tab==='garimpo'   && <GarimpoPage />}
-          {tab==='studio'    && <PhotoStudioPage />}
+
           {tab==='hermes'    && <HermesPage />}
           {tab==='analytics' && <Analytics visitas={visitas} />}
           {tab==='infra'     && <InfraPage />}
