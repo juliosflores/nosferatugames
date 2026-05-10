@@ -1403,7 +1403,7 @@ const FinanceiroPage = () => {
 
   const carregar = async () => {
     setLoading(true);
-    try { setItens(await supa('financeiro?order=criado_em.desc&limit=500') || []); }
+    try { setItens(await supa('financeiro?order=created_at.desc&limit=500') || []); }
     catch(e) { console.error(e); }
     finally { setLoading(false); }
   };
@@ -1475,6 +1475,7 @@ const FinanceiroPage = () => {
       dados.custo_extra  = dados.custo_extra  ? Number(dados.custo_extra)  : 0;
       if (id) await supa(`financeiro?id=eq.${id}`, { method:'PATCH', body: JSON.stringify(dados) });
       else    await supa('financeiro',               { method:'POST',  body: JSON.stringify(dados) });
+      registrarLog(id?'editar':'criar', 'financeiro', dados.produto);
       setEditando(null);
       showToast('✔ Salvo!');
       carregar();
@@ -1485,52 +1486,21 @@ const FinanceiroPage = () => {
   const deletar = async (id) => {
     if (!confirm('Excluir este item?')) return;
     await supa(`financeiro?id=eq.${id}`, { method:'DELETE' });
+    registrarLog('excluir', 'financeiro', 'item id: '+id);
     carregar();
   };
 
   const marcarVendido = async (item) => {
     await supa(`financeiro?id=eq.${item.id}`, { method:'PATCH', body: JSON.stringify({ status:'vendido', data_venda: new Date().toISOString().slice(0,10) }) });
+    registrarLog('vender', 'financeiro', item.produto + ' marcado como vendido');
     showToast('✔ Marcado como vendido!');
     carregar();
   };
 
-  // Filtros
-  const showToast = (msg) => { setToast(msg); setTimeout(()=>setToast(''), 3000); };
-
-  const carregar = async () => {
-    setLoading(true);
-    try { setItens(await supa('financeiro?order=data_compra.desc&limit=500') || []); }
-    catch(e) { console.error(e); }
-    finally { setLoading(false); }
-  };
-
-  useEffect(() => { carregar(); }, []);
-
-  const salvar = async () => {
-    if (!editando.produto.trim()) { showToast('✕ Nome obrigatório'); return; }
-    setSaving(true);
-    try {
-      const { id, ...dados } = editando;
-      dados.preco_compra = dados.preco_compra ? Number(dados.preco_compra) : null;
-      dados.preco_venda  = dados.preco_venda  ? Number(dados.preco_venda)  : null;
-      dados.custo_extra  = dados.custo_extra  ? Number(dados.custo_extra)  : 0;
-      if (id) await supa(`financeiro?id=eq.${id}`, { method:'PATCH', body: JSON.stringify(dados) });
-      else    await supa('financeiro',               { method:'POST',  body: JSON.stringify(dados) });
-      setEditando(null);
-      showToast('✔ Salvo!');
-      carregar();
-    } catch(e) { showToast('✕ '+e.message); }
-    finally { setSaving(false); }
-  };
-
-  const deletar = async (id) => {
-    if (!confirm('Excluir este item?')) return;
-    await supa(`financeiro?id=eq.${id}`, { method:'DELETE' });
-    carregar();
-  };
 
   const marcarVendido = async (item) => {
     await supa(`financeiro?id=eq.${item.id}`, { method:'PATCH', body: JSON.stringify({ status:'vendido', data_venda: new Date().toISOString().slice(0,10) }) });
+    registrarLog('vender', 'financeiro', item.produto + ' marcado como vendido');
     showToast('✔ Marcado como vendido!');
     carregar();
   };
@@ -1549,7 +1519,7 @@ const FinanceiroPage = () => {
   };
 
   const filtrados = itens.filter(i => {
-    const mesOk = !filtroMes || (i.data_compra||'').startsWith(filtroMes) || (i.data_venda||i.criado_em||'').startsWith(filtroMes);
+    const mesOk = !filtroMes || (i.data_compra||'').startsWith(filtroMes) || (i.data_venda||i.created_at||'').startsWith(filtroMes);
     const statusOk = filtroStatus === 'todos' || i.status === filtroStatus;
     return mesOk && statusOk;
   });
