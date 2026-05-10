@@ -3130,21 +3130,48 @@ const PhotoStudioPage = () => {
       // Produto sem fundo
       const prodImg = new Image();
       prodImg.onload = () => {
-        // Calcular proporção para caber com padding
-        const pad = 0.1;
-        const maxW = w * (1 - pad*2);
-        const maxH = h * (1 - pad*2);
-        const ratio = Math.min(maxW / prodImg.width, maxH / prodImg.height);
-        const pW = prodImg.width  * ratio;
-        const pH = prodImg.height * ratio;
-        const px = (w - pW) / 2;
-        const py = (h - pH) / 2;
+        // ── Bounding box: encontra a área real do produto (pixels não-transparentes)
+        const offscreen = document.createElement('canvas');
+        offscreen.width  = prodImg.width;
+        offscreen.height = prodImg.height;
+        const octx = offscreen.getContext('2d');
+        octx.drawImage(prodImg, 0, 0);
+        const imgData = octx.getImageData(0, 0, prodImg.width, prodImg.height);
+        const pixels  = imgData.data;
+        let minX = prodImg.width, maxX = 0, minY = prodImg.height, maxY = 0;
+        for (let i = 0; i < pixels.length; i += 4) {
+          if (pixels[i + 3] > 10) { // alpha > 10 = pixel do produto
+            const px2 = (i / 4) % prodImg.width;
+            const py2 = Math.floor((i / 4) / prodImg.width);
+            if (px2 < minX) minX = px2;
+            if (px2 > maxX) maxX = px2;
+            if (py2 < minY) minY = py2;
+            if (py2 > maxY) maxY = py2;
+          }
+        }
+        // Fallback: se não achou nada, usa imagem toda
+        if (maxX === 0) { minX=0; maxX=prodImg.width; minY=0; maxY=prodImg.height; }
+
+        const cropW = maxX - minX;
+        const cropH = maxY - minY;
+
+        // ── Normaliza: produto sempre ocupa 78% da área útil, centralizado
+        const TARGET = 0.78;
+        const pad    = (1 - TARGET) / 2;
+        const maxW   = w * TARGET;
+        const maxH   = h * TARGET;
+        const ratio  = Math.min(maxW / cropW, maxH / cropH);
+        const pW     = cropW * ratio;
+        const pH     = cropH * ratio;
+        const px     = (w - pW) / 2;
+        const py     = (h - pH) / 2;
 
         // Sombra do produto
         ctx.shadowColor   = 'rgba(0,0,0,0.7)';
         ctx.shadowBlur    = 60;
         ctx.shadowOffsetY = 20;
-        ctx.drawImage(prodImg, px, py, pW, pH);
+        // Desenha só a região do produto (crop pelo bounding box)
+        ctx.drawImage(prodImg, minX, minY, cropW, cropH, px, py, pW, pH);
         ctx.shadowColor = 'transparent';
         ctx.shadowBlur  = 0;
         ctx.shadowOffsetY = 0;
@@ -3394,8 +3421,468 @@ const PhotoStudioPage = () => {
   );
 };
 
+// ── Publicar Produto v2 — Fila + Auto-correção + Studio ──────
+const PublicarPage = () => {
+  const REMOVEBG_KEY  = 'bLTvxEPqTP8tW7wvU5wvuHJx';
+  const MAKE_WEBHOOK  = localStorage.getItem('ng_make_webhook') || '';
+
+  const BG_THEMES = {
+    premium: { label:'Preto Premium', colors:['#0a0a0a','#1a0a0a','#0d0d0d'] },
+    noite:   { label:'Noite Roxa',    colors:['#08050f','#12062a','#0a0a12'] },
+    sangue:  { label:'Sangue',        colors:['#0f0000','#1a0505','#0a0000'] },
+  };
+
+  // Fila: [{id, file, rawPreview, status, fixes, finalImg, cloudUrl, dados, editDados, log, publicado}]
+  const [fila,      setFila]      = useState([]);
+  const [selecionado, setSel]     = useState(null); // id do card aberto
+  const [bgTheme,   setBgTheme]   = useState('premium');
+  const [analisando,setAnalisando]= useState(false);
+  const canvasRef  = useRef(null);
+  const logoRef    = useRef(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('ng_studio_logo');
+    if (saved) { const i=new Image(); i.onload=()=>{logoRef.current=i;}; i.src=saved; }
+  }, []);
+
+  // ── helpers de fila ──────────────────────────────────────
+  const updItem = (id, patch) =>
+    setFila(f => f.map(x => x.id===id ? {...x,...patch} : x));
+
+  const addLog = (id, msg, tipo='info') =>
+    setFila(f => f.map(x => x.id===id ? {...x, log:[...(x.log||[]),{msg,tipo,ts:new Date().toLocaleTimeString('pt-BR')}]} : x));
+
+  // ── EXIF orientation fix ─────────────────────────────────
+  const getExifRotation = (file) => new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const view = new DataView(e.target.result);
+      if (view.getUint16(0,false) !== 0xFFD8) return resolve(1);
+      let offset=2, len=view.byteLength;
+      while(offset<len) {
+        const marker = view.getUint16(offset,false); offset+=2;
+        if (marker===0xFFE1) {
+          if (view.getUint32(offset+=2,false)!==0x45786966) return resolve(1);
+          const little = view.getUint16(offset+=6,false)===0x4949;
+          offset += view.getUint32(offset+4,little);
+          const tags = view.getUint16(offset,little); offset+=2;
+          for(let i=0;i<tags;i++) {
+            if(view.getUint16(offset+(i*12),little)===0x0112)
+              return resolve(view.getUint16(offset+(i*12)+8,little));
+          }
+        } else if ((marker & 0xFF00)!==0xFF00) break;
+        else offset += view.getUint16(offset,false);
+      }
+      resolve(1);
+    };
+    reader.readAsArrayBuffer(file.slice(0,65536));
+  });
+
+  // ── Auto-corrigir imagem (EXIF + brilho + contraste) ────
+  const autoCorrigir = (imgEl, orientation) => {
+    const w0 = imgEl.naturalWidth, h0 = imgEl.naturalHeight;
+    const rotated = orientation>=5 && orientation<=8;
+    const cw = rotated ? h0 : w0;
+    const ch = rotated ? w0 : h0;
+    const c = document.createElement('canvas');
+    c.width=cw; c.height=ch;
+    const ctx = c.getContext('2d');
+    const transforms = {
+      1:[1,0,0,1,0,0], 2:[-1,0,0,1,cw,0], 3:[-1,0,0,-1,cw,ch],
+      4:[1,0,0,-1,0,ch], 5:[0,1,1,0,0,0], 6:[0,1,-1,0,ch,0],
+      7:[0,-1,-1,0,cw,ch], 8:[0,-1,1,0,0,ch],
+    };
+    const t = transforms[orientation] || transforms[1];
+    ctx.transform(...t);
+    ctx.drawImage(imgEl,0,0);
+    ctx.setTransform(1,0,0,1,0,0);
+
+    // Auto-brilho/contraste: analisa luminância média
+    const data = ctx.getImageData(0,0,cw,ch);
+    const px = data.data;
+    let sum=0, n=px.length/4;
+    for(let i=0;i<px.length;i+=4) sum+=(px[i]*0.299+px[i+1]*0.587+px[i+2]*0.114);
+    const avgLum = sum/n;
+    // Se muito escuro (<80) ou muito claro (>200): corrige
+    const fixes = [];
+    let factor=1, bright=0;
+    if(avgLum<80)  { factor=1.4; bright=20; fixes.push('brilho aumentado'); }
+    if(avgLum>200) { factor=0.85; bright=-10; fixes.push('exposição reduzida'); }
+    if(orientation>1) fixes.push(`rotação EXIF corrigida (${orientation})`);
+
+    if(factor!==1||bright!==0) {
+      for(let i=0;i<px.length;i+=4){
+        px[i]  =Math.min(255,Math.max(0,px[i]  *factor+bright));
+        px[i+1]=Math.min(255,Math.max(0,px[i+1]*factor+bright));
+        px[i+2]=Math.min(255,Math.max(0,px[i+2]*factor+bright));
+      }
+      ctx.putImageData(data,0,0);
+    }
+    return { dataUrl: c.toDataURL('image/jpeg',0.92), fixes };
+  };
+
+  // ── Compor imagem studio (remove.bg blob → canvas final) ─
+  const composeStudio = (noBgBlob) => new Promise(resolve => {
+    const W=1080, H=1080;
+    const canvas = canvasRef.current;
+    canvas.width=W; canvas.height=H;
+    const ctx = canvas.getContext('2d');
+    const theme = BG_THEMES[bgTheme];
+    // Fundo
+    const grad = ctx.createRadialGradient(W*.5,H*.4,0,W*.5,H*.5,W*.8);
+    grad.addColorStop(0,theme.colors[1]);
+    grad.addColorStop(.55,theme.colors[0]);
+    grad.addColorStop(1,theme.colors[2]);
+    ctx.fillStyle=grad; ctx.fillRect(0,0,W,H);
+    // Glow central
+    const gl=ctx.createRadialGradient(W*.5,H*.58,0,W*.5,H*.58,W*.48);
+    gl.addColorStop(0,'rgba(200,20,20,0.14)'); gl.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=gl; ctx.fillRect(0,0,W,H);
+    // Grade sutil
+    ctx.strokeStyle='rgba(120,30,30,0.06)'; ctx.lineWidth=1;
+    for(let x=0;x<=W;x+=44){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(let y=0;y<=H;y+=44){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+    // Produto
+    const img=new Image();
+    img.onload=()=>{
+      // Bounding box
+      const off=document.createElement('canvas');
+      off.width=img.width; off.height=img.height;
+      const octx=off.getContext('2d'); octx.drawImage(img,0,0);
+      const d=octx.getImageData(0,0,img.width,img.height).data;
+      let x0=img.width,x1=0,y0=img.height,y1=0;
+      for(let i=0;i<d.length;i+=4){
+        if(d[i+3]>12){
+          const x=i/4%img.width, y=Math.floor(i/4/img.width);
+          if(x<x0)x0=x; if(x>x1)x1=x; if(y<y0)y0=y; if(y>y1)y1=y;
+        }
+      }
+      if(x1===0){x0=0;x1=img.width;y0=0;y1=img.height;}
+      const cW=x1-x0, cH=y1-y0;
+      const ratio=Math.min(W*.80/cW, H*.80/cH);
+      const pW=cW*ratio, pH=cH*ratio;
+      const px=(W-pW)/2, py=(H-pH)/2;
+      // Sombra
+      ctx.shadowColor='rgba(0,0,0,0.80)'; ctx.shadowBlur=80; ctx.shadowOffsetY=30;
+      ctx.drawImage(img,x0,y0,cW,cH,px,py,pW,pH);
+      ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetY=0;
+      // Reflexo sutil no chão
+      ctx.save();
+      ctx.translate(0,py+pH);
+      ctx.scale(1,-1);
+      const refGrad=ctx.createLinearGradient(0,0,0,pH*.25);
+      refGrad.addColorStop(0,'rgba(255,255,255,0.06)');
+      refGrad.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.globalAlpha=0.4;
+      ctx.drawImage(img,x0,y0,cW,cH,px,0,pW,pH*.25);
+      ctx.fillStyle=refGrad; ctx.fillRect(px,0,pW,pH*.25);
+      ctx.restore(); ctx.globalAlpha=1;
+      // Logo
+      if(logoRef.current){
+        const l=logoRef.current;
+        const lW=W*.17, lH=lW*(l.height/l.width), mg=W*.028;
+        ctx.globalAlpha=0.88;
+        ctx.drawImage(l,W-lW-mg,H-lH-mg,lW,lH);
+        ctx.globalAlpha=1;
+      }
+      resolve(canvas.toDataURL('image/jpeg',0.95));
+    };
+    img.src=URL.createObjectURL(noBgBlob);
+  });
+
+  // ── Processar um item da fila (remove.bg + compose) ──────
+  const processarItem = async (id) => {
+    const item = fila.find(x=>x.id===id);
+    if(!item) return;
+    updItem(id,{status:'processando'});
+    addLog(id,'🔲 Removendo fundo...','info');
+    try {
+      const fd=new FormData();
+      fd.append('image_file', item.file);
+      fd.append('size','auto');
+      const r=await fetch('https://api.remove.bg/v1.0/removebg',{method:'POST',headers:{'X-Api-Key':REMOVEBG_KEY},body:fd});
+      if(!r.ok) throw new Error('remove.bg: '+r.status);
+      const blob=await r.blob();
+      addLog(id,'✔ Fundo removido','ok');
+      addLog(id,'🎨 Compondo imagem studio...','info');
+      const finalImg=await composeStudio(blob);
+      addLog(id,'✔ Imagem pronta','ok');
+      updItem(id,{status:'pronto',finalImg});
+    } catch(e) {
+      addLog(id,'✕ '+e.message,'erro');
+      updItem(id,{status:'erro'});
+    }
+  };
+
+  // ── IA identifica todos os prontos ───────────────────────
+  const analisarTodos = async () => {
+    const prontos = fila.filter(x=>x.status==='pronto'&&!x.dados);
+    if(!prontos.length) return;
+    setAnalisando(true);
+    for(const item of prontos) {
+      addLog(item.id,'🤖 IA identificando produto...','info');
+      try {
+        const toB64=(f)=>new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(f);});
+        const b64=await toB64(item.file);
+        const resp=await fetch('https://api.anthropic.com/v1/messages',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({
+            model:'claude-sonnet-4-20250514',
+            max_tokens:1000,
+            messages:[{role:'user',content:[
+              {type:'image',source:{type:'base64',media_type:item.file.type||'image/jpeg',data:b64}},
+              {type:'text',text:`Analise esta foto de produto de games e responda APENAS JSON válido sem markdown:
+{"nome":"nome completo","console":"PS5|PS4|Nintendo Switch|Nintendo 3DS|Retrô|Pokémon TCG|Acessórios","condicao":"Novo|Seminovo|Usado","preco":número inteiro em reais,"descricao":"descrição de venda atrativa máx 150 chars","hashtags":"10 hashtags sem espaço separadas por espaço"}`
+            }]}]
+          })
+        });
+        const data=await resp.json();
+        const text=data.content?.find(b=>b.type==='text')?.text||'';
+        const parsed=JSON.parse(text.replace(/```json|```/g,'').trim());
+        updItem(item.id,{dados:parsed,editDados:{...parsed}});
+        addLog(item.id,`✔ ${parsed.nome} · R$${parsed.preco}`,'ok');
+      } catch(e) {
+        addLog(item.id,'✕ IA: '+e.message,'erro');
+      }
+    }
+    setAnalisando(false);
+  };
+
+  // ── Publicar um item ─────────────────────────────────────
+  const publicarItem = async (id) => {
+    const item=fila.find(x=>x.id===id);
+    if(!item||!item.finalImg||!item.editDados) return;
+    updItem(id,{status:'publicando'});
+    try {
+      addLog(id,'☁️ Subindo ao Cloudinary...','info');
+      const blob=await (await fetch(item.finalImg)).blob();
+      const f2=new File([blob],'produto.jpg',{type:'image/jpeg'});
+      const url=await cloudUpload(f2);
+      addLog(id,'✔ CDN: OK','ok');
+      addLog(id,'📦 Criando no Supabase...','info');
+      const d=item.editDados;
+      const created=await supa('produtos',{method:'POST',body:JSON.stringify({
+        nome:d.nome,console:d.console,condicao:d.condicao,preco:d.preco,
+        descricao:d.descricao,imagem_url:url,ativo:true,vendido:false,whatsapp:'5551996979032'
+      })});
+      registrarLog('INSERT','produtos','Publicação rápida: '+d.nome);
+      addLog(id,'✔ Produto criado','ok');
+      if(MAKE_WEBHOOK) {
+        addLog(id,'📱 Enviando Instagram...','info');
+        await fetch(MAKE_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({image_url:url,caption:`${d.descricao}\n\n💰 R$ ${d.preco}\n📲 Chama no WhatsApp!\n\n${d.hashtags}`,produto_id:created?.[0]?.id})});
+        addLog(id,'✔ Instagram: enviado','ok');
+      }
+      updItem(id,{status:'publicado',cloudUrl:url});
+      addLog(id,'🎉 Publicado!','ok');
+    } catch(e) {
+      addLog(id,'✕ '+e.message,'erro');
+      updItem(id,{status:'pronto'});
+    }
+  };
+
+  // ── Adicionar arquivos ───────────────────────────────────
+  const adicionarArquivos = async (files) => {
+    const novos=[];
+    for(const file of files) {
+      if(!file.type.startsWith('image/')) continue;
+      const id='img_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+      const orientation=await getExifRotation(file);
+      // Carrega imagem pra auto-corrigir
+      const rawUrl=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.readAsDataURL(file);});
+      const imgEl=await new Promise(res=>{const i=new Image();i.onload=()=>res(i);i.src=rawUrl;});
+      const {dataUrl:correctedUrl, fixes}=autoCorrigir(imgEl,orientation);
+      // Converte correctedUrl de volta pra File
+      const corrBlob=await (await fetch(correctedUrl)).blob();
+      const corrFile=new File([corrBlob],file.name,{type:'image/jpeg'});
+      novos.push({id,file:corrFile,rawPreview:correctedUrl,status:'aguardando',fixes,finalImg:null,cloudUrl:'',dados:null,editDados:null,log:[]});
+    }
+    setFila(f=>[...f,...novos]);
+    // Processa automaticamente
+    for(const item of novos) {
+      setTimeout(()=>processarItem(item.id),300);
+    }
+  };
+
+  const prontos      = fila.filter(x=>x.status==='pronto');
+  const semDados     = prontos.filter(x=>!x.dados);
+  const publicados   = fila.filter(x=>x.status==='publicado');
+  const selItem      = fila.find(x=>x.id===selecionado);
+
+  const statusColor  = {aguardando:'var(--muted)',processando:'var(--gold)',pronto:'var(--cyan)',publicando:'var(--purple)',publicado:'var(--green)',erro:'var(--red-b)'};
+  const statusLabel  = {aguardando:'aguardando',processando:'processando...',pronto:'pronto',publicando:'publicando...',publicado:'publicado ✔',erro:'erro'};
+  const logColor     = {info:'var(--dim)',ok:'var(--green)',erro:'var(--red-b)',warn:'var(--gold)'};
+
+  return (
+    <div>
+      <canvas ref={canvasRef} style={{display:'none'}}/>
+
+      <div style={{marginBottom:18,display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexWrap:'wrap',gap:8}}>
+        <div>
+          <div style={{fontFamily:'Press Start 2P, monospace',fontSize:13,color:'var(--text)',marginBottom:4}}>⚡ Publicar Produto</div>
+          <div style={{fontSize:13,color:'var(--muted)'}}>Adicione fotos → IA identifica → confirme → publique</div>
+        </div>
+        <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+          {Object.entries(BG_THEMES).map(([k,v])=>(
+            <button key={k} onClick={()=>setBgTheme(k)} style={{...S.btn,fontSize:11,padding:'4px 10px',background:bgTheme===k?'var(--red)':'var(--surface2)',color:bgTheme===k?'#fff':'var(--dim)',border:`1px solid ${bgTheme===k?'var(--red)':'var(--border)'}`}}>{v.label}</button>
+          ))}
+          {fila.length>0&&<button onClick={()=>setFila([])} style={{...S.btn,fontSize:11,padding:'4px 10px',background:'transparent',border:'1px solid var(--border)',color:'var(--muted)'}}>✕ Limpar fila</button>}
+        </div>
+      </div>
+
+      {/* Upload zone */}
+      <label style={{display:'block',border:`2px dashed ${fila.length?'var(--border)':'var(--red)'}`,borderRadius:8,padding:fila.length?'16px':'32px',textAlign:'center',cursor:'pointer',background:'var(--bg3)',marginBottom:14,transition:'all .2s'}}
+        onDragOver={e=>{e.preventDefault();e.currentTarget.style.borderColor='var(--red)';}}
+        onDragLeave={e=>{e.currentTarget.style.borderColor=fila.length?'var(--border)':'var(--red)';}}
+        onDrop={e=>{e.preventDefault();e.currentTarget.style.borderColor='var(--border)';adicionarArquivos([...e.dataTransfer.files]);}}>
+        <input type="file" accept="image/*" multiple style={{display:'none'}} onChange={e=>adicionarArquivos([...e.target.files])}/>
+        {fila.length
+          ? <div style={{fontSize:13,color:'var(--dim)',fontWeight:600}}>+ Adicionar mais fotos</div>
+          : <div><div style={{fontSize:40,marginBottom:8}}>📷</div><div style={{fontSize:15,fontWeight:700,color:'var(--text)',marginBottom:4}}>Arraste as fotos dos produtos aqui</div><div style={{fontSize:12,color:'var(--muted)'}}>Várias de uma vez · Auto-corrige rotação, brilho e perspectiva</div></div>
+        }
+      </label>
+
+      {/* Botão analisar em lote */}
+      {semDados.length>0&&(
+        <div style={{marginBottom:14}}>
+          <button onClick={analisarTodos} disabled={analisando} style={{...S.btn,padding:'10px 20px',fontSize:14,background:analisando?'var(--surface2)':'var(--red)',color:analisando?'var(--muted)':'#fff',border:'none',borderRadius:6}}>
+            {analisando?'🤖 Identificando...':'🤖 Identificar '+semDados.length+' produto'+( semDados.length>1?'s':'')+' com IA'}
+          </button>
+        </div>
+      )}
+
+      {fila.length===0&&(
+        <div style={{...S.card,textAlign:'center',padding:'48px',border:'1px dashed var(--border)'}}>
+          <div style={{fontSize:32,opacity:.2,marginBottom:12}}>📦</div>
+          <div style={{fontSize:12,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>nenhuma foto adicionada</div>
+        </div>
+      )}
+
+      {/* Fila de produtos */}
+      {fila.length>0&&(
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:12}}>
+          {fila.map(item=>(
+            <div key={item.id} style={{...S.card,cursor:'pointer',border:`1px solid ${selecionado===item.id?'var(--red-b)':item.status==='publicado'?'rgba(37,211,102,.3)':item.status==='erro'?'rgba(204,20,20,.4)':'var(--border)'}`,transition:'border .15s'}}
+              onClick={()=>setSel(selecionado===item.id?null:item.id)}>
+
+              {/* Thumbnail */}
+              <div style={{position:'relative',marginBottom:10}}>
+                <div style={{height:160,background:'repeating-conic-gradient(#1a1830 0% 25%,#0f0e1a 0% 50%) 0 0/16px 16px',borderRadius:4,overflow:'hidden',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  {item.finalImg
+                    ? <img src={item.finalImg} style={{height:'100%',width:'100%',objectFit:'contain'}}/>
+                    : item.rawPreview
+                      ? <div style={{position:'relative',width:'100%',height:'100%'}}>
+                          <img src={item.rawPreview} style={{width:'100%',height:'100%',objectFit:'contain',opacity:.4,filter:'blur(1px)'}}/>
+                          <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                            <div style={{width:28,height:28,border:'3px solid var(--border)',borderTopColor:'var(--gold)',borderRadius:'50%',animation:'spin .8s linear infinite'}}/>
+                          </div>
+                        </div>
+                      : <div style={{color:'var(--muted)',fontSize:24}}>📷</div>
+                  }
+                </div>
+                <div style={{position:'absolute',top:6,right:6,padding:'2px 7px',borderRadius:3,background:'var(--bg)',border:'1px solid var(--border)',fontSize:10,fontFamily:'Share Tech Mono, monospace',color:statusColor[item.status]||'var(--dim)'}}>
+                  {statusLabel[item.status]||item.status}
+                </div>
+              </div>
+
+              {/* Info básica */}
+              <div style={{fontSize:13,fontWeight:700,color:item.dados?'var(--text)':'var(--muted)',marginBottom:4,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>
+                {item.dados?.nome || item.file.name}
+              </div>
+              {item.dados&&(
+                <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:6}}>
+                  <span style={{...S.tag(item.dados.condicao)}}>{item.dados.condicao}</span>
+                  <span style={{fontFamily:'Share Tech Mono, monospace',fontSize:10,color:'var(--gold)'}}>R$ {item.dados.preco}</span>
+                  <span style={{fontSize:10,color:'var(--muted)'}}>{item.dados.console}</span>
+                </div>
+              )}
+              {item.fixes?.length>0&&(
+                <div style={{fontSize:10,color:'var(--cyan)',fontFamily:'Share Tech Mono, monospace',marginBottom:4}}>
+                  🔧 {item.fixes.join(' · ')}
+                </div>
+              )}
+
+              {/* Expandido */}
+              {selecionado===item.id&&(
+                <div style={{marginTop:12,borderTop:'1px solid var(--border)',paddingTop:12}} onClick={e=>e.stopPropagation()}>
+                  {item.dados&&item.editDados ? (
+                    <>
+                      <div style={{marginBottom:8}}>
+                        <label style={S.label}>Nome</label>
+                        <input value={item.editDados.nome} onChange={e=>updItem(item.id,{editDados:{...item.editDados,nome:e.target.value}})} style={{...S.input,marginBottom:8}}/>
+                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:8}}>
+                          <div>
+                            <label style={S.label}>Console</label>
+                            <select value={item.editDados.console} onChange={e=>updItem(item.id,{editDados:{...item.editDados,console:e.target.value}})} style={S.input}>
+                              {CONSOLES.map(c=><option key={c}>{c}</option>)}
+                            </select>
+                          </div>
+                          <div>
+                            <label style={S.label}>Condição</label>
+                            <select value={item.editDados.condicao} onChange={e=>updItem(item.id,{editDados:{...item.editDados,condicao:e.target.value}})} style={S.input}>
+                              {CONDICOES.map(c=><option key={c}>{c}</option>)}
+                            </select>
+                          </div>
+                        </div>
+                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:8}}>
+                          <div>
+                            <label style={S.label}>Preço R$</label>
+                            <input type="number" value={item.editDados.preco} onChange={e=>updItem(item.id,{editDados:{...item.editDados,preco:Number(e.target.value)}})} style={S.input}/>
+                          </div>
+                        </div>
+                        <label style={S.label}>Descrição</label>
+                        <textarea value={item.editDados.descricao} rows={2} onChange={e=>updItem(item.id,{editDados:{...item.editDados,descricao:e.target.value}})} style={{...S.input,resize:'vertical',marginBottom:8}}/>
+                        <label style={S.label}>Hashtags</label>
+                        <input value={item.editDados.hashtags} onChange={e=>updItem(item.id,{editDados:{...item.editDados,hashtags:e.target.value}})} style={{...S.input,marginBottom:10}}/>
+                      </div>
+                      {item.status!=='publicado'&&(
+                        <button onClick={()=>publicarItem(item.id)} disabled={item.status==='publicando'} style={{...S.btn,width:'100%',justifyContent:'center',padding:'10px',fontSize:14,background:item.status==='publicando'?'var(--surface2)':'var(--red)',color:item.status==='publicando'?'var(--muted)':'#fff',border:'none',borderRadius:4}}>
+                          {item.status==='publicando'?'⏳ Publicando...':'🚀 Publicar este produto'}
+                        </button>
+                      )}
+                      {item.status==='publicado'&&<div style={{textAlign:'center',color:'var(--green)',fontSize:13,fontWeight:700,padding:'8px'}}>✔ Publicado com sucesso!</div>}
+                    </>
+                  ) : item.status==='pronto' ? (
+                    <div style={{textAlign:'center',padding:'8px'}}>
+                      <button onClick={async(e)=>{e.stopPropagation();updItem(item.id,{status:'aguardando'});await analisarTodos();}} style={{...S.btn,fontSize:12,background:'rgba(168,85,247,.15)',color:'var(--purple)',border:'1px solid rgba(168,85,247,.3)'}}>🤖 Identificar este produto</button>
+                    </div>
+                  ) : null}
+
+                  {/* Mini log */}
+                  {item.log?.length>0&&(
+                    <div style={{marginTop:10,padding:'8px',background:'var(--bg3)',borderRadius:4,maxHeight:80,overflowY:'auto'}}>
+                      {item.log.map((l,i)=>(
+                        <div key={i} style={{fontSize:10,color:logColor[l.tipo]||'var(--dim)',fontFamily:'Share Tech Mono, monospace',marginBottom:1}}>{l.ts} {l.msg}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Resumo */}
+      {fila.length>0&&(
+        <div style={{marginTop:16,display:'flex',gap:12,flexWrap:'wrap',fontSize:12,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>
+          <span>{fila.length} fotos · </span>
+          <span style={{color:'var(--cyan)'}}>{prontos.length} prontas</span>
+          <span> · </span>
+          <span style={{color:'var(--green)'}}>{publicados.length} publicadas</span>
+          {!MAKE_WEBHOOK&&<span style={{color:'var(--gold)'}}> · ⚠ Instagram inativo (configure webhook em Config)</span>}
+        </div>
+      )}
+    </div>
+  );
+};
+
+
+
 const NAV = [
   { id:'dashboard',  label:'Dashboard',   icon:'🏰' },
+  { id:'publicar',   label:'Publicar',    icon:'⚡' },
   { id:'produtos',   label:'Produtos',    icon:'🗡️' },
   { id:'pedidos',    label:'Pedidos',     icon:'💳' },
   { id:'clientes',   label:'Clientes',    icon:'👥' },
@@ -3495,6 +3982,7 @@ const App = () => {
         </div>
         <div className="ng-content" style={S.content}>
           {tab==='dashboard' && <Dashboard produtos={produtos} visitas={visitas} />}
+          {tab==='publicar'  && <PublicarPage />}
           {tab==='produtos'  && <ProductsPage produtos={produtos} reload={loadProdutos} />}
           {tab==='pedidos'   && <PedidosPage />}
           {tab==='clientes'  && <ClientesPage />}
