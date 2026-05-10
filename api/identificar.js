@@ -10,8 +10,12 @@ export default async function handler(req, res) {
     const { image_base64, media_type } = req.body;
     if (!image_base64) return res.status(400).json({ error: 'image_base64 required' });
 
-    const LLM7_KEY        = 'Rc6MuE7et9Jag0NJikxewuUQFNyZGDNkeNgVvtqF/5HbGxvPXr8GVUzL1dugt8pSCNxqWn8nFtut9sXatf8PKRraUzlyXK1uPLoWvpHmST9QmDOs3UPMgx6OfHeSK23jwA==';
-    const SILICONFLOW_KEY = 'sk-sztmuozixqhxpkmwcvufotslcqrvdzupjtkjdrzbjtitblii';
+    // AURORA (VPS) - Prioridade Máxima
+    const AURORA_URL = 'http://2.24.217.31:8008/v1/chat/completions';
+    const SESSION_TOKEN = process.env.CHATGPT_SESSION_TOKEN; // Pegar do Vercel
+
+    // GEMINI - Fallback Grátis
+    const GEMINI_KEY = process.env.GEMINI_API_KEY;
 
     const PROMPT = `Você é um vendedor expert em games usados do Brasil. Analise a foto e responda APENAS JSON válido, sem markdown:
 {"nome":"nome exato e completo do jogo/produto (ex: The Legend of Zelda: Breath of the Wild)","console":"PS5|PS4|Nintendo Switch|Nintendo 3DS|Retrô|Pokémon TCG|Acessórios","condicao":"Novo|Seminovo|Usado","preco":preço inteiro em reais baseado no mercado brasileiro atual,"descricao":"descrição ESPECÍFICA e persuasiva: mencione o nome do jogo, gênero exato, destaques únicos do título e estado de conservação. Máx 150 chars. NUNCA use frases genéricas como 'ideal para fãs' ou 'aventuras e desafios'.","hashtags":"10 hashtags específicos do jogo+console separados por espaço"}
@@ -19,109 +23,74 @@ Regras: identifique o título exato pela capa. Se seminovo/usado mencione conser
 
     const imageUrl = `data:${media_type || 'image/jpeg'};base64,${image_base64}`;
 
-    // ── 1. LLM7.io ──
-    if (LLM7_KEY) {
+    // ── 1. Tentar via Aurora (ChatGPT Plus do dono) ──
+    if (SESSION_TOKEN) {
       try {
-        console.log('Trying LLM7.io...');
-
-        const resp = await fetch('https://api.llm7.io/openai/v1/chat/completions', {
+        console.log('Trying Aurora (ChatGPT Plus)...');
+        const resp = await fetch(AURORA_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${LLM7_KEY}`
+            'Authorization': `Bearer ${SESSION_TOKEN}`
           },
           body: JSON.stringify({
-            model: 'gpt-4o-mini',
+            model: 'gpt-4o', // Usando o melhor do Plus
             messages: [{
               role: 'user',
               content: [
-                {
-                  type: 'image_url',
-                  image_url: {
-                    url: imageUrl
-                  }
-                },
-                {
-                  type: 'text',
-                  text: PROMPT
-                },
+                { type: 'text', text: PROMPT },
+                { type: 'image_url', image_url: { url: imageUrl } }
               ]
             }],
           }),
         });
 
-        const raw = await resp.text();
-        console.log(raw);
-
-        const data = JSON.parse(raw);
-
-        if (data.error) throw new Error(JSON.stringify(data.error));
-
-        const text = data.choices?.[0]?.message?.content || '';
-        const clean = text.replace(/```json|```/g, '').trim();
-        const parsed = JSON.parse(clean);
-
-        console.log('Success via LLM7.io');
-        return res.status(200).json(parsed);
-
+        const data = await resp.json();
+        if (data.choices && data.choices[0]) {
+          const text = data.choices[0].message.content;
+          const clean = text.replace(/```json|```/g, '').trim();
+          const parsed = JSON.parse(clean);
+          console.log('Success via Aurora');
+          return res.status(200).json(parsed);
+        }
+        throw new Error('Aurora response invalid');
       } catch (e) {
-        console.log('LLM7.io failed:', e.message);
+        console.log('Aurora failed:', e.message);
       }
     }
 
-    // ── 2. SiliconFlow ──
-    if (SILICONFLOW_KEY) {
+    // ── 2. Fallback Gemini Flash (Grátis) ──
+    if (GEMINI_KEY) {
       try {
-        console.log('Trying SiliconFlow...');
+        console.log('Trying Gemini Fallback...');
+        const resp = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{
+                parts: [
+                  { inline_data: { mime_type: media_type || 'image/jpeg', data: image_base64 } },
+                  { text: PROMPT },
+                ],
+              }],
+            }),
+          }
+        );
 
-        const resp = await fetch('https://api.siliconflow.cn/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${SILICONFLOW_KEY}`
-          },
-          body: JSON.stringify({
-            model: 'Qwen/Qwen2.5-VL-7B-Instruct',
-            messages: [{
-              role: 'user',
-              content: [
-                {
-                  type: 'image_url',
-                  image_url: {
-                    url: imageUrl
-                  }
-                },
-                {
-                  type: 'text',
-                  text: PROMPT
-                },
-              ]
-            }],
-          }),
-        });
-
-        const raw = await resp.text();
-        console.log(raw);
-
-        const data = JSON.parse(raw);
-
-        if (data.error) throw new Error(JSON.stringify(data.error));
-
-        const text = data.choices?.[0]?.message?.content || '';
+        const data = await resp.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
         const clean = text.replace(/```json|```/g, '').trim();
         const parsed = JSON.parse(clean);
-
-        console.log('Success via SiliconFlow');
+        console.log('Success via Gemini');
         return res.status(200).json(parsed);
-
       } catch (e) {
-        console.log('SiliconFlow failed:', e.message);
+        console.log('Gemini failed:', e.message);
       }
     }
 
-    return res.status(500).json({
-      error: 'Todos os provedores falharam.'
-    });
+    return res.status(500).json({ error: 'Todos os provedores falharam.' });
 
   } catch (e) {
     return res.status(500).json({ error: e.message || String(e) });
