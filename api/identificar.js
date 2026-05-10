@@ -13,9 +13,9 @@ export default async function handler(req, res) {
     const GROQ_KEY       = process.env.GROQ_API_KEY;
     const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY;
 
-    const PROMPT = `Você é um especialista em games e retrogaming brasileiro. Analise esta foto de produto e responda APENAS um JSON válido, sem markdown, sem explicações:
-{"nome":"nome completo do produto","console":"um de: PS5, PS4, Nintendo Switch, Nintendo 3DS, Retrô, Pokémon TCG, Acessórios","condicao":"um de: Novo, Seminovo, Usado","preco":número inteiro sugerido em reais,"descricao":"descrição de venda atrativa em português, máx 150 chars","hashtags":"10 hashtags relevantes separadas por espaço, ex: #ps4 #games"}
-Se não reconhecer, chute o mais próximo possível.`;
+    const PROMPT = `Você é um vendedor expert em games usados do Brasil. Analise a foto e responda APENAS JSON válido, sem markdown:
+{"nome":"nome exato e completo do jogo/produto (ex: The Legend of Zelda: Breath of the Wild)","console":"PS5|PS4|Nintendo Switch|Nintendo 3DS|Retrô|Pokémon TCG|Acessórios","condicao":"Novo|Seminovo|Usado","preco":preço inteiro em reais baseado no mercado brasileiro atual,"descricao":"descrição ESPECÍFICA e persuasiva: mencione o nome do jogo, gênero exato, destaques únicos do título e estado de conservação. Máx 150 chars. NUNCA use frases genéricas como 'ideal para fãs' ou 'aventuras e desafios'.","hashtags":"10 hashtags específicos do jogo+console separados por espaço"}
+Regras: identifique o título exato pela capa. Se seminovo/usado mencione conservação. Preço justo de mercado BR.`;
 
     const imageUrl = `data:${media_type || 'image/jpeg'};base64,${image_base64}`;
 
