@@ -89,13 +89,9 @@ def notificar_whatsapp(msg):
 
 @app.route('/atualizar-token', methods=['POST', 'OPTIONS'])
 def atualizar_token():
-    # CORS para o admin.html
+    # OPTIONS agora é tratado pelo Nginx ou de forma simples aqui sem headers duplicados
     if request.method == 'OPTIONS':
-        resp = app.make_default_options_response()
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type, X-Admin-Key'
-        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
-        return resp
+        return '', 204
 
     # Autenticação
     key = request.headers.get('X-Admin-Key', '')
@@ -115,14 +111,12 @@ def atualizar_token():
 
     log.info(f'Chat2API: {"✅" if ok_chat2api else "❌"} | Arquivo: {"✅" if ok_arquivo else "❌"}')
 
-    resp = jsonify({
+    return jsonify({
         'ok': True,
         'chat2api': ok_chat2api,
         'arquivo': ok_arquivo,
         'timestamp': datetime.now().isoformat(),
     })
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    return resp
 
 @app.route('/status-token', methods=['GET'])
 def status_token():
