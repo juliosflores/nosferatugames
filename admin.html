@@ -3,10 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
 <title>Admin — Nosferatu Games</title>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Press+Start+2P&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -20,11 +23,14 @@
   --cyan:#00FFFF;--amber:#F5A800;
 }
 html,body,#root{height:100%}
-body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;overflow:hidden}
-::-webkit-scrollbar{width:6px;height:6px}
+* { touch-action:manipulation; }
+body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;overflow:hidden;-webkit-tap-highlight-color:transparent;}
+::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:var(--bg2)}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 input,select,textarea,button{font-family:'Rajdhani',sans-serif}
+input::placeholder,textarea::placeholder{color:var(--muted);opacity:1}
+select option{background:var(--bg3);color:var(--text)}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 @keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
@@ -35,7 +41,7 @@ input,select,textarea,button{font-family:'Rajdhani',sans-serif}
   .ng-sidebar{
     position:fixed!important;top:0;left:0;bottom:0;z-index:500;
     transform:translateX(-100%);transition:transform .25s ease;
-    width:240px!important;
+    width:260px!important;
   }
   .ng-sidebar.open{transform:translateX(0)!important;}
   .ng-overlay{display:block!important;}
@@ -43,6 +49,7 @@ input,select,textarea,button{font-family:'Rajdhani',sans-serif}
   .ng-content{padding:12px!important;}
   .ng-grid4{grid-template-columns:1fr 1fr!important;}
   .ng-grid2{grid-template-columns:1fr!important;}
+  .ng-grid2-form{grid-template-columns:1fr!important;}
   .ng-grid3{grid-template-columns:1fr!important;}
   .ng-topbar-date{display:none!important;}
   .ng-hamburger{display:flex!important;}
@@ -135,13 +142,13 @@ const S = {
   sidebar: { width:220, background:'var(--bg2)', borderRight:'1px solid var(--border-r)', display:'flex', flexDirection:'column', flexShrink:0 },
   main:    { flex:1, overflow:'auto', background:'var(--bg)', display:'flex', flexDirection:'column' },
   topbar:  { height:56, background:'var(--bg2)', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', padding:'0 24px', gap:12, flexShrink:0 },
-  content: { flex:1, padding:24, overflow:'auto' },
+  content: { flex:1, padding:24, overflow:'auto', WebkitOverflowScrolling:'touch' },
   card:    { background:'var(--surface)', border:'1px solid var(--border)', borderRadius:6, padding:20 },
   grid4:   { display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))', gap:16, marginBottom:24 },
   grid2:   { display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginBottom:24 },
   grid3:   { display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:16, marginBottom:24 },
   label:   { display:'block', fontSize:12, fontWeight:600, letterSpacing:'0.1em', color:'var(--dim)', textTransform:'uppercase', marginBottom:6, fontFamily:'Share Tech Mono, monospace' },
-  input:   { width:'100%', padding:'9px 12px', background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:4, color:'var(--text)', fontSize:15, outline:'none' },
+  input:   { width:'100%', padding:'9px 12px', background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:4, color:'var(--text)', fontSize:16, outline:'none' },
   btn:     { padding:'9px 18px', borderRadius:4, border:'none', cursor:'pointer', fontWeight:700, fontSize:14, letterSpacing:'0.05em', display:'inline-flex', alignItems:'center', gap:6, transition:'all 0.15s' },
   tag:     (c) => ({ padding:'2px 8px', borderRadius:2, fontSize:11, fontWeight:700, fontFamily:'Share Tech Mono, monospace', background:c==='Novo'?'rgba(74,222,128,.15)':c==='Seminovo'?'rgba(168,85,247,.15)':'rgba(255,184,0,.15)', color:c==='Novo'?'#4ade80':c==='Seminovo'?'var(--purple)':'var(--gold)', border:`1px solid ${c==='Novo'?'#166534':c==='Seminovo'?'#4c1d95':'#713f12'}` }),
 };
@@ -149,7 +156,7 @@ const S = {
 const Btn = ({children, color='red', onClick, disabled, style={}}) => {
   const colors = { red:{bg:'var(--red)',c:'#fff'}, ghost:{bg:'transparent',c:'var(--dim)'}, green:{bg:'rgba(37,211,102,.15)',c:'var(--green)'}, purple:{bg:'rgba(168,85,247,.15)',c:'var(--purple)'}, gold:{bg:'rgba(255,184,0,.15)',c:'var(--gold)'}, danger:{bg:'rgba(204,20,20,.15)',c:'var(--red-b)'}, cyan:{bg:'rgba(0,255,255,.1)',c:'var(--cyan)'} };
   const cv = colors[color]||colors.ghost;
-  return <button disabled={disabled} onClick={onClick} style={{...S.btn, background:cv.bg, color:cv.c, opacity:disabled?.5:1, ...style}}>{children}</button>;
+  return <button disabled={disabled} onClick={onClick} style={{...S.btn, background:cv.bg, color:cv.c, opacity:disabled?.5:1, cursor:disabled?'not-allowed':'pointer', ...style}}>{children}</button>;
 };
 
 const Input = ({label, ...props}) => (
@@ -175,7 +182,7 @@ const StatCard = ({label, value, sub, color='var(--red-b)', icon}) => (
     <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
       <div>
         <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--muted)',letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:6}}>{label}</div>
-        <div style={{fontFamily:'Press Start 2P, monospace',fontSize:22,color}}>{value}</div>
+        <div style={{fontFamily:'Press Start 2P, monospace',fontSize:18,color,wordBreak:'break-all'}}>{value}</div>
         {sub && <div style={{fontSize:13,color:'var(--muted)',marginTop:4}}>{sub}</div>}
       </div>
       {icon && <div style={{fontSize:28,opacity:.5}}>{icon}</div>}
@@ -193,6 +200,8 @@ const Login = ({onLogin}) => {
   const [err,setErr]   = useState('');
   const [loading,setLoading] = useState(false);
   const [show,setShow] = useState(false);
+  const [attempts,setAttempts] = useState(0);
+  const [locked,setLocked] = useState(false);
 
   // Hash djb2 da senha — pré-calculado, a senha NUNCA aparece no código
   // Para gerar novo hash: cole no console do browser:
@@ -211,7 +220,7 @@ const Login = ({onLogin}) => {
 
   const submit = async (e) => {
     e.preventDefault();
-    if (loading) return;
+    if (loading || locked) return;
     setLoading(true); setErr('');
 
     // Tenta API serverless primeiro (Vercel com functions)
@@ -243,7 +252,10 @@ const Login = ({onLogin}) => {
         sessionStorage.setItem('ng_admin_token', 'local-' + Date.now());
         onLogin();
       } else {
-        setErr('Senha incorreta');
+        const att2 = attempts+1; setAttempts(att2);
+        const rem = 5-att2;
+        setErr(att2>=5 ? 'Muitas tentativas. Aguarde 60s.' : 'Senha incorreta' + (att2>=3 ? ' ('+rem+' restantes)' : ''));
+        if(att2>=5){setLocked(true);setTimeout(()=>{setLocked(false);setAttempts(0);},60000);}
       }
     }
     setLoading(false);
@@ -258,11 +270,11 @@ const Login = ({onLogin}) => {
         </div>
         <form onSubmit={submit}>
           <div style={{position:'relative',marginBottom:8}}>
-            <input type={show?'text':'password'} placeholder="Senha" value={pwd} onChange={e=>{setPwd(e.target.value);setErr('')}} style={{...S.input,paddingRight:44}} autoFocus />
+            <input id="ng-pwd" type={show?'text':'password'} placeholder="Senha" value={pwd} onChange={e=>{setPwd(e.target.value);setErr('')}} style={{...S.input,paddingRight:44}} autoFocus autoComplete="current-password" />
             <button type="button" onClick={()=>setShow(s=>!s)} style={{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',color:'var(--dim)',cursor:'pointer',fontSize:16}}>{show?'🙈':'👁'}</button>
           </div>
           {err && <div style={{color:'var(--red-b)',fontSize:13,marginBottom:10,fontFamily:'Share Tech Mono, monospace'}}>✕ {err}</div>}
-          <Btn style={{width:'100%',justifyContent:'center',marginTop:4}} disabled={loading}>{loading?'Validando...':'Entrar'}</Btn>
+          <Btn style={{width:'100%',justifyContent:'center',marginTop:4}} disabled={loading||locked}>{loading?'Validando...':locked?'Aguarde 60s...':'Entrar'}</Btn>
         </form>
       </div>
     </div>
@@ -3004,7 +3016,7 @@ const LogPage = () => {
 
 // ── Photo Studio ─────────────────────────────────────────────
 const PhotoStudioPage = () => {
-  const REMOVEBG_KEY = 'bLTvxEPqTP8tW7wvU5wvuHJx';
+  const REMOVEBG_KEY = localStorage.getItem('ng_removebg_key') || 'bLTvxEPqTP8tW7wvU5wvuHJx';
 
   const PRESETS = {
     jogo:      { label:'Jogo',      w:800,  h:800,  desc:'Capa de jogo — quadrado 1:1' },
@@ -3268,7 +3280,7 @@ const PhotoStudioPage = () => {
         <div style={{fontSize:14,color:'var(--muted)'}}>Remove fundo · Aplica tema · Logo · Exporta no tamanho certo</div>
       </div>
 
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))',gap:16}}>
 
         {/* COLUNA ESQUERDA — Controles */}
         <div style={{display:'flex',flexDirection:'column',gap:14}}>
@@ -3423,7 +3435,7 @@ const PhotoStudioPage = () => {
 
 // ── Publicar Produto v2 — Fila + Auto-correção + Studio ──────
 const PublicarPage = () => {
-  const REMOVEBG_KEY  = 'bLTvxEPqTP8tW7wvU5wvuHJx';
+  const REMOVEBG_KEY  = localStorage.getItem('ng_removebg_key') || 'bLTvxEPqTP8tW7wvU5wvuHJx';
   const MAKE_WEBHOOK  = localStorage.getItem('ng_make_webhook') || '';
 
   const BG_THEMES = {
@@ -3624,22 +3636,14 @@ const PublicarPage = () => {
       try {
         const toB64=(f)=>new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(f);});
         const b64=await toB64(item.file);
-        const resp=await fetch('https://api.anthropic.com/v1/messages',{
+        // Chama Vercel Function (mesmo domínio, sem CORS)
+        const resp=await fetch('/api/identificar',{
           method:'POST',
           headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({
-            model:'claude-sonnet-4-20250514',
-            max_tokens:1000,
-            messages:[{role:'user',content:[
-              {type:'image',source:{type:'base64',media_type:item.file.type||'image/jpeg',data:b64}},
-              {type:'text',text:`Analise esta foto de produto de games e responda APENAS JSON válido sem markdown:
-{"nome":"nome completo","console":"PS5|PS4|Nintendo Switch|Nintendo 3DS|Retrô|Pokémon TCG|Acessórios","condicao":"Novo|Seminovo|Usado","preco":número inteiro em reais,"descricao":"descrição de venda atrativa máx 150 chars","hashtags":"10 hashtags sem espaço separadas por espaço"}`
-            }]}]
-          })
+          body:JSON.stringify({image_base64:b64,media_type:item.file.type||'image/jpeg'})
         });
-        const data=await resp.json();
-        const text=data.content?.find(b=>b.type==='text')?.text||'';
-        const parsed=JSON.parse(text.replace(/```json|```/g,'').trim());
+        const parsed=await resp.json();
+        if(parsed.error) throw new Error(parsed.error);
         updItem(item.id,{dados:parsed,editDados:{...parsed}});
         addLog(item.id,`✔ ${parsed.nome} · R$${parsed.preco}`,'ok');
       } catch(e) {
@@ -3918,7 +3922,7 @@ const App = () => {
   },[]);
 
   const loadProdutos = useCallback(async () => {
-    try { setProdutos(await supa('produtos?order=created_at.desc&limit=200')||[]); } catch(e){ console.error(e); }
+    try { setProdutos(await supa('produtos?select=id,nome,console,preco,condicao,imagens,ativo,vendido,destaque,frete_gratis,viewed_count,created_at,whatsapp&order=created_at.desc&limit=200')||[]); } catch(e){ console.error(e); }
   },[]);
   const loadVisitas = useCallback(async () => {
     try { setVisitas(await supa('visitas?order=created_at.desc&limit=500')||[]); } catch {}
@@ -3932,6 +3936,21 @@ const App = () => {
   },[auth]);
 
   const logout = () => { sessionStorage.removeItem('ng_admin_token'); setAuth(false); };
+
+  // Auto-logout após 8h de inatividade
+  useEffect(() => {
+    if (!auth) return;
+    const KEY = 'ng_last_activity';
+    const update = () => sessionStorage.setItem(KEY, Date.now());
+    const check = () => {
+      const last = Number(sessionStorage.getItem(KEY)||0);
+      if (last && Date.now() - last > 8*60*60*1000) logout();
+    };
+    update();
+    ['click','keydown','touchstart'].forEach(e=>window.addEventListener(e,update,{passive:true}));
+    const t = setInterval(check, 60000);
+    return () => { clearInterval(t); ['click','keydown','touchstart'].forEach(e=>window.removeEventListener(e,update)); };
+  },[auth]);
 
   if (!auth) return <Login onLogin={()=>setAuth(true)} />;
 
@@ -3953,7 +3972,7 @@ const App = () => {
 
       {/* Sidebar */}
       <div className={`ng-sidebar${sidebarOpen?' open':''}`} style={S.sidebar}>
-        <div style={{padding:'20px 16px 16px',borderBottom:'1px solid var(--border)'}}>
+        <div style={{padding:'14px 12px 12px',borderBottom:'1px solid var(--border)'}}>
           <div style={{fontFamily:'Press Start 2P, monospace',fontSize:9,color:'var(--red-b)',lineHeight:1.8,textShadow:'0 0 10px rgba(204,20,20,.5)'}}>🏰 NOSFERATU</div>
           <div style={{fontFamily:'Rajdhani, sans-serif',fontSize:10,color:'var(--gold)',letterSpacing:'0.2em'}}>ADMIN PANEL</div>
         </div>
@@ -3964,9 +3983,9 @@ const App = () => {
             </button>
           ))}
         </nav>
-        <div style={{padding:12,borderTop:'1px solid var(--border)'}}>
-          <a href="index.html" target="_blank" style={{...S.btn,justifyContent:'center',width:'100%',background:'rgba(37,211,102,.1)',border:'1px solid rgba(37,211,102,.3)',color:'var(--green)',textDecoration:'none',marginBottom:6,fontSize:13}}>↗ Ver site</a>
-          <button onClick={logout} style={{...S.btn,justifyContent:'center',width:'100%',background:'transparent',border:'1px solid var(--border)',color:'var(--muted)',fontSize:13}}>Sair</button>
+        <div style={{padding:'8px 10px',borderTop:'1px solid var(--border)'}}>
+          <a href="index.html" target="_blank" style={{...S.btn,justifyContent:'center',width:'100%',background:'rgba(37,211,102,.1)',border:'1px solid rgba(37,211,102,.3)',color:'var(--green)',textDecoration:'none',marginBottom:4,fontSize:11,padding:'6px 10px'}}>↗ Ver site</a>
+          <button onClick={logout} style={{...S.btn,justifyContent:'center',width:'100%',background:'transparent',border:'1px solid var(--border)',color:'var(--muted)',fontSize:11,padding:'6px 10px'}}>Sair</button>
         </div>
       </div>
 
@@ -3976,8 +3995,8 @@ const App = () => {
           <button className="ng-hamburger" onClick={()=>setSidebarOpen(s=>!s)}>☰</button>
           <div className="ng-topbar-date" style={{flex:1,fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--muted)'}}>{new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})}</div>
           <button onClick={()=>setBuscaAberta(true)} style={{...S.btn,padding:'5px 12px',fontSize:12,background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--muted)',gap:6}}>🔍 <span style={{fontFamily:'Share Tech Mono, monospace',fontSize:10}}>Ctrl+K</span></button>
-          <div style={{fontSize:12,color:'var(--dim)',textAlign:'right'}}>
-            <span style={{color:'#4ade80',fontSize:10}}>●</span> {produtos.filter(p=>p.ativo!==false&&!p.vendido).length} ativos · {visitas.filter(v=>new Date(v.created_at).toDateString()===new Date().toDateString()).length} visitas hoje
+          <div style={{fontSize:11,color:'var(--dim)',textAlign:'right',whiteSpace:'nowrap'}}>
+            <span style={{color:'#4ade80',fontSize:10}}>●</span> {produtos.filter(p=>p.ativo!==false&&!p.vendido).length} ativos · {visitas.filter(v=>new Date(v.created_at).toDateString()===new Date().toDateString()).length} hoje
           </div>
         </div>
         <div className="ng-content" style={S.content}>
