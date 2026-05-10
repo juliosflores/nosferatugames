@@ -27,6 +27,7 @@ CREATE POLICY "select_visita_admin" ON visitas
 -- 3. Adicionar campo vendido e viewed_count na tabela produtos (se não existir)
 ALTER TABLE produtos ADD COLUMN IF NOT EXISTS vendido      boolean DEFAULT false;
 ALTER TABLE produtos ADD COLUMN IF NOT EXISTS viewed_count integer DEFAULT 0;
+ALTER TABLE produtos ADD COLUMN IF NOT EXISTS whatsapp     text    DEFAULT '5551996979032';
 
 -- 4. Função para incrementar visualizações de produto
 CREATE OR REPLACE FUNCTION incrementar_views(pid uuid)
