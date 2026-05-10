@@ -1352,6 +1352,10 @@ function calcularDesconto(subtotal) {
   return 0;
 }
 
+// ── Carrinho ──────────────────────────────────────────────────
+let meuCarrinho = [];
+try { meuCarrinho = JSON.parse(localStorage.getItem('ng_cart')||'[]'); } catch(e) {}
+
 function salvarCarrinho() { localStorage.setItem('ng_cart', JSON.stringify(meuCarrinho)); atualizarBadgeCarrinho(); }
 function atualizarBadgeCarrinho() {
   const badge = document.getElementById('cartBadge');
