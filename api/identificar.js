@@ -17,24 +17,17 @@ export default async function handler(req, res) {
       if (tokenResp.ok) {
         accessToken = (await tokenResp.text()).trim();
       }
-    } catch (e) {
-      console.error('Erro ao ler token da VPS:', e.message);
-    }
+    } catch (e) {}
 
-    if (!accessToken) {
-       accessToken = process.env.CHATGPT_ACCESS_TOKEN || '';
-    }
+    if (!accessToken) accessToken = process.env.CHATGPT_ACCESS_TOKEN || '';
 
     const CHAT2API_URL = 'https://hermes.nosferatugames.com.br/chat2api/v1/chat/completions';
     
-    const PROMPT = `Você é um vendedor expert em games usados do Brasil. Analise a foto e responda APENAS JSON válido:
-{"nome":"nome do jogo","console":"PS5|PS4|Switch|3DS|Retrô|Pokémon|Acessórios","condicao":"Novo|Seminovo|Usado","preco":preço_reais,"descricao":"descrição persuasiva","hashtags":"hashtags"}
-Regras: responda APENAS o objeto JSON. Nada de explicações fora do JSON.`;
-
-    const imageUrl = `data:${media_type || 'image/jpeg'};base64,${image_base64}`;
+    const PROMPT = `Você é um vendedor expert em games. Analise a foto e responda EXATAMENTE neste formato JSON:
+{"nome":"...","console":"...","condicao":"...","preco":0,"descricao":"...","hashtags":"..."}
+Responda APENAS o JSON, sem mais nada.`;
 
     try {
-      console.log('Iniciando requisição ao Chat2API...');
       const resp = await fetch(CHAT2API_URL, {
         method: 'POST',
         headers: {
@@ -47,7 +40,7 @@ Regras: responda APENAS o objeto JSON. Nada de explicações fora do JSON.`;
             role: 'user',
             content: [
               { type: 'text', text: PROMPT },
-              { type: 'image_url', image_url: { url: imageUrl } }
+              { type: 'image_url', image_url: { url: `data:${media_type || 'image/jpeg'};base64,${image_base64}` } }
             ]
           }],
         }),
@@ -56,33 +49,29 @@ Regras: responda APENAS o objeto JSON. Nada de explicações fora do JSON.`;
       if (resp.ok) {
         const data = await resp.json();
         const text = data.choices?.[0]?.message?.content || '';
-        console.log('Resposta bruta da IA:', text);
-
+        
+        // Tenta limpar e parsear
         try {
-          // Extrair JSON mesmo que tenha texto em volta
           const jsonMatch = text.match(/\{[\s\S]*\}/);
           if (jsonMatch) {
             const parsed = JSON.parse(jsonMatch[0]);
-            console.log('JSON processado com sucesso!');
             return res.status(200).json(parsed);
           }
-        } catch (parseErr) {
-          console.error('Erro ao parsear JSON da IA:', parseErr.message);
+        } catch (e) {
+          // Se falhar o parse, retorna o texto bruto para debug
+          return res.status(200).json({ debug: true, raw: text });
         }
       } else {
-        const errText = await resp.text();
-        console.error('Chat2API recusou a chamada:', resp.status, errText);
+         const err = await resp.text();
+         return res.status(500).json({ error: 'Erro Chat2API: ' + resp.status, detail: err });
       }
     } catch (e) {
-      console.error('Chat2API falha crítica:', e.message);
+      return res.status(500).json({ error: 'Falha conexão: ' + e.message });
     }
 
-    // FALLBACK GEMINI
-    // ... (restante do código omitido para brevidade, mas mantido no arquivo real)
-
-    return res.status(500).json({ error: 'Falha na identificação. Tente novamente.' });
+    return res.status(500).json({ error: 'Falha geral.' });
 
   } catch (e) {
-    return res.status(500).json({ error: e.message || String(e) });
+    return res.status(500).json({ error: e.message });
   }
 }
