@@ -67,8 +67,11 @@ select option{background:var(--bg3);color:var(--text)}
 const { useState, useEffect, useCallback, useRef } = React;
 
 // ── Config ───────────────────────────────────────────────────
-if (!localStorage.getItem('ng_cloud_name'))    localStorage.setItem('ng_cloud_name',    'ddaadz8ut');
-if (!localStorage.getItem('ng_upload_preset')) localStorage.setItem('ng_upload_preset', 'ytsmjllb');
+// Garante valores corretos sempre (sobrescreve se corrompido)
+const _cn = localStorage.getItem('ng_cloud_name');
+const _up = localStorage.getItem('ng_upload_preset');
+if (!_cn || _cn.length < 6)    localStorage.setItem('ng_cloud_name',    'ddaadz8ut');
+if (!_up || _up.length < 6)    localStorage.setItem('ng_upload_preset', 'ytsmjllb');
 
 const SUPA_URL  = 'https://jcnncmfbodglvoyytgok.supabase.co';
 const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impjbm5jbWZib2RnbHZveXl0Z29rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MTg0NDgsImV4cCI6MjA5MTE5NDQ0OH0.YpStoaxT86MQY06KiKVhUXdlcF-CVsu4DOFuUTLv4u0';
@@ -112,8 +115,8 @@ const registrarLog = (acao, tabela, detalhe) => {
 };
 
 const cloudUpload = async (file) => {
-  const cloud  = localStorage.getItem('ng_cloud_name');
-  const preset = localStorage.getItem('ng_upload_preset');
+  const cloud  = localStorage.getItem('ng_cloud_name')  || 'ddaadz8ut';
+  const preset = localStorage.getItem('ng_upload_preset')|| 'ytsmjllb';
   if (!cloud||!preset) throw new Error('Configure Cloudinary nas Configurações');
   const fd = new FormData();
   fd.append('file', file); fd.append('upload_preset', preset); fd.append('folder', 'nosferatu-games');
