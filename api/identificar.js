@@ -22,21 +22,31 @@ Se não reconhecer, chute o mais próximo possível.`;
     const PROVIDERS = [
       // 1. Groq — mais rápido, gratuito
       ...(GROQ_KEY ? [{
-        name: 'Groq',
+        name: 'Groq Llama4',
         url: 'https://api.groq.com/openai/v1/chat/completions',
         headers: { 'Authorization': `Bearer ${GROQ_KEY}` },
         model: 'meta-llama/llama-4-scout-17b-16e-instruct',
       }] : []),
-      // 2. OpenRouter fallback
+      // 2. OpenRouter Gemma 4 31B — melhor qualidade free com visão
       ...(OPENROUTER_KEY ? [{
-        name: 'OpenRouter',
+        name: 'OR Gemma4-31B',
         url: 'https://openrouter.ai/api/v1/chat/completions',
-        headers: {
-          'Authorization': `Bearer ${OPENROUTER_KEY}`,
-          'HTTP-Referer': 'https://nosferatugames.vercel.app',
-          'X-Title': 'Nosferatu Games Admin',
-        },
-        model: 'google/gemma-4-26b-a4b:free',
+        headers: { 'Authorization': `Bearer ${OPENROUTER_KEY}`, 'HTTP-Referer': 'https://nosferatugames.vercel.app', 'X-Title': 'Nosferatu Games' },
+        model: 'google/gemma-4-31b-it:free',
+      }] : []),
+      // 3. OpenRouter Gemma 4 26B MoE
+      ...(OPENROUTER_KEY ? [{
+        name: 'OR Gemma4-26B',
+        url: 'https://openrouter.ai/api/v1/chat/completions',
+        headers: { 'Authorization': `Bearer ${OPENROUTER_KEY}`, 'HTTP-Referer': 'https://nosferatugames.vercel.app', 'X-Title': 'Nosferatu Games' },
+        model: 'google/gemma-4-26b-a4b-it:free',
+      }] : []),
+      // 4. OpenRouter NVIDIA visão
+      ...(OPENROUTER_KEY ? [{
+        name: 'OR NVIDIA-VL',
+        url: 'https://openrouter.ai/api/v1/chat/completions',
+        headers: { 'Authorization': `Bearer ${OPENROUTER_KEY}`, 'HTTP-Referer': 'https://nosferatugames.vercel.app', 'X-Title': 'Nosferatu Games' },
+        model: 'nvidia/nemotron-nano-12b-v2-vl:free',
       }] : []),
     ];
 
@@ -47,7 +57,7 @@ Se não reconhecer, chute o mais próximo possível.`;
     let lastError = '';
     for (const p of PROVIDERS) {
       try {
-        console.log(`Trying ${p.name} with ${p.model}...`);
+        console.log(`Trying ${p.name}...`);
         const resp = await fetch(p.url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', ...p.headers },
@@ -65,7 +75,11 @@ Se não reconhecer, chute o mais próximo possível.`;
         });
 
         const data = await resp.json();
-        if (data.error) { lastError = data.error.message || JSON.stringify(data.error); console.log(`${p.name} error:`, lastError); continue; }
+        if (data.error) {
+          lastError = `${p.name}: ${data.error.message || JSON.stringify(data.error)}`;
+          console.log(lastError);
+          continue;
+        }
 
         const text = data.choices?.[0]?.message?.content || '';
         const clean = text.replace(/```json|```/g, '').trim();
@@ -74,12 +88,12 @@ Se não reconhecer, chute o mais próximo possível.`;
         return res.status(200).json(parsed);
 
       } catch (e) {
-        lastError = e.message;
-        console.log(`${p.name} threw:`, e.message);
+        lastError = `${p.name}: ${e.message}`;
+        console.log(lastError);
       }
     }
 
-    return res.status(500).json({ error: `Todos os provedores falharam. Último erro: ${lastError}` });
+    return res.status(500).json({ error: `Todos os provedores falharam. Último: ${lastError}` });
 
   } catch (e) {
     return res.status(500).json({ error: e.message || String(e) });
