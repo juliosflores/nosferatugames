@@ -1600,10 +1600,7 @@ function cardHtml(p) {
   const fav       = isFav(p.id);
   const pid       = p.id;
 
-  // Parcelamento (até 12x sem juros se >= R$ 100, senão 6x)
-  const maxParc = precoNum >= 600 ? 12 : precoNum >= 300 ? 6 : precoNum >= 100 ? 3 : 1;
-  const parcela = maxParc > 1 ? (precoNum / maxParc) : 0;
-  const parcelaStr = parcela ? `<strong>${maxParc}x</strong> de R$ ${parcela.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})} <span style="opacity:0.7">sem juros</span>` : '';
+  const parcelaStr = ''; // parcelamento desativado — configurar após definir taxas MP
 
   // Frete grátis acima de R$ 200
   const freteFree = !!p.frete_gratis;
