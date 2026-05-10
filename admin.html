@@ -3591,8 +3591,8 @@ const PublicarPage = () => {
   });
 
   // ── Processar um item da fila (remove.bg + compose) ──────
-  const processarItem = async (id) => {
-    const item = fila.find(x=>x.id===id);
+  const processarItem = async (id, itemDireto) => {
+    const item = itemDireto || fila.find(x=>x.id===id);
     if(!item) return;
     updItem(id,{status:'processando'});
     addLog(id,'🔲 Removendo fundo...','info');
@@ -3701,7 +3701,7 @@ const PublicarPage = () => {
     setFila(f=>[...f,...novos]);
     // Processa automaticamente
     for(const item of novos) {
-      setTimeout(()=>processarItem(item.id),300);
+      setTimeout(()=>processarItem(item.id, item),300);
     }
   };
 
@@ -3957,9 +3957,9 @@ const App = () => {
           <div style={{fontFamily:'Press Start 2P, monospace',fontSize:9,color:'var(--red-b)',lineHeight:1.8,textShadow:'0 0 10px rgba(204,20,20,.5)'}}>🏰 NOSFERATU</div>
           <div style={{fontFamily:'Rajdhani, sans-serif',fontSize:10,color:'var(--gold)',letterSpacing:'0.2em'}}>ADMIN PANEL</div>
         </div>
-        <nav style={{flex:1,padding:12,display:'flex',flexDirection:'column',gap:4}}>
+        <nav style={{flex:1,padding:'8px 8px',display:'flex',flexDirection:'column',gap:2,overflowY:'auto'}}>
           {NAV.map(n=>(
-            <button key={n.id} onClick={()=>{setTab(n.id);closeNav();}} style={{...S.btn,justifyContent:'flex-start',padding:'10px 12px',background:tab===n.id?'rgba(204,20,20,.15)':'transparent',border:`1px solid ${tab===n.id?'rgba(204,20,20,.3)':'transparent'}`,color:tab===n.id?'var(--red-b)':'var(--dim)',borderRadius:4,fontSize:14}}>
+            <button key={n.id} onClick={()=>{setTab(n.id);closeNav();}} style={{...S.btn,justifyContent:'flex-start',padding:'6px 10px',background:tab===n.id?'rgba(204,20,20,.15)':'transparent',border:`1px solid ${tab===n.id?'rgba(204,20,20,.3)':'transparent'}`,color:tab===n.id?'var(--red-b)':'var(--dim)',borderRadius:4,fontSize:12}}>
               <span>{n.icon}</span>{n.label}
             </button>
           ))}
