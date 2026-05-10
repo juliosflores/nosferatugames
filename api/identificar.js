@@ -10,6 +10,7 @@ export default async function handler(req, res) {
     const { image_base64, media_type } = req.body;
     if (!image_base64) return res.status(400).json({ error: 'image_base64 required' });
 
+    const NVIDIA_KEY     = process.env.NVIDIA_API_KEY;
     const GEMINI_KEY     = process.env.GEMINI_API_KEY;
     const GROQ_KEY       = process.env.GROQ_API_KEY;
     const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY;
@@ -20,7 +21,46 @@ Regras: identifique o título exato pela capa. Se seminovo/usado mencione conser
 
     const imageUrl = `data:${media_type || 'image/jpeg'};base64,${image_base64}`;
 
-    // ── 1. Gemini (primário — melhor pra reconhecer capas) ──
+    // ── 1. NVIDIA NIM — melhor visão ──
+    if (NVIDIA_KEY) {
+      try {
+        console.log('Trying NVIDIA NIM...');
+        const resp = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${NVIDIA_KEY}`
+          },
+          body: JSON.stringify({
+            model: 'meta/llama-4-maverick-17b-128e-instruct',
+            max_tokens: 512,
+            temperature: 0.2,
+            messages: [{
+              role: 'user',
+              content: [
+                { type: 'image_url', image_url: { url: imageUrl } },
+                { type: 'text', text: PROMPT },
+              ]
+            }],
+          }),
+        });
+
+        const data = await resp.json();
+        if (data.error) throw new Error(JSON.stringify(data.error));
+
+        const text = data.choices?.[0]?.message?.content || '';
+        const clean = text.replace(/```json|```/g, '').trim();
+        const parsed = JSON.parse(clean);
+
+        console.log('Success via NVIDIA NIM');
+        return res.status(200).json(parsed);
+
+      } catch (e) {
+        console.log('NVIDIA failed:', e.message);
+      }
+    }
+
+    // ── 2. Gemini (primário — melhor pra reconhecer capas) ──
     if (GEMINI_KEY) {
       try {
         console.log('Trying Gemini Flash...');
@@ -40,79 +80,110 @@ Regras: identifique o título exato pela capa. Se seminovo/usado mencione conser
             }),
           }
         );
+
         const data = await resp.json();
         if (data.error) throw new Error(data.error.message);
+
         const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
         const clean = text.replace(/```json|```/g, '').trim();
         const parsed = JSON.parse(clean);
+
         console.log('Success via Gemini');
         return res.status(200).json(parsed);
+
       } catch (e) {
         console.log('Gemini failed:', e.message);
       }
     }
 
-    // ── 2. Groq Llama 4 Scout ──
+    // ── 3. Groq Llama 4 Scout ──
     if (GROQ_KEY) {
       try {
         console.log('Trying Groq...');
         const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_KEY}` },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${GROQ_KEY}`
+          },
           body: JSON.stringify({
             model: 'meta-llama/llama-4-scout-17b-16e-instruct',
             max_tokens: 512,
-            messages: [{ role: 'user', content: [
-              { type: 'image_url', image_url: { url: imageUrl } },
-              { type: 'text', text: PROMPT },
-            ]}],
+            messages: [{
+              role: 'user',
+              content: [
+                { type: 'image_url', image_url: { url: imageUrl } },
+                { type: 'text', text: PROMPT },
+              ]
+            }],
           }),
         });
+
         const data = await resp.json();
         if (data.error) throw new Error(data.error.message);
+
         const text = data.choices?.[0]?.message?.content || '';
         const parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
+
         console.log('Success via Groq');
         return res.status(200).json(parsed);
+
       } catch (e) {
         console.log('Groq failed:', e.message);
       }
     }
 
-    // ── 3. OpenRouter fallbacks ──
+    // ── 4. OpenRouter fallbacks ──
     if (OPENROUTER_KEY) {
       const OR_MODELS = [
         'google/gemma-4-31b-it:free',
         'google/gemma-4-26b-a4b-it:free',
         'nvidia/nemotron-nano-12b-v2-vl:free',
       ];
+
       for (const model of OR_MODELS) {
         try {
           console.log(`Trying OpenRouter ${model}...`);
+
           const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${OPENROUTER_KEY}`, 'HTTP-Referer': 'https://nosferatugames.vercel.app', 'X-Title': 'Nosferatu Games' },
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${OPENROUTER_KEY}`,
+              'HTTP-Referer': 'https://nosferatugames.vercel.app',
+              'X-Title': 'Nosferatu Games'
+            },
             body: JSON.stringify({
-              model, max_tokens: 512,
-              messages: [{ role: 'user', content: [
-                { type: 'image_url', image_url: { url: imageUrl } },
-                { type: 'text', text: PROMPT },
-              ]}],
+              model,
+              max_tokens: 512,
+              messages: [{
+                role: 'user',
+                content: [
+                  { type: 'image_url', image_url: { url: imageUrl } },
+                  { type: 'text', text: PROMPT },
+                ]
+              }],
             }),
           });
+
           const data = await resp.json();
           if (data.error) throw new Error(data.error.message);
+
           const text = data.choices?.[0]?.message?.content || '';
           const parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
+
           console.log(`Success via OpenRouter ${model}`);
           return res.status(200).json(parsed);
+
         } catch (e) {
           console.log(`OpenRouter ${model} failed:`, e.message);
         }
       }
     }
 
-    return res.status(500).json({ error: 'Todos os provedores falharam. Configure GEMINI_API_KEY, GROQ_API_KEY ou OPENROUTER_API_KEY no Vercel.' });
+    return res.status(500).json({
+      error: 'Todos os provedores falharam. Configure NVIDIA_API_KEY, GEMINI_API_KEY, GROQ_API_KEY ou OPENROUTER_API_KEY no Vercel.'
+    });
 
   } catch (e) {
     return res.status(500).json({ error: e.message || String(e) });
