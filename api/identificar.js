@@ -24,26 +24,36 @@ Regras: identifique o título exato pela capa. Se seminovo/usado mencione conser
       try {
         console.log('Trying LLM7.io...');
 
-        const resp = await fetch('https://api.llm7.io/v1/chat/completions', {
+        const resp = await fetch('https://api.llm7.io/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${LLM7_KEY}`
           },
           body: JSON.stringify({
-            model: 'gemini-2.5-flash-lite',
-            max_tokens: 512,
+            model: 'gpt-4o-mini',
             messages: [{
               role: 'user',
               content: [
-                { type: 'image_url', image_url: { url: imageUrl } },
-                { type: 'text', text: PROMPT },
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: imageUrl
+                  }
+                },
+                {
+                  type: 'text',
+                  text: PROMPT
+                },
               ]
             }],
           }),
         });
 
-        const data = await resp.json();
+        const raw = await resp.text();
+        console.log(raw);
+
+        const data = JSON.parse(raw);
 
         if (data.error) throw new Error(JSON.stringify(data.error));
 
@@ -71,19 +81,29 @@ Regras: identifique o título exato pela capa. Se seminovo/usado mencione conser
             'Authorization': `Bearer ${SILICONFLOW_KEY}`
           },
           body: JSON.stringify({
-            model: 'Qwen/Qwen2.5-VL-72B-Instruct',
-            max_tokens: 512,
+            model: 'Qwen/Qwen2.5-VL-7B-Instruct',
             messages: [{
               role: 'user',
               content: [
-                { type: 'image_url', image_url: { url: imageUrl } },
-                { type: 'text', text: PROMPT },
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: imageUrl
+                  }
+                },
+                {
+                  type: 'text',
+                  text: PROMPT
+                },
               ]
             }],
           }),
         });
 
-        const data = await resp.json();
+        const raw = await resp.text();
+        console.log(raw);
+
+        const data = JSON.parse(raw);
 
         if (data.error) throw new Error(JSON.stringify(data.error));
 
