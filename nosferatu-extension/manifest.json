@@ -1,16 +1,25 @@
 {
-  "name": "Nosferatu Games",
-  "short_name": "Nosferatu",
-  "description": "Jogos, consoles e acessórios para PS4, PS5, Nintendo Switch, 3DS e retrô.",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#050508",
-  "theme_color": "#CC1414",
-  "orientation": "portrait-primary",
-  "icons": [
-    { "src": "logo.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  "manifest_version": 3,
+  "name": "Nosferatu Token Sync",
+  "version": "1.0",
+  "description": "Sincroniza automaticamente o token do ChatGPT com a VPS Hermes.",
+  "permissions": [
+    "storage",
+    "alarms"
   ],
-  "categories": ["shopping", "games"],
-  "lang": "pt-BR"
+  "host_permissions": [
+    "https://chatgpt.com/*",
+    "https://hermes.nosferatugames.com.br/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "logo.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "192": "logo.png",
+    "512": "logo.png"
+  }
 }
