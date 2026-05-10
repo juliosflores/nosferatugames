@@ -119,7 +119,8 @@ const cloudUpload = async (file) => {
   fd.append('file', file); fd.append('upload_preset', preset); fd.append('folder', 'nosferatu-games');
   const r = await fetch(`https://api.cloudinary.com/v1_1/${cloud}/image/upload`, { method:'POST', body:fd });
   const d = await r.json();
-  if (d.error) throw new Error(d.error.message);
+  if (d.error) throw new Error(`Cloudinary [${cloud}/${preset}]: ${d.error.message}`);
+  if (!d.secure_url) throw new Error(`Cloudinary sem URL: ${JSON.stringify(d).slice(0,200)}`);
   return d.secure_url;
 };
 
