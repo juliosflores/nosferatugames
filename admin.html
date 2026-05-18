@@ -1768,6 +1768,21 @@ const InfraPage = () => {
   const N8N_URL    = `https://n8n.${VPS_DOMAIN}`;
   const HERMES_URL = `https://hermes.${VPS_DOMAIN}`;
   const HERMES_KEY = 'hermes-n8n-key-2026';
+  let _activeSessionToken = null;
+  const getActiveToken = async () => {
+    if (_activeSessionToken) return _activeSessionToken;
+    try {
+      const r = await fetch(`${HERMES_URL}/api/public/token`, { signal: AbortSignal.timeout(5000) });
+      if (r.ok) {
+        const data = await r.json();
+        _activeSessionToken = data.token;
+        return _activeSessionToken;
+      }
+    } catch (e) {
+      console.error('Failed to fetch public token:', e);
+    }
+    return HERMES_KEY;
+  };
 
   const [sub, setSub]               = useState('status');
   const [loading, setLoading]       = useState(false);
@@ -1794,8 +1809,12 @@ const InfraPage = () => {
 
   // ── Fetch helpers ──
   const hermesGet = async (path) => {
+    const token = await getActiveToken();
     const r = await fetch(`${HERMES_URL}${path}`, {
-      headers: { Authorization: `Bearer ${HERMES_KEY}` },
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'X-Hermes-Session-Token': token
+      },
       signal: AbortSignal.timeout(6000)
     });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -1809,9 +1828,9 @@ const InfraPage = () => {
       hermesGet('/health/extended'),
       hermesGet('/capabilities'),
       hermesGet('/v1/models'),
-      hermesGet('/api/dashboard/status'),
-      hermesGet('/api/dashboard/sessions'),
-      hermesGet('/api/jobs'),
+      hermesGet('/api/status'),
+      hermesGet('/api/sessions'),
+      hermesGet('/api/cron/jobs'),
     ]);
     const [h, hx, cp, md, ds, ss, jj] = results;
     if (h.status  === 'fulfilled') setHealth(h.value);
@@ -1855,9 +1874,13 @@ const InfraPage = () => {
   const toggleJob = async (job) => {
     try {
       const action = job.paused ? 'resume' : 'pause';
-      await fetch(`${HERMES_URL}/api/jobs/${job.id}/${action}`, {
+      const token = await getActiveToken();
+      await fetch(`${HERMES_URL}/api/cron/jobs/${job.id}/${action}`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${HERMES_KEY}` },
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'X-Hermes-Session-Token': token
+        },
         signal: AbortSignal.timeout(5000)
       });
       showToast(`✔ Job ${action === 'pause' ? 'pausado' : 'retomado'}`);
@@ -1867,9 +1890,13 @@ const InfraPage = () => {
 
   const runJobNow = async (job) => {
     try {
-      await fetch(`${HERMES_URL}/api/jobs/${job.id}/trigger`, {
+      const token = await getActiveToken();
+      await fetch(`${HERMES_URL}/api/cron/jobs/${job.id}/trigger`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${HERMES_KEY}` },
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'X-Hermes-Session-Token': token
+        },
         signal: AbortSignal.timeout(5000)
       });
       showToast('🚀 Job disparado!');
