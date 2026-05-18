@@ -45,7 +45,11 @@ async function tryChat2API(image_base64, media_type) {
   if (!CHAT2API_KEY) throw new Error('CHAT2API_AUTHORIZATION não configurado no Vercel');
   const resp = await fetchWithTimeout(CHAT2API_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${CHAT2API_KEY}` },
+    headers: { 
+      'Content-Type': 'application/json', 
+      'Authorization': `Bearer ${CHAT2API_KEY}`,
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    },
     body: JSON.stringify({
       model: 'gpt-4o',
       messages: [{ role: 'user', content: [
