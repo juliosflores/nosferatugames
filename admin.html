@@ -605,18 +605,35 @@ const Analytics = ({visitas}) => {
 
 // ── Config ────────────────────────────────────────────────────
 const Config = () => {
-  const [cloud,setCloud]   = useState(localStorage.getItem('ng_cloud_name')||'ddaadz8ut');
-  const [preset,setPreset] = useState(localStorage.getItem('ng_upload_preset')||'ytsmjllb');
-  const [saved,setSaved]   = useState(false);
-  const salvar = () => { localStorage.setItem('ng_cloud_name', cloud); localStorage.setItem('ng_upload_preset', preset); setSaved(true); setTimeout(()=>setSaved(false),2500); };
+  const [cloud,setCloud]     = useState(localStorage.getItem('ng_cloud_name')||'ddaadz8ut');
+  const [preset,setPreset]   = useState(localStorage.getItem('ng_upload_preset')||'ytsmjllb');
+  const [removeBg,setRemoveBg] = useState(localStorage.getItem('ng_removebg_key')||'bLTvxEPqTP8tW7wvU5wvuHJx');
+  const [webhook,setWebhook]   = useState(localStorage.getItem('ng_make_webhook')||'');
+  const [saved,setSaved]     = useState(false);
+  
+  const salvar = () => { 
+    localStorage.setItem('ng_cloud_name', cloud); 
+    localStorage.setItem('ng_upload_preset', preset); 
+    localStorage.setItem('ng_removebg_key', removeBg);
+    localStorage.setItem('ng_make_webhook', webhook);
+    setSaved(true); 
+    setTimeout(()=>setSaved(false), 2500); 
+  };
+  
   return (
     <div style={{maxWidth:480}}>
-      <div style={{marginBottom:20}}><div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Configurações</div><div style={{fontSize:14,color:'var(--muted)'}}>Cloudinary e preferências</div></div>
+      <div style={{marginBottom:20}}><div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Configurações</div><div style={{fontSize:14,color:'var(--muted)'}}>Preferências e chaves de API</div></div>
       <div style={{...S.card,borderTop:'3px solid var(--gold)',marginBottom:16}}>
-        <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--gold)',letterSpacing:'0.2em',marginBottom:16}}>// CLOUDINARY</div>
-        <div style={{fontSize:13,color:'var(--dim)',marginBottom:16,lineHeight:1.6}}>Acesse <strong style={{color:'var(--text)'}}>cloudinary.com → Settings → Upload → Upload presets</strong> e crie um preset <em>Unsigned</em>.</div>
-        <Input label="Cloud Name" value={cloud} onChange={e=>setCloud(e.target.value)} placeholder="ddaadz8ut" />
-        <Input label="Upload Preset (unsigned)" value={preset} onChange={e=>setPreset(e.target.value)} placeholder="ytsmjllb" />
+        <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--gold)',letterSpacing:'0.2em',marginBottom:16}}>// CREDENCIAIS E INTEGRACÕES</div>
+        
+        <Input label="Cloud Name (Cloudinary)" value={cloud} onChange={e=>setCloud(e.target.value)} placeholder="ddaadz8ut" />
+        <Input label="Upload Preset (Cloudinary unsigned)" value={preset} onChange={e=>setPreset(e.target.value)} placeholder="ytsmjllb" />
+        
+        <div style={{borderTop:'1px dashed var(--border)', margin:'16px 0'}} />
+        
+        <Input label="Chave API remove.bg" value={removeBg} onChange={e=>setRemoveBg(e.target.value)} placeholder="bLTvxEPqTP8tW7wvU5wvuHJx" />
+        <Input label="Webhook Make (Auto-Post Instagram)" value={webhook} onChange={e=>setWebhook(e.target.value)} placeholder="https://hook.us1.make.com/..." />
+        
         <Btn color="gold" onClick={salvar}>{saved ? '✔ Salvo!' : 'Salvar'}</Btn>
       </div>
     </div>
@@ -3461,45 +3478,18 @@ const PhotoStudioPage = () => {
 // ── Token ChatGPT: renovação automática via sessão do browser ──
 let forceRenovarToken = async () => { console.log('Hook useChatGPTToken não montado'); return false; };
 
-const useChatGPTToken = () => {
-  const renovarToken = async () => {
-    try {
-      // Busca sessão do ChatGPT usando cookies do browser (mesmo domínio não é necessário,
-      // o browser envia cookies de chatgpt.com para chatgpt.com automaticamente)
-      const r = await fetch('https://chatgpt.com/api/auth/session', {
-        credentials: 'include', // envia cookies do chatgpt.com
-        signal: AbortSignal.timeout(8000),
-      });
-      if (!r.ok) return false;
-      const data = await r.json();
-      const token = data?.accessToken;
-      if (!token) return false;
-
-      // Envia token para VPS salvar no Chat2API
-      const vpsUrl = 'https://hermes.nosferatugames.com.br/atualizar-token';
-      const vpsR = await fetch(vpsUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Admin-Key': 'nosferatu_chat2api_key' },
-        body: JSON.stringify({ token }),
-        signal: AbortSignal.timeout(6000),
-      });
-      return vpsR.ok;
-    } catch { return false; }
+  const useChatGPTToken = () => {
+    const renovarToken = async () => {
+      // Desativado no frontend por restrições de CORS no navegador.
+      // Sincronização de token gerenciada automaticamente via extensão Chrome Nosferatu Sync.
+      return false;
+    };
+    useEffect(() => {
+      renovarToken();
+      const t = setInterval(renovarToken, 6 * 60 * 60 * 1000);
+      return () => clearInterval(t);
+    }, []);
   };
-
-  forceRenovarToken = renovarToken;
-
-  useEffect(() => {
-    // Roda silenciosamente ao montar o componente
-    renovarToken().then(ok => {
-      if (ok) console.log('[Token] ✅ ChatGPT token renovado automaticamente');
-      else    console.log('[Token] ⚠ Token não renovado (ChatGPT não logado ou VPS offline)');
-    });
-    // Renova a cada 6h enquanto a aba estiver aberta
-    const t = setInterval(renovarToken, 6 * 60 * 60 * 1000);
-    return () => clearInterval(t);
-  }, []);
-};
 
 const PublicarPage = () => {
   useChatGPTToken(); // 🔑 Renovação automática de token
