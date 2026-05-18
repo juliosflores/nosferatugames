@@ -1809,12 +1809,14 @@ const InfraPage = () => {
 
   // ── Fetch helpers ──
   const hermesGet = async (path) => {
-    const token = await getActiveToken();
+    const isApi = path.startsWith('/api/');
+    const token = isApi ? await getActiveToken() : HERMES_KEY;
+    const headers = { 'Authorization': `Bearer ${token}` };
+    if (isApi) {
+      headers['X-Hermes-Session-Token'] = token;
+    }
     const r = await fetch(`${HERMES_URL}${path}`, {
-      headers: { 
-        'Authorization': `Bearer ${token}`,
-        'X-Hermes-Session-Token': token
-      },
+      headers: headers,
       signal: AbortSignal.timeout(6000)
     });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
