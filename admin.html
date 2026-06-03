@@ -2912,15 +2912,17 @@ const ClientesPage = () => {
   const [busca, setBusca]       = useState('');
   const [selecionado, setSelecionado] = useState(null);
   const [finCliente, setFinCliente]   = useState([]);
+  const [pedidos, setPedidos]         = useState([]);
 
   const carregar = async () => {
     setLoading(true);
     try {
-      const [c, f] = await Promise.all([
+      const [c, ped] = await Promise.all([
         supa('customers?order=created_at.desc&limit=500'),
-        supa('financeiro?select=produto,preco_venda,data_venda,status,origem&order=data_venda.desc&limit=500')
+        supa('pedidos?select=whatsapp,email,total,status&order=created_at.desc&limit=1000')
       ]);
-      setClientes(c||[]);
+      setClientes((c||[]).map(x => ({ ...x, nome: x.cliente_name || x.nome, whatsapp: x.phone || x.whatsapp })));
+      setPedidos(ped||[]);
     } catch(e){ console.error(e); }
     finally { setLoading(false); }
   };
@@ -2942,9 +2944,9 @@ const ClientesPage = () => {
     (c.email||'').toLowerCase().includes(busca.toLowerCase())
   );
 
-  const totalGasto = (c) => {
-    return 0; // calculado por pedidos futuramente
-  };
+  const totalGasto = (c) => pedidos
+    .filter(p => (c.whatsapp && p.whatsapp===c.whatsapp) || (c.email && p.email===c.email))
+    .reduce((a,p)=> (String(p.status||'').toLowerCase().includes('cancel') ? a : a + Number(p.total||0)), 0);
 
   return (
     <div>
