@@ -1468,7 +1468,14 @@ const FinanceiroPage = () => {
 
   const carregar = async () => {
     setLoading(true);
-    try { setItens(await supa('financeiro?order=criado_em.desc&limit=500') || []); }
+    try {
+      const [fin, gar] = await Promise.all([
+        supa('financeiro?order=criado_em.desc&limit=500'),
+        supa('compras_garimpo?status=eq.entregue&order=data_compra.desc&limit=1000')
+      ]);
+      const garItens = (gar||[]).map(g => ({ id:g.id, _garimpo:true, produto:g.produto, console:g.plataforma||'OLX', preco_compra:g.valor_pago, preco_venda:null, custo_extra:0, data_compra:g.data_compra, data_venda:null, origem:'olx_garimpo', status:'estoque' }));
+      setItens([...(fin||[]), ...garItens]);
+    }
     catch(e) { console.error(e); }
     finally { setLoading(false); }
   };
@@ -1728,9 +1735,9 @@ const FinanceiroPage = () => {
                         </td>
                         <td style={{ padding:'10px 14px' }}>
                           <div style={{ display:'flex', gap:4 }}>
-                            <button onClick={()=>setEditando(item)} style={{ ...S.btn, padding:'4px 8px', fontSize:12, background:'var(--surface2)', border:'1px solid var(--border)', color:'var(--dim)' }}>✏</button>
-                            {item.status==='estoque' && <button onClick={()=>marcarVendido(item)} style={{ ...S.btn, padding:'4px 8px', fontSize:12, background:'rgba(37,211,102,.1)', border:'1px solid rgba(37,211,102,.3)', color:'var(--green)' }}>✅</button>}
-                            <button onClick={()=>deletar(item.id)} style={{ ...S.btn, padding:'4px 8px', fontSize:12, background:'rgba(204,20,20,.1)', border:'1px solid var(--border-r)', color:'var(--red-b)' }}>🗑</button>
+                            {!item._garimpo && <button onClick={()=>setEditando(item)} style={{ ...S.btn, padding:'4px 8px', fontSize:12, background:'var(--surface2)', border:'1px solid var(--border)', color:'var(--dim)' }}>✏</button>}
+                            {!item._garimpo && item.status==='estoque' && <button onClick={()=>marcarVendido(item)} style={{ ...S.btn, padding:'4px 8px', fontSize:12, background:'rgba(37,211,102,.1)', border:'1px solid rgba(37,211,102,.3)', color:'var(--green)' }}>✅</button>}
+                            {!item._garimpo && <button onClick={()=>deletar(item.id)} style={{ ...S.btn, padding:'4px 8px', fontSize:12, background:'rgba(204,20,20,.1)', border:'1px solid var(--border-r)', color:'var(--red-b)' }}>🗑</button>}
                           </div>
                         </td>
                       </tr>
