@@ -1,4 +1,4 @@
-const CACHE = 'nosferatu-v2';
+const CACHE = 'nosferatu-v3';
 const STATIC = [
   '/',
   '/index.html',
@@ -26,7 +26,7 @@ self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
 
   // Nunca intercepta API do Supabase ou Mercado Pago
-  if (url.hostname.includes('supabase') || url.hostname.includes('mercadopago') || url.pathname.startsWith('/api/')) {
+  if (url.hostname.includes('supabase') || url.hostname.includes('mercadopago') || url.pathname.startsWith('/api/') || url.pathname.includes('admin')) {
     return;
   }
 
