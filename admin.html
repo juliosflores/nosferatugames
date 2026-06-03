@@ -531,7 +531,19 @@ const ProductsPage = ({produtos, reload}) => {
     if (!id) { const s = Array.isArray(resultado)?resultado[0]:resultado; fetch('https://juliosflores.app.n8n.cloud/webhook/novo-produto',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({body:{...dados,id:s?.id}})}).catch(()=>{}); }
     reload();
   };
-  const deletar = async (id) => { await supa(`produtos?id=eq.${id}`, { method:'DELETE' }); setDeleting(null); reload(); };
+  const deletar = async (id) => {
+    const p = produtos.find(x=>String(x.id)===String(id)) || {};
+    const v = prompt('Vendido por quanto? (R$)\n\nVazio + OK = so remover (sem registrar venda).', p.preco||'');
+    if (v === null) { setDeleting(null); return; }
+    if (String(v).trim() !== '') {
+      const venda = Number(String(v).replace(/[^\d.,]/g,'').replace(',','.'))||0;
+      try {
+        await supa('financeiro', { method:'POST', body: JSON.stringify({ produto:p.nome, console:p.console||null, preco_compra:Number(p.custo_compra)||0, preco_venda:venda, custo_extra:Number(p.custo_reparo)||0, status:'vendido', origem:p.compra_id?'olx_garimpo':'site', data_venda:new Date().toISOString().slice(0,10), produto_site_id:p.id }) });
+        if (p.compra_id) { try{ await supa(`compras_garimpo?id=eq.${p.compra_id}`, { method:'DELETE' }); }catch(e){} }
+      } catch(e){ alert('Erro ao registrar venda: '+e.message); return; }
+    }
+    await supa(`produtos?id=eq.${id}`, { method:'DELETE' }); setDeleting(null); reload();
+  };
   const toggleField = async (p, field) => { setSaving(p.id); try { await supa(`produtos?id=eq.${p.id}`, { method:'PATCH', body: JSON.stringify({ [field]: !p[field] }) }); registrarLog('editar','produtos',p.nome+' — '+field+': '+((!p[field])?'sim':'não')); reload(); } finally { setSaving(null); } };
   const reservarProduto = async (p) => {
     const nome = prompt('Reservar para quem? (nome do cliente)');
@@ -1473,7 +1485,7 @@ const FinanceiroPage = () => {
         supa('financeiro?order=criado_em.desc&limit=500'),
         supa('compras_garimpo?order=data_compra.desc&limit=2000')
       ]);
-      const garItens = (gar||[]).filter(g => !/cancel|fail|recus|mediac|n[aã]o.?aprov|reembols|estorn/i.test(g.status||'')).map(g => ({ id:g.id, _garimpo:true, produto:g.produto, console:g.plataforma||'OLX', preco_compra:g.valor_pago, preco_venda:null, custo_extra:0, data_compra:g.data_compra, data_venda:null, origem:'olx_garimpo', status:'estoque' }));
+      const garItens = (gar||[]).filter(g => !/cancel|fail|recus|mediac|n[aã]o.?aprov|reembols|estorn/i.test(g.status||'')).map(g => ({ id:g.id, _garimpo:true, foto:g.foto, produto:g.produto, console:g.plataforma||'OLX', preco_compra:g.valor_pago, preco_venda:null, custo_extra:0, data_compra:g.data_compra, data_venda:null, origem:'olx_garimpo', status:'estoque' }));
       setItens([...(fin||[]), ...garItens]);
     }
     catch(e) { console.error(e); }
@@ -1496,6 +1508,24 @@ const FinanceiroPage = () => {
     if (!confirm('Excluir este item' + (it._garimpo ? ' (compra do garimpo)' : '') + '?')) return;
     try { await supa(`${tabela}?id=eq.${it.id}`, { method:'DELETE' }); showToast('Excluido'); carregar(); }
     catch(e){ showToast('Erro: '+e.message); }
+  };
+
+  const criarProduto = async (item) => {
+    if (!item._garimpo) { showToast('So para compras do garimpo'); return; }
+    showToast('Criando produto...');
+    const dados = { nome:item.produto, console:'Acessórios', condicao:'Usado', preco:null, descricao:'', imagem_url:item.foto||'', imagens:item.foto?[item.foto]:[], compra_id:item.id, custo_compra:Number(item.preco_compra)||0, ativo:false, vendido:false };
+    try {
+      if (item.foto) {
+        try {
+          const bl = await (await fetch(item.foto)).blob();
+          const b64 = await new Promise((res,rej)=>{const fr=new FileReader();fr.onloadend=()=>res(String(fr.result).split(',')[1]);fr.onerror=rej;fr.readAsDataURL(bl);});
+          const r = await fetch('/api/identificar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image_base64:b64,media_type:bl.type||'image/jpeg'})});
+          if (r.ok){ const d=await r.json(); if(d.nome)dados.nome=d.nome; if(d.console)dados.console=d.console; if(d.condicao)dados.condicao=d.condicao; if(d.descricao)dados.descricao=d.descricao; }
+        } catch(e){}
+      }
+      await supa('produtos',{method:'POST',body:JSON.stringify(dados)});
+      showToast('✅ Produto criado (rascunho) — veja na aba Produtos');
+    } catch(e){ showToast('Erro: '+e.message); }
   };
 
   const ORIGENS = ['proprio','olx_garimpo','facebook','enjoei','mercadolivre','site','fornecedor','troca'];
@@ -1741,7 +1771,7 @@ const FinanceiroPage = () => {
                           <div style={{ display:'flex', gap:4 }}>
                             {!item._garimpo && <button onClick={()=>setEditando(item)} style={{ ...S.btn, padding:'4px 8px', fontSize:12, background:'var(--surface2)', border:'1px solid var(--border)', color:'var(--dim)' }}>✏</button>}
                             {!item._garimpo && item.status==='estoque' && <button onClick={()=>marcarVendido(item)} style={{ ...S.btn, padding:'4px 8px', fontSize:12, background:'rgba(37,211,102,.1)', border:'1px solid rgba(37,211,102,.3)', color:'var(--green)' }}>✅</button>}
-                            <button onClick={()=>deletar(item)} style={{ ...S.btn, padding:'4px 8px', fontSize:12, background:'rgba(204,20,20,.1)', border:'1px solid var(--border-r)', color:'var(--red-b)' }}>🗑</button>
+                            {item._garimpo && <button onClick={()=>criarProduto(item)} style={{ ...S.btn, padding:'4px 8px', fontSize:12, background:'rgba(124,58,237,.15)', border:'1px solid var(--purple)', color:'var(--purple)' }}>📤</button>}<button onClick={()=>deletar(item)} style={{ ...S.btn, padding:'4px 8px', fontSize:12, background:'rgba(204,20,20,.1)', border:'1px solid var(--border-r)', color:'var(--red-b)' }}>🗑</button>
                           </div>
                         </td>
                       </tr>
@@ -4069,7 +4099,7 @@ const App = () => {
   },[]);
 
   const loadProdutos = useCallback(async () => {
-    try { setProdutos(await supa('produtos?select=id,nome,console,preco,condicao,imagens,ativo,vendido,destaque,frete_gratis,viewed_count,created_at,whatsapp_media_ids&order=created_at.desc&limit=200')||[]); } catch(e){ console.error(e); }
+    try { setProdutos(await supa('produtos?select=id,nome,console,preco,condicao,imagens,ativo,vendido,destaque,frete_gratis,viewed_count,created_at,whatsapp_media_ids,compra_id,custo_compra,custo_reparo&order=created_at.desc&limit=200')||[]); } catch(e){ console.error(e); }
   },[]);
   const loadVisitas = useCallback(async () => {
     try { setVisitas(await supa('visitas?order=created_at.desc&limit=500')||[]); } catch {}
