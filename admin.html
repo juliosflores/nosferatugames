@@ -1569,7 +1569,7 @@ const FinanceiroPage = () => {
   const parados90    = itens.filter(i=>i.status==='estoque' && diasNoEstoque(i) >= 90);
 
   const filtrados = itens.filter(i => {
-    const mesOk = !filtroMes || (i.data_compra||'').startsWith(filtroMes) || (i.data_venda||i.created_at||'').startsWith(filtroMes);
+    const mesOk = i.status==='estoque' || !filtroMes || (i.data_compra||'').startsWith(filtroMes) || (i.data_venda||i.created_at||'').startsWith(filtroMes);
     const statusOk = filtroStatus === 'todos' || i.status === filtroStatus;
     return mesOk && statusOk;
   });
