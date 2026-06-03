@@ -77,8 +77,19 @@ const SUPA_URL  = 'https://jcnncmfbodglvoyytgok.supabase.co';
 const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impjbm5jbWZib2RnbHZveXl0Z29rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MTg0NDgsImV4cCI6MjA5MTE5NDQ0OH0.YpStoaxT86MQY06KiKVhUXdlcF-CVsu4DOFuUTLv4u0';
 const HEADERS   = { apikey: SUPA_ANON, Authorization: `Bearer ${SUPA_ANON}`, 'Content-Type': 'application/json', Prefer: 'return=representation' };
 
-const supa = async (path, opts={}) => {
-  const r = await fetch(`${SUPA_URL}/rest/v1/${path}`, { headers: HEADERS, ...opts });
+async function sbRefresh(){
+  const rt = sessionStorage.getItem('sb_refresh');
+  if(!rt) return false;
+  const r = await fetch(`${SUPA_URL}/auth/v1/token?grant_type=refresh_token`, { method:'POST', headers:{ apikey: SUPA_ANON, 'Content-Type':'application/json' }, body: JSON.stringify({ refresh_token: rt }) });
+  const d = await r.json().catch(()=>({}));
+  if(!d.access_token) return false;
+  sessionStorage.setItem('sb_access', d.access_token); sessionStorage.setItem('sb_refresh', d.refresh_token||rt); return true;
+}
+const supa = async (path, opts={}, _retry=true) => {
+  const tok = sessionStorage.getItem('sb_access') || SUPA_ANON;
+  const _h = { apikey: SUPA_ANON, Authorization: `Bearer ${tok}`, 'Content-Type':'application/json', Prefer:'return=representation' };
+  const r = await fetch(`${SUPA_URL}/rest/v1/${path}`, { headers: _h, ...opts });
+  if (r.status === 401 && _retry && sessionStorage.getItem('sb_refresh')) { if(await sbRefresh()) return supa(path, opts, false); }
   if (!r.ok) { const e = await r.json().catch(()=>{}); throw new Error(e?.message||r.status); }
   if (r.status === 204) return null;
   return r.json();
@@ -226,6 +237,18 @@ const Login = ({onLogin}) => {
     e.preventDefault();
     if (loading || locked) return;
     setLoading(true); setErr('');
+
+    // Supabase Auth — autentica e guarda sessao p/ acesso ao banco (RLS)
+    try {
+      const _ar = await fetch(`${SUPA_URL}/auth/v1/token?grant_type=password`, { method:'POST', headers:{ apikey: SUPA_ANON, 'Content-Type':'application/json' }, body: JSON.stringify({ email:'admin@nosferatugames.com.br', password: pwd }) });
+      const _ad = await _ar.json().catch(()=>({}));
+      if (_ad.access_token) {
+        sessionStorage.setItem('sb_access', _ad.access_token);
+        sessionStorage.setItem('sb_refresh', _ad.refresh_token||'');
+        sessionStorage.setItem('ng_admin_token','ok');
+        setLoading(false); onLogin(); return;
+      }
+    } catch {}
 
     // Tenta API serverless primeiro (Vercel com functions)
     let apiOk = false;
