@@ -1490,9 +1490,11 @@ const FinanceiroPage = () => {
     catch(e){ showToast('Erro: '+e.message); }
   };
 
-  const deletar = async (id) => {
-    if (!confirm('Excluir este lancamento do financeiro?')) return;
-    try { await supa(`financeiro?id=eq.${id}`, { method:'DELETE' }); showToast('Excluido'); carregar(); }
+  const deletar = async (item) => {
+    const it = (item && typeof item === 'object') ? item : { id: item };
+    const tabela = it._garimpo ? 'compras_garimpo' : 'financeiro';
+    if (!confirm('Excluir este item' + (it._garimpo ? ' (compra do garimpo)' : '') + '?')) return;
+    try { await supa(`${tabela}?id=eq.${it.id}`, { method:'DELETE' }); showToast('Excluido'); carregar(); }
     catch(e){ showToast('Erro: '+e.message); }
   };
 
@@ -1739,7 +1741,7 @@ const FinanceiroPage = () => {
                           <div style={{ display:'flex', gap:4 }}>
                             {!item._garimpo && <button onClick={()=>setEditando(item)} style={{ ...S.btn, padding:'4px 8px', fontSize:12, background:'var(--surface2)', border:'1px solid var(--border)', color:'var(--dim)' }}>✏</button>}
                             {!item._garimpo && item.status==='estoque' && <button onClick={()=>marcarVendido(item)} style={{ ...S.btn, padding:'4px 8px', fontSize:12, background:'rgba(37,211,102,.1)', border:'1px solid rgba(37,211,102,.3)', color:'var(--green)' }}>✅</button>}
-                            {!item._garimpo && <button onClick={()=>deletar(item.id)} style={{ ...S.btn, padding:'4px 8px', fontSize:12, background:'rgba(204,20,20,.1)', border:'1px solid var(--border-r)', color:'var(--red-b)' }}>🗑</button>}
+                            <button onClick={()=>deletar(item)} style={{ ...S.btn, padding:'4px 8px', fontSize:12, background:'rgba(204,20,20,.1)', border:'1px solid var(--border-r)', color:'var(--red-b)' }}>🗑</button>
                           </div>
                         </td>
                       </tr>
