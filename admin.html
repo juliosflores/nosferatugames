@@ -1480,6 +1480,8 @@ const FinanceiroPage = () => {
     finally { setLoading(false); }
   };
 
+  useEffect(() => { carregar(); }, []);
+
   const marcarVendido = async (item) => {
     const pv = prompt('Preco de venda (R$):', item.preco_venda || '');
     if (pv === null) return;
