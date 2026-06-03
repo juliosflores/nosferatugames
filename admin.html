@@ -1419,6 +1419,15 @@ const FinanceiroModal = ({ editando, setEditando, salvar, saving, ORIGENS, ORIGE
 
 const EMPTY_FIN = { produto:'', console:'PS4', preco_compra:'', preco_venda:'', custo_extra:'', data_compra: new Date().toISOString().slice(0,10), origem:'proprio', status:'estoque', forma_pagamento:'pix', observacao:'' };
 
+// dias entre a compra e (venda, se vendido) ou hoje (se em estoque)
+function diasNoEstoque(item){
+  const ini = item.data_compra || item.criado_em;
+  if(!ini) return 0;
+  const fim = (item.status==='vendido' && item.data_venda) ? new Date(item.data_venda) : new Date();
+  const d = Math.floor((fim - new Date(ini)) / 86400000);
+  return isNaN(d) ? 0 : Math.max(0, d);
+}
+
 const FinanceiroPage = () => {
   const [itens, setItens]           = useState([]);
   const [loading, setLoading]       = useState(true);
@@ -1436,7 +1445,7 @@ const FinanceiroPage = () => {
 
   const carregar = async () => {
     setLoading(true);
-    try { setItens(await supa('financeiro?order=created_at.desc&limit=500') || []); }
+    try { setItens(await supa('financeiro?order=criado_em.desc&limit=500') || []); }
     catch(e) { console.error(e); }
     finally { setLoading(false); }
   };
@@ -3756,7 +3765,7 @@ const PublicarPage = () => {
       const d=item.editDados;
       const created=await supa('produtos',{method:'POST',body:JSON.stringify({
         nome:d.nome,console:d.console,condicao:d.condicao,preco:d.preco,
-        descricao:d.descricao,imagem_url:url,ativo:true,vendido:false,whatsapp:'5551996979032'
+        descricao:d.descricao,imagem_url:url,ativo:true,vendido:false
       })});
       registrarLog('INSERT','produtos','Publicação rápida: '+d.nome);
       addLog(id,'✔ Produto criado','ok');
@@ -4010,7 +4019,7 @@ const App = () => {
   },[]);
 
   const loadProdutos = useCallback(async () => {
-    try { setProdutos(await supa('produtos?select=id,nome,console,preco,condicao,imagens,ativo,vendido,destaque,frete_gratis,viewed_count,created_at,whatsapp&order=created_at.desc&limit=200')||[]); } catch(e){ console.error(e); }
+    try { setProdutos(await supa('produtos?select=id,nome,console,preco,condicao,imagens,ativo,vendido,destaque,frete_gratis,viewed_count,created_at,whatsapp_media_ids&order=created_at.desc&limit=200')||[]); } catch(e){ console.error(e); }
   },[]);
   const loadVisitas = useCallback(async () => {
     try { setVisitas(await supa('visitas?order=created_at.desc&limit=500')||[]); } catch {}
