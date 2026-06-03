@@ -1471,9 +1471,9 @@ const FinanceiroPage = () => {
     try {
       const [fin, gar] = await Promise.all([
         supa('financeiro?order=criado_em.desc&limit=500'),
-        supa('compras_garimpo?status=eq.entregue&order=data_compra.desc&limit=1000')
+        supa('compras_garimpo?order=data_compra.desc&limit=2000')
       ]);
-      const garItens = (gar||[]).map(g => ({ id:g.id, _garimpo:true, produto:g.produto, console:g.plataforma||'OLX', preco_compra:g.valor_pago, preco_venda:null, custo_extra:0, data_compra:g.data_compra, data_venda:null, origem:'olx_garimpo', status:'estoque' }));
+      const garItens = (gar||[]).filter(g => !/cancel|fail|recus|mediac|n[aã]o.?aprov|reembols|estorn/i.test(g.status||'')).map(g => ({ id:g.id, _garimpo:true, produto:g.produto, console:g.plataforma||'OLX', preco_compra:g.valor_pago, preco_venda:null, custo_extra:0, data_compra:g.data_compra, data_venda:null, origem:'olx_garimpo', status:'estoque' }));
       setItens([...(fin||[]), ...garItens]);
     }
     catch(e) { console.error(e); }
