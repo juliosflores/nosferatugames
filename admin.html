@@ -478,6 +478,7 @@ const ProductForm = ({initial, onSave, onClose}) => {
         <div style={{fontFamily:'Press Start 2P, monospace',fontSize:11,color:'var(--text)',marginBottom:20}}>{initial?.id ? 'EDITAR PRODUTO' : 'NOVO PRODUTO'}</div>
         <div className="ng-grid2" style={S.grid2}>
           <Input label="Nome do produto" value={p.nome} onChange={e=>set('nome',e.target.value)} placeholder="Ex: God of War Ragnarök" />
+          <Input label="Custo de reparo (R$)" type="number" value={p.custo_reparo||''} onChange={e=>set('custo_reparo',e.target.value)} placeholder="0 (se precisou consertar)" />
           <div style={{marginBottom:14}}>
             <label style={S.label}>Preço (R$)</label>
             <div style={{display:'flex',gap:6}}>
