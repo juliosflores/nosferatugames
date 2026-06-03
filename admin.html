@@ -1473,6 +1473,20 @@ const FinanceiroPage = () => {
     finally { setLoading(false); }
   };
 
+  const marcarVendido = async (item) => {
+    const pv = prompt('Preco de venda (R$):', item.preco_venda || '');
+    if (pv === null) return;
+    const preco_venda = Number(String(pv).replace(',', '.')) || item.preco_venda || 0;
+    try { await supa(`financeiro?id=eq.${item.id}`, { method:'PATCH', body: JSON.stringify({ status:'vendido', preco_venda, data_venda: new Date().toISOString().slice(0,10) }) }); showToast('Vendido'); carregar(); }
+    catch(e){ showToast('Erro: '+e.message); }
+  };
+
+  const deletar = async (id) => {
+    if (!confirm('Excluir este lancamento do financeiro?')) return;
+    try { await supa(`financeiro?id=eq.${id}`, { method:'DELETE' }); showToast('Excluido'); carregar(); }
+    catch(e){ showToast('Erro: '+e.message); }
+  };
+
   const ORIGENS = ['proprio','olx_garimpo','facebook','enjoei','mercadolivre','site','fornecedor','troca'];
   const ORIGEM_LABEL = { proprio:'Próprio', olx_garimpo:'🎯 OLX', facebook:'📘 Facebook', enjoei:'🛍 Enjoei', mercadolivre:'🛒 ML', site:'🏰 Site', fornecedor:'Fornecedor', troca:'Troca' };
   const ORIGEM_COLOR = { olx_garimpo:'var(--purple)', facebook:'#1877F2', enjoei:'#E91E8C', mercadolivre:'#FFE600', site:'var(--gold)' };
