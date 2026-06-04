@@ -512,6 +512,7 @@ const ProductForm = ({initial, onSave, onClose}) => {
         <div className="ng-grid2" style={S.grid2}>
           <Input label="Nome do produto" value={p.nome} onChange={e=>set('nome',e.target.value)} placeholder="Ex: God of War Ragnarök" />
           <Input label="Custo de reparo (R$)" type="number" value={p.custo_reparo||''} onChange={e=>set('custo_reparo',e.target.value)} placeholder="0 (se precisou consertar)" />
+          <Input label="Custo da compra (R$)" type="number" value={p.custo_compra||''} onChange={e=>set('custo_compra',e.target.value)} placeholder="quanto pagou (rateie se vier 2 itens)" />
           <div style={{marginBottom:14}}>
             <label style={S.label}>Preço (R$)</label>
             <div style={{display:'flex',gap:6}}>
@@ -574,7 +575,7 @@ const ProductsPage = ({produtos, reload}) => {
       const venda = Number(String(v).replace(/[^\d.,]/g,'').replace(',','.'))||0;
       try {
         await supa('financeiro', { method:'POST', body: JSON.stringify({ produto:p.nome, console:p.console||null, preco_compra:Number(p.custo_compra)||0, preco_venda:venda, custo_extra:Number(p.custo_reparo)||0, status:'vendido', origem:p.compra_id?'olx_garimpo':'site', data_venda:new Date().toISOString().slice(0,10), produto_site_id:p.id }) });
-        if (p.compra_id) { try{ await supa(`compras_garimpo?id=eq.${p.compra_id}`, { method:'DELETE' }); }catch(e){} }
+        if (p.compra_id) { try{ const _o = await supa(`produtos?compra_id=eq.${p.compra_id}&id=neq.${id}&select=id`); if(!_o || _o.length===0){ await supa(`compras_garimpo?id=eq.${p.compra_id}`, { method:'DELETE' }); } }catch(e){} }
       } catch(e){ alert('Erro ao registrar venda: '+e.message); return; }
     }
     await supa(`produtos?id=eq.${id}`, { method:'DELETE' }); setDeleting(null); reload();
