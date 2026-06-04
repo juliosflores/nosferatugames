@@ -460,15 +460,13 @@ const ProductForm = ({initial, onSave, onClose}) => {
   const [toast,setToast]         = useState('');
   const [buscandoOLX,setBuscandoOLX] = useState(false);
   const [estiloNsf,setEstiloNsf] = useState(true);
+  useEffect(function(){ import('https://esm.sh/@imgly/background-removal@1.5.8').then(function(m){ if(m.preload) m.preload(); }).catch(function(){}); }, []);
   const fileRef = useRef();
   const set = (k,v) => setP(prev=>({...prev,[k]:v}));
   const blobToImg = (b) => new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=URL.createObjectURL(b);});
   const estilizarNsf = async (file) => {
-    const key = localStorage.getItem('ng_remove_bg') || 'bLTvxEPqTP8tW7wvU5wvuHJx';
-    const fd = new FormData(); fd.append('image_file', file); fd.append('size','auto');
-    const rb = await fetch('https://api.remove.bg/v1.0/removebg',{method:'POST',headers:{'X-Api-Key':key},body:fd});
-    if(!rb.ok) throw new Error('remove.bg '+rb.status);
-    const cut = await blobToImg(await rb.blob());
+    const _m = await import('https://esm.sh/@imgly/background-removal@1.5.8');
+    const cut = await blobToImg(await _m.removeBackground(file));
     const S=1080, c=document.createElement('canvas'); c.width=S; c.height=S; const x=c.getContext('2d');
     const g=x.createRadialGradient(S/2,S/2,S*0.1,S/2,S/2,S*0.72); g.addColorStop(0,'#1a1226'); g.addColorStop(1,'#050508'); x.fillStyle=g; x.fillRect(0,0,S,S);
     const gg=x.createRadialGradient(S/2,S*0.48,0,S/2,S*0.48,S*0.42); gg.addColorStop(0,'rgba(168,85,247,0.30)'); gg.addColorStop(0.55,'rgba(204,20,20,0.12)'); gg.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=gg; x.fillRect(0,0,S,S);
