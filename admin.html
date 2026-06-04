@@ -459,9 +459,35 @@ const ProductForm = ({initial, onSave, onClose}) => {
   const [saving,setSaving]       = useState(false);
   const [toast,setToast]         = useState('');
   const [buscandoOLX,setBuscandoOLX] = useState(false);
+  const [estiloNsf,setEstiloNsf] = useState(true);
   const fileRef = useRef();
   const set = (k,v) => setP(prev=>({...prev,[k]:v}));
-  const uploadFotos = async (files) => { setUploading(true); try { const urls = await Promise.all([...files].map(cloudUpload)); set('imagens', [...(p.imagens||[]), ...urls]); } catch(e) { setToast('✕ '+e.message); } setUploading(false); };
+  const blobToImg = (b) => new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=URL.createObjectURL(b);});
+  const estilizarNsf = async (file) => {
+    const key = localStorage.getItem('ng_remove_bg') || 'bLTvxEPqTP8tW7wvU5wvuHJx';
+    const fd = new FormData(); fd.append('image_file', file); fd.append('size','auto');
+    const rb = await fetch('https://api.remove.bg/v1.0/removebg',{method:'POST',headers:{'X-Api-Key':key},body:fd});
+    if(!rb.ok) throw new Error('remove.bg '+rb.status);
+    const cut = await blobToImg(await rb.blob());
+    const S=1080, c=document.createElement('canvas'); c.width=S; c.height=S; const x=c.getContext('2d');
+    const g=x.createRadialGradient(S/2,S/2,S*0.1,S/2,S/2,S*0.72); g.addColorStop(0,'#1a1226'); g.addColorStop(1,'#050508'); x.fillStyle=g; x.fillRect(0,0,S,S);
+    const gg=x.createRadialGradient(S/2,S*0.48,0,S/2,S*0.48,S*0.42); gg.addColorStop(0,'rgba(168,85,247,0.30)'); gg.addColorStop(0.55,'rgba(204,20,20,0.12)'); gg.addColorStop(1,'rgba(0,0,0,0)'); x.fillStyle=gg; x.fillRect(0,0,S,S);
+    const sc=(S*0.78)/Math.max(cut.width,cut.height), w=cut.width*sc, h=cut.height*sc;
+    x.shadowColor='rgba(0,0,0,0.55)'; x.shadowBlur=34; x.shadowOffsetY=22; x.drawImage(cut,(S-w)/2,(S-h)/2,w,h);
+    return await new Promise(r=>c.toBlob(r,'image/jpeg',0.92));
+  };
+  const uploadFotos = async (files) => {
+    setUploading(true);
+    try {
+      const urls = [];
+      for (const f of [...files]) {
+        let toUp = f;
+        if (estiloNsf) { try { toUp = new File([await estilizarNsf(f)],'nsf.jpg',{type:'image/jpeg'}); } catch(e){ setToast('Estilo falhou nessa foto, subindo original'); } }
+        urls.push(await cloudUpload(toUp));
+      }
+      set('imagens', [...(p.imagens||[]), ...urls]);
+    } catch(e) { setToast('✕ '+e.message); } setUploading(false);
+  };
   const removerImg = (idx) => set('imagens', p.imagens.filter((_,i)=>i!==idx));
   const consultarOLX = async () => { setBuscandoOLX(true); await buscarPrecoOLX(p.nome, (preco) => set('preco', preco), setToast); setBuscandoOLX(false); };
   const salvar = async () => {
@@ -497,6 +523,7 @@ const ProductForm = ({initial, onSave, onClose}) => {
           <div style={{display:'flex',flexWrap:'wrap',gap:8,marginBottom:8}}>
             {(p.imagens||[]).map((url,i)=>(<div key={i} style={{position:'relative',width:72,height:72}}><img src={url} alt="" style={{width:72,height:72,objectFit:'cover',borderRadius:4,border:'1px solid var(--border)'}}/><button onClick={()=>removerImg(i)} style={{position:'absolute',top:-6,right:-6,width:18,height:18,borderRadius:'50%',background:'var(--red)',border:'none',color:'#fff',fontSize:10,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button></div>))}
             <button onClick={()=>fileRef.current.click()} disabled={uploading} style={{width:72,height:72,borderRadius:4,border:'2px dashed var(--border)',background:'var(--bg3)',color:'var(--muted)',cursor:'pointer',fontSize:22,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:2}}>{uploading ? <span style={{fontSize:11}}>...</span> : <>+<span style={{fontSize:10}}>foto</span></>}</button>
+            <label style={{display:'flex',alignItems:'center',gap:6,fontSize:12,color:estiloNsf?'var(--purple)':'var(--dim)',marginLeft:8,cursor:'pointer',whiteSpace:'nowrap'}} title="Recorta e poe no fundo escuro Nosferatu ao subir"><input type="checkbox" checked={estiloNsf} onChange={e=>setEstiloNsf(e.target.checked)}/>🦇 Fundo escuro</label>
             <input ref={fileRef} type="file" accept="image/*" multiple style={{display:'none'}} onChange={e=>uploadFotos(e.target.files)}/>
           </div>
         </div>
