@@ -1617,7 +1617,7 @@ async function carregarProdutos() {
   try {
     const ctrl=new AbortController();
     const tid=setTimeout(()=>ctrl.abort(),12000);
-    const res=await fetch(`${SUPA_URL}/rest/v1/produtos?select=*&order=destaque.desc,created_at.desc&limit=200`,
+    const res=await fetch(`${SUPA_URL}/rest/v1/produtos?select=*&ativo=eq.true&order=destaque.desc,created_at.desc&limit=200`,
       { headers:{ apikey:SUPA_ANON, Authorization:`Bearer ${SUPA_ANON}` }, signal:ctrl.signal });
     clearTimeout(tid);
     if (!res.ok) throw new Error('Supabase erro '+res.status);
