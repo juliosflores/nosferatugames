@@ -1,4 +1,4 @@
-const CACHE = 'nosferatu-v3';
+const CACHE = 'nosferatu-v4';
 const STATIC = [
   '/',
   '/index.html',
