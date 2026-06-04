@@ -487,7 +487,7 @@ const ProductForm = ({initial, onSave, onClose}) => {
     } catch(e) { setToast('✕ '+e.message); } setUploading(false);
   };
   const removerImg = (idx) => set('imagens', p.imagens.filter((_,i)=>i!==idx));
-  const aplicarFundo = async (i) => { setUploading(true); try { const b = await estilizarNsf(p.imagens[i]); const url = await cloudUpload(new File([b],'nsf.jpg',{type:'image/jpeg'})); set('imagens', p.imagens.map((u,j)=>j===i?url:u)); setToast('🦇 Fundo aplicado'); } catch(e){ setToast('✕ '+(e.message||'erro')); } setUploading(false); };
+  const aplicarFundo = async (i) => { if(uploading){ setToast('Aguarde a foto anterior...'); return; } const src=p.imagens[i]; setUploading(true); try { const b = await estilizarNsf(src); const url = await cloudUpload(new File([b],'nsf.jpg',{type:'image/jpeg'})); setP(prev=>({...prev, imagens:(prev.imagens||[]).map(u=>u===src?url:u)})); setToast('🦇 Fundo aplicado'); } catch(e){ setToast('✕ '+(e.message||'erro')); } setUploading(false); };
   const consultarOLX = async () => { setBuscandoOLX(true); await buscarPrecoOLX(p.nome, (preco) => set('preco', preco), setToast); setBuscandoOLX(false); };
   const salvar = async () => {
     if (!p.nome.trim()) { setToast('✕ Nome é obrigatório'); return; }
