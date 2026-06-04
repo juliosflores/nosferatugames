@@ -460,12 +460,12 @@ const ProductForm = ({initial, onSave, onClose}) => {
   const [toast,setToast]         = useState('');
   const [buscandoOLX,setBuscandoOLX] = useState(false);
   const [estiloNsf,setEstiloNsf] = useState(true);
-  useEffect(function(){ import('https://esm.sh/@imgly/background-removal@1.5.8').then(function(m){ if(m.preload) m.preload(); }).catch(function(){}); }, []);
+  useEffect(function(){ (new Function("return import('https://esm.sh/@imgly/background-removal@1.5.8')"))().then(function(m){ if(m.preload) m.preload(); }).catch(function(){}); }, []);
   const fileRef = useRef();
   const set = (k,v) => setP(prev=>({...prev,[k]:v}));
   const blobToImg = (b) => new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=URL.createObjectURL(b);});
   const estilizarNsf = async (file) => {
-    const _m = await import('https://esm.sh/@imgly/background-removal@1.5.8');
+    const _m = await (new Function("return import('https://esm.sh/@imgly/background-removal@1.5.8')"))();
     const cut = await blobToImg(await _m.removeBackground(file));
     const S=1080, c=document.createElement('canvas'); c.width=S; c.height=S; const x=c.getContext('2d');
     const g=x.createRadialGradient(S/2,S/2,S*0.1,S/2,S/2,S*0.72); g.addColorStop(0,'#1a1226'); g.addColorStop(1,'#050508'); x.fillStyle=g; x.fillRect(0,0,S,S);
