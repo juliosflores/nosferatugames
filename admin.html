@@ -1513,7 +1513,7 @@ const FinanceiroPage = () => {
         supa('financeiro?order=criado_em.desc&limit=500'),
         supa('compras_garimpo?order=data_compra.desc&limit=2000')
       ]);
-      const garItens = (gar||[]).filter(g => !/cancel|fail|recus|mediac|n[aã]o.?aprov|reembols|estorn/i.test(g.status||'')).map(g => ({ id:g.id, _garimpo:true, foto:g.foto, produto:g.produto, console:g.plataforma||'OLX', preco_compra:g.valor_pago, preco_venda:null, custo_extra:0, data_compra:g.data_compra, data_venda:null, origem:'olx_garimpo', status:'estoque' }));
+      const garItens = (gar||[]).filter(g => !/cancel|fail|recus|mediac|n[aã]o.?aprov|reembols|estorn/i.test(g.status||'')).map(g => ({ id:g.id, _garimpo:true, foto:g.foto, fotos:g.fotos, produto:g.produto, console:g.plataforma||'OLX', preco_compra:g.valor_pago, preco_venda:null, custo_extra:0, data_compra:g.data_compra, data_venda:null, origem:'olx_garimpo', status:'estoque' }));
       setItens([...(fin||[]), ...garItens]);
     }
     catch(e) { console.error(e); }
@@ -1541,7 +1541,7 @@ const FinanceiroPage = () => {
   const criarProduto = async (item) => {
     if (!item._garimpo) { showToast('So para compras do garimpo'); return; }
     showToast('Criando produto...');
-    const dados = { nome:item.produto, console:'Acessórios', condicao:'Usado', preco:null, descricao:'', imagem_url:item.foto||'', imagens:item.foto?[item.foto]:[], compra_id:item.id, custo_compra:Number(item.preco_compra)||0, ativo:false, vendido:false };
+    const dados = { nome:item.produto, console:'Acessórios', condicao:'Usado', preco:null, descricao:'', imagem_url:((item.fotos&&item.fotos[0])||item.foto||''), imagens:((item.fotos&&item.fotos.length)?item.fotos:(item.foto?[item.foto]:[])), compra_id:item.id, custo_compra:Number(item.preco_compra)||0, ativo:false, vendido:false };
     try {
       if (item.foto) {
         try {
