@@ -490,6 +490,13 @@ const ProductForm = ({initial, onSave, onClose}) => {
   const aplicarFundo = async (i) => { if(uploading){ setToast('Aguarde a foto anterior...'); return; } const src=p.imagens[i]; setUploading(true); try { const b = await estilizarNsf(src); const url = await cloudUpload(new File([b],'nsf.jpg',{type:'image/jpeg'})); setP(prev=>({...prev, imagens:(prev.imagens||[]).map(u=>u===src?url:u)})); setToast('🦇 Fundo aplicado'); } catch(e){ setToast('✕ '+(e.message||'erro')); } setUploading(false); };
   const girarFoto = async (i) => { if(uploading){ setToast('Aguarde...'); return; } const src=p.imagens[i]; setUploading(true); try { const img = await new Promise((res,rej)=>{const im=new Image();im.crossOrigin='anonymous';im.onload=()=>res(im);im.onerror=rej;im.src=src;}); const c=document.createElement('canvas'); c.width=img.naturalHeight; c.height=img.naturalWidth; const x=c.getContext('2d'); x.translate(c.width/2,c.height/2); x.rotate(Math.PI/2); x.drawImage(img,-img.naturalWidth/2,-img.naturalHeight/2); const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',0.92)); const url=await cloudUpload(new File([blob],'rot.jpg',{type:'image/jpeg'})); setP(prev=>({...prev, imagens:(prev.imagens||[]).map(u=>u===src?url:u)})); setToast('Girada'); } catch(e){ setToast('✕ '+(e.message||'erro girar')); } setUploading(false); };
   const consultarOLX = async () => { setBuscandoOLX(true); await buscarPrecoOLX(p.nome, (preco) => set('preco', preco), setToast); setBuscandoOLX(false); };
+  const postarInstagram = async () => {
+    const hook = localStorage.getItem('ng_make_webhook');
+    if(!hook){ setToast('✕ Configure o Webhook do Make em Configuracoes'); return; }
+    if(!p.imagens || !p.imagens.length || !p.preco){ setToast('✕ Precisa de fotos e preco antes'); return; }
+    setSaving(true);
+    try { await fetch(hook,{method:'POST',mode:'no-cors',body:JSON.stringify({nome:p.nome,preco:p.preco,descricao:p.descricao||'',console:p.console,imagens:p.imagens,imagem_url:(p.imagens&&p.imagens[0])||p.imagem_url,link:'https://nosferatugames.com.br'})}); setToast('📸 Enviado pro Make (confira o Instagram)'); } catch(e){ setToast('✕ '+(e.message||'erro')); } setSaving(false);
+  };
   const salvar = async () => {
     if (!p.nome.trim()) { setToast('✕ Nome é obrigatório'); return; }
     if (!p.preco)       { setToast('✕ Preço é obrigatório'); return; }
@@ -534,7 +541,7 @@ const ProductForm = ({initial, onSave, onClose}) => {
           <Toggle label="Frete Grátis" checked={!!p.frete_gratis} onChange={()=>set('frete_gratis',!p.frete_gratis)} />
         </div>
         {toast && <div style={{fontSize:13,color:'var(--red-b)',marginBottom:12,fontFamily:'Share Tech Mono, monospace'}}>{toast}</div>}
-        <div style={{display:'flex',gap:10,justifyContent:'flex-end'}}><Btn color="ghost" onClick={onClose}>Cancelar</Btn><Btn onClick={salvar} disabled={saving}>{saving?'Salvando...':'Salvar produto'}</Btn></div>
+        <div style={{display:'flex',gap:10,justifyContent:'flex-end'}}><Btn color="ghost" onClick={onClose}>Cancelar</Btn><Btn color="ghost" onClick={postarInstagram} disabled={saving}>📸 Instagram</Btn><Btn onClick={salvar} disabled={saving}>{saving?'Salvando...':'Salvar produto'}</Btn></div>
       </div>
     </div>
   );
