@@ -27,13 +27,28 @@ export default async function handler(req, res) {
     const { items, shipping_cost, shipping_name } = req.body || {};
     if (!items?.length) return res.status(400).json({ error: 'Carrinho vazio' });
     for (const item of items) {
-      if (!item.nome || isNaN(Number(item.preco)) || Number(item.preco) <= 0)
-        return res.status(400).json({ error: 'Item invalido no carrinho.' });
+      if (!item.id) return res.status(400).json({ error: 'Item sem id no carrinho.' });
     }
 
-    if (!items || items.length === 0) {
-      return res.status(400).json({ error: 'Carrinho vazio' });
+    // === Validação server-side: NUNCA confiar no preço do cliente ===
+    // Busca preço/nome/estado real no Supabase pelo id e ignora o `preco` enviado.
+    const SUPABASE_URL = process.env.SUPABASE_URL;
+    const SUPABASE_KEY = process.env.SUPABASE_KEY;
+    const uniqueIds = [...new Set(items.map(i => String(i.id)))];
+
+    let produtosDB = [];
+    try {
+      const url = `${SUPABASE_URL}/rest/v1/produtos?id=in.(${uniqueIds.join(',')})&select=id,nome,preco,vendido`;
+      const r = await fetch(url, {
+        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+      });
+      if (!r.ok) throw new Error(`Supabase ${r.status}: ${await r.text()}`);
+      produtosDB = await r.json();
+    } catch (e) {
+      console.error('[create-preference] Falha ao validar produtos:', e);
+      return res.status(502).json({ error: 'Não foi possível validar os produtos. Tente novamente.' });
     }
+    const byId = new Map(produtosDB.map(p => [String(p.id), p]));
 
     // Inicializa cliente MP v2
     const client = new MercadoPagoConfig({
@@ -42,17 +57,25 @@ export default async function handler(req, res) {
 
     const preference = new Preference(client);
 
-    // Converte itens do carrinho
-    const mp_items = items.map(item => ({
-      id: String(item.id),
-      title: item.nome,
-      description: item.descricao || `${item.console || ''} · Nosferatu Games`,
-      picture_url: (item.imagens && item.imagens[0]) || item.imagem_url || '',
-      category_id: 'games',
-      quantity: 1,
-      currency_id: 'BRL',
-      unit_price: Number(item.preco),
-    }));
+    // Converte itens do carrinho usando SEMPRE os dados do banco
+    const mp_items = [];
+    for (const item of items) {
+      const db = byId.get(String(item.id));
+      if (!db) return res.status(409).json({ error: `Produto indisponível: ${item.nome || item.id}` });
+      if (db.vendido) return res.status(409).json({ error: `Produto já vendido: ${db.nome}` });
+      if (isNaN(Number(db.preco)) || Number(db.preco) <= 0)
+        return res.status(409).json({ error: `Preço inválido: ${db.nome}` });
+      mp_items.push({
+        id: String(db.id),
+        title: db.nome,
+        description: item.descricao || `${item.console || ''} · Nosferatu Games`,
+        picture_url: (item.imagens && item.imagens[0]) || item.imagem_url || '',
+        category_id: 'games',
+        quantity: 1,
+        currency_id: 'BRL',
+        unit_price: Number(db.preco),
+      });
+    }
 
     // Adiciona frete como item se houver
     if (shipping_cost > 0) {
@@ -70,6 +93,9 @@ export default async function handler(req, res) {
     const result = await preference.create({
       body: {
         items: mp_items,
+        // Liga o pagamento aos produtos pro mp-webhook marcar como vendido
+        external_reference: uniqueIds.join(','),
+        metadata: { produto_ids: uniqueIds, produto_nome: mp_items[0]?.title },
         back_urls: {
           success: `${siteUrl}/?pagamento=sucesso`,
           failure: `${siteUrl}/?pagamento=erro`,

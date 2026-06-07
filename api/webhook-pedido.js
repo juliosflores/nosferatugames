@@ -7,11 +7,31 @@ export default async function handler(req, res) {
 
   const VPS_NOTIFY_URL    = process.env.VPS_NOTIFY_URL;
   const VPS_NOTIFY_SECRET = process.env.VPS_NOTIFY_SECRET;
+  const SUPABASE_URL      = process.env.SUPABASE_URL;
+  const SUPABASE_KEY      = process.env.SUPABASE_KEY;
 
   try {
     const pedido = req.body?.pedido || req.body || {};
     if (!pedido || (!pedido.id && !pedido.nome)) {
       return res.status(400).json({ ok: false, error: 'Pedido inválido' });
+    }
+
+    // Conta o uso do cupom (atômico, via RPC) — chokepoint único de todo pedido criado.
+    if (pedido.cupon_codigo && SUPABASE_URL && SUPABASE_KEY) {
+      try {
+        const rc = await fetch(`${SUPABASE_URL}/rest/v1/rpc/incrementar_uso_cupom`, {
+          method: 'POST',
+          headers: {
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ p_codigo: pedido.cupon_codigo }),
+        });
+        if (!rc.ok) console.error('[webhook-pedido] incrementar_uso_cupom falhou:', rc.status, await rc.text().catch(() => ''));
+      } catch (e) {
+        console.error('[webhook-pedido] Erro ao contar cupom:', e.message);
+      }
     }
 
     const fmt = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });

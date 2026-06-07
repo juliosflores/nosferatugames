@@ -64,15 +64,21 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, ignored: `status:${payment.status}` });
     }
 
-    const produtoId = payment.metadata?.produto_id;
+    // Reúne os ids do pedido: external_reference (confiável) + metadata (compat)
+    const refIds  = String(payment.external_reference || '').split(',').map(s => s.trim());
+    const metaIds = payment.metadata?.produto_ids
+      || (payment.metadata?.produto_id ? [payment.metadata.produto_id] : []);
+    const produtoIds = [...new Set([...refIds, ...metaIds])]
+      .filter(id => id && id !== 'TEST_ID');
+
     const produtoNome = payment.additional_info?.items?.[0]?.title || payment.metadata?.produto_nome || 'Produto';
     const valor = Number(payment.transaction_amount || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     const comprador = payment.payer?.first_name || payment.payer?.email || 'Cliente';
 
-    // 2. MARCAR COMO VENDIDO NO SUPABASE (Se houver produtoId)
-    if (produtoId && produtoId !== 'TEST_ID') {
-      console.log(`[mp-webhook] Marcando produto ${produtoId} como vendido no Supabase...`);
-      const supabaseRes = await fetch(`${SUPABASE_URL}/rest/v1/produtos?id=eq.${produtoId}`, {
+    // 2. MARCAR COMO VENDIDO NO SUPABASE (todos os produtos do pedido)
+    if (produtoIds.length) {
+      console.log(`[mp-webhook] Marcando ${produtoIds.length} produto(s) como vendido(s):`, produtoIds.join(', '));
+      const supabaseRes = await fetch(`${SUPABASE_URL}/rest/v1/produtos?id=in.(${produtoIds.join(',')})`, {
         method: 'PATCH',
         headers: {
           'apikey': SUPABASE_KEY,
