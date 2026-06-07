@@ -3815,6 +3815,46 @@ const PublicarPage = () => {
     img.src=URL.createObjectURL(noBgBlob);
   });
 
+  // ── Girar um item da fila 90 graus ─────────────────────────
+  const girarItem = async (id) => {
+    const item = fila.find(x => x.id === id);
+    if (!item || item.status === 'processando' || item.status === 'publicando') return;
+    updItem(id, { status: 'processando' });
+    addLog(id, '↻ Girando imagem 90°...', 'info');
+    try {
+      const img = await new Promise((res, rej) => {
+        const im = new Image();
+        im.onload = () => res(im);
+        im.onerror = rej;
+        im.src = item.rawPreview || URL.createObjectURL(item.file);
+      });
+      const c = document.createElement('canvas');
+      c.width = img.naturalHeight;
+      c.height = img.naturalWidth;
+      const x = c.getContext('2d');
+      x.translate(c.width/2, c.height/2);
+      x.rotate(Math.PI/2);
+      x.drawImage(img, -img.naturalWidth/2, -img.naturalHeight/2);
+      const dataUrl = c.toDataURL('image/jpeg', 0.92);
+      const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.92));
+      const rotatedFile = new File([blob], item.file.name, { type: 'image/jpeg' });
+      
+      updItem(id, {
+        file: rotatedFile,
+        rawPreview: dataUrl,
+        finalImg: null,
+        status: 'aguardando'
+      });
+      addLog(id, '✔ Girada. Reprocessando...', 'ok');
+      
+      // Reprocessa automaticamente
+      setTimeout(() => processarItem(id), 300);
+    } catch (e) {
+      addLog(id, '✕ Erro ao girar: ' + (e.message || e), 'erro');
+      updItem(id, { status: 'erro' });
+    }
+  };
+
   // ── Processar um item da fila (remove.bg + compose) ──────
   const processarItem = async (id, itemDireto) => {
     const item = itemDireto || fila.find(x=>x.id===id);
@@ -3998,6 +4038,9 @@ const PublicarPage = () => {
                       : <div style={{color:'var(--muted)',fontSize:24}}>📷</div>
                   }
                 </div>
+                {item.status !== 'processando' && item.status !== 'publicando' && (
+                  <button onClick={(e)=>{e.stopPropagation(); girarItem(item.id);}} title="Girar 90 graus" style={{position:'absolute',top:6,left:6,width:20,height:20,borderRadius:'50%',background:'var(--gold)',border:'none',color:'#000',fontSize:12,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:'1',zIndex:5}}>↻</button>
+                )}
                 <div style={{position:'absolute',top:6,right:6,padding:'2px 7px',borderRadius:3,background:'var(--bg)',border:'1px solid var(--border)',fontSize:10,fontFamily:'Share Tech Mono, monospace',color:statusColor[item.status]||'var(--dim)'}}>
                   {statusLabel[item.status]||item.status}
                 </div>
