@@ -1308,7 +1308,7 @@ async function processarPedido(e) {
     // Fallback: redireciona pro WhatsApp com o pedido completo
     btn.textContent = '📲 Abrindo WhatsApp...';
     setTimeout(() => {
-      const wppLink = `https://wa.me/5555519951089700?text=${gerarMsgWpp()}`;
+      const wppLink = `https://wa.me/5551995108970?text=${gerarMsgWpp()}`;
       // Atualiza status do pedido para fallback_wpp
       if (pedidoId) {
         fetch(`${SUPA_URL}/rest/v1/pedidos?id=eq.${pedidoId}`, {
