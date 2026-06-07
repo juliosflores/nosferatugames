@@ -77,6 +77,16 @@ const SUPA_URL  = 'https://jcnncmfbodglvoyytgok.supabase.co';
 const SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impjbm5jbWZib2RnbHZveXl0Z29rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2MTg0NDgsImV4cCI6MjA5MTE5NDQ0OH0.YpStoaxT86MQY06KiKVhUXdlcF-CVsu4DOFuUTLv4u0';
 const HEADERS   = { apikey: SUPA_ANON, Authorization: `Bearer ${SUPA_ANON}`, 'Content-Type': 'application/json', Prefer: 'return=representation' };
 
+// ── Garimpo: Postgres local (migrado do Supabase em 03/06) ───
+// PostgREST atrás de nginx Supabase-style (/rest/v1/<tabela>); role anon = web_anon (sem JWT).
+const GAR_URL = 'https://db.nosferatugames.com.br';
+const gar = async (path, opts={}) => {
+  const r = await fetch(`${GAR_URL}/rest/v1/${path}`, { headers: { 'Content-Type':'application/json', Prefer:'return=representation' }, ...opts });
+  if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e?.message||r.status); }
+  if (r.status === 204) return null;
+  return r.json();
+};
+
 async function sbRefresh(){
   const rt = sessionStorage.getItem('sb_refresh');
   if(!rt) return false;
@@ -784,10 +794,10 @@ const GarimpoPage = () => {
   const carregar = useCallback(async () => {
     try {
       const [a, al, p, l] = await Promise.all([
-        supa('garimpo_resultados?order=created_at.desc&limit=100'),
-        supa('garimpo_alvos?order=nome.asc&select=*'),
-        supa('precos_mercado?order=ultima_atualizacao.desc&select=*'),
-        supa('sistema_logs?order=criado_em.desc&limit=150&select=script,nivel,mensagem,criado_em'),
+        gar('garimpo_resultados?order=created_at.desc&limit=100'),
+        gar('garimpo_alvos?order=nome.asc&select=*'),
+        gar('precos_mercado?order=ultima_atualizacao.desc&select=*'),
+        gar('sistema_logs?order=criado_em.desc&limit=150&select=script,nivel,mensagem,criado_em'),
       ]);
       setAchados(a||[]);
       setAlvos(al||[]);
@@ -811,8 +821,8 @@ const GarimpoPage = () => {
     setSavingAlvo(true);
     try {
       const { id, ...dados } = alvo;
-      if (id) await supa(`garimpo_alvos?id=eq.${id}`, { method:'PATCH', body: JSON.stringify(dados) });
-      else    await supa('garimpo_alvos', { method:'POST', body: JSON.stringify(dados) });
+      if (id) await gar(`garimpo_alvos?id=eq.${id}`, { method:'PATCH', body: JSON.stringify(dados) });
+      else    await gar('garimpo_alvos', { method:'POST', body: JSON.stringify(dados) });
       setEditAlvo(null);
       showToast('✔ Alvo salvo!');
       carregar();
@@ -822,14 +832,14 @@ const GarimpoPage = () => {
 
   const toggleAlvo = async (alvo) => {
     try {
-      await supa(`garimpo_alvos?id=eq.${alvo.id}`, { method:'PATCH', body: JSON.stringify({ ativo: !alvo.ativo }) });
+      await gar(`garimpo_alvos?id=eq.${alvo.id}`, { method:'PATCH', body: JSON.stringify({ ativo: !alvo.ativo }) });
       carregar();
     } catch {}
   };
 
   const marcarComprado = async (achado) => {
     try {
-      await supa(`garimpo_resultados?id=eq.${achado.id}`, { method:'PATCH', body: JSON.stringify({ status: 'comprado' }) });
+      await gar(`garimpo_resultados?id=eq.${achado.id}`, { method:'PATCH', body: JSON.stringify({ status: 'comprado' }) });
       showToast('✔ Marcado como comprado!');
       carregar();
     } catch {}
@@ -837,7 +847,7 @@ const GarimpoPage = () => {
 
   const marcarDescartado = async (achado) => {
     try {
-      await supa(`garimpo_resultados?id=eq.${achado.id}`, { method:'PATCH', body: JSON.stringify({ status: 'descartado' }) });
+      await gar(`garimpo_resultados?id=eq.${achado.id}`, { method:'PATCH', body: JSON.stringify({ status: 'descartado' }) });
       carregar();
     } catch {}
   };
