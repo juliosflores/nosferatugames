@@ -1942,38 +1942,43 @@ const InfraPage = () => {
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3500); };
 
   // ── Fetch helpers ──
-  const hermesGet = async (path) => {
-    const isApi = path.startsWith('/api/');
-    const token = isApi ? await getActiveToken() : HERMES_KEY;
-    const headers = { 'Authorization': `Bearer ${token}` };
-    if (isApi) {
-      headers['X-Hermes-Session-Token'] = token;
-    }
-    const r = await fetch(`${HERMES_URL}${path}`, {
-      headers: headers,
+  // Gateway (8080): health + chat — chave estática
+  const hermesGateway = async (path) => {
+    const r = await fetch(`https://hermes.nosferatugames.com.br${path}`, {
+      headers: { 'Authorization': `Bearer ${HERMES_KEY}` },
       signal: AbortSignal.timeout(6000)
     });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     return r.json();
   };
+  // Dashboard (9119 via nginx /api/): sessions, status, jobs — session token
+  const hermesDash = async (path) => {
+    const token = await getActiveToken();
+    const r = await fetch(`${HERMES_URL}${path}`, {
+      headers: { 'Authorization': `Bearer ${token}`, 'X-Hermes-Session-Token': token },
+      signal: AbortSignal.timeout(6000)
+    });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
+  };
+  // Compat: mantém hermesGet para o chat que já usa
+  const hermesGet = hermesDash;
 
   const fetchAll = async () => {
     setLoading(true);
     const results = await Promise.allSettled([
-      hermesGet('/health'),
-      hermesGet('/health/extended'),
-      hermesGet('/capabilities'),
-      hermesGet('/v1/models'),
-      hermesGet('/api/status'),
-      hermesGet('/api/sessions'),
-      hermesGet('/api/cron/jobs'),
+      hermesGateway('/health'),           // 0: {status:"ok"}
+      hermesDash('/api/status'),          // 1: version, gateway_running, whatsapp, active_sessions
+      hermesDash('/capabilities'),        // 2: features
+      hermesDash('/v1/models'),           // 3: modelos
+      hermesDash('/api/sessions'),        // 4: {sessions:[], total:N}
+      hermesDash('/api/cron/jobs'),       // 5: [] ou [{...}]
     ]);
-    const [h, hx, cp, md, ds, ss, jj] = results;
+    const [h, ds, cp, md, ss, jj] = results;
     if (h.status  === 'fulfilled') setHealth(h.value);
-    if (hx.status === 'fulfilled') setHealthEx(hx.value);
+    if (ds.status === 'fulfilled') { setDashStatus(ds.value); setHealthEx(ds.value); }
     if (cp.status === 'fulfilled') setCaps(cp.value);
     if (md.status === 'fulfilled') setModel(md.value);
-    if (ds.status === 'fulfilled') setDashStatus(ds.value);
     if (ss.status === 'fulfilled') setSessions(ss.value?.sessions || ss.value || []);
     if (jj.status === 'fulfilled') setJobs(jj.value?.jobs || jj.value || []);
     setLastRefresh(new Date());
@@ -2042,17 +2047,17 @@ const InfraPage = () => {
 
 
   // ── Derived state ──
-  const hermesOk    = health?.status === 'ok';
-  const activeSess  = healthEx?.active_sessions ?? dashStatus?.active_session_count ?? '—';
-  const runningAg   = healthEx?.running_agents ?? '—';
-  const memUsage    = healthEx?.resource_usage?.memory_mb
-    ? `${Math.round(healthEx.resource_usage.memory_mb)} MB`
-    : '—';
-  const cpuUsage    = healthEx?.resource_usage?.cpu_percent != null
-    ? `${healthEx.resource_usage.cpu_percent.toFixed(1)}%`
-    : '—';
-  const hermesVer   = dashStatus?.version ?? '—';
-  const activeJobs  = jobs.filter(j => !j.paused).length;
+  const hermesOk      = health?.status === 'ok';
+  // dashStatus = /api/status (9119): version, gateway_running, gateway_state, whatsapp, active_sessions
+  const hermesVer     = dashStatus?.version ?? '—';
+  const activeSess    = dashStatus?.active_sessions ?? '—';
+  const wppState      = dashStatus?.gateway_platforms?.whatsapp?.state ?? null;
+  const gatewayState  = dashStatus?.gateway_state ?? null;
+  // resource_usage não existe no Hermes v0.13 — exibir '—'
+  const memUsage      = '—';
+  const cpuUsage      = '—';
+  const runningAg     = '—';
+  const activeJobs    = jobs.filter(j => !j.paused).length;
 
   // ── Feature badges ──
   const features = caps?.features || {};
@@ -2214,10 +2219,8 @@ const InfraPage = () => {
       {sub === 'sessions' && (
         <div>
           <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ fontSize: 14, color: 'var(--muted)' }}>{sessions.length} sessões recentes</div>
-            {sessions.length === 0 && !loading && (
-              <MonoTag color="var(--amber)">⚠ Endpoint /api/dashboard/sessions pode não estar ativo nesta versão</MonoTag>
-            )}
+            <div style={{ fontSize: 14, color: 'var(--muted)' }}>{sessions.length} sessões carregadas</div>
+            {sessions.length === 0 && !loading && <MonoTag color="var(--amber)">Nenhuma sessão recente</MonoTag>}
           </div>
           {sessions.length === 0 ? (
             <div style={{ ...S.card, borderLeft: '3px solid var(--amber)', padding: 24 }}>
@@ -2415,46 +2418,83 @@ const InfraPage = () => {
 
       {/* ── PI MONITOR ── */}
       {sub === 'minipc' && (() => {
-        const ru = healthEx?.resource_usage;
-        const MBar = ({pct}) => { const c = pct>=85?'var(--red-b)':pct>=70?'var(--amber)':'var(--green)'; return <div style={{background:'var(--bg3)',borderRadius:4,height:8,marginTop:8,overflow:'hidden'}}><div style={{width:`${Math.min(pct||0,100)}%`,height:'100%',background:c,borderRadius:4,transition:'width .4s'}}/></div>; };
-        if (!healthEx) return <div style={{...S.card,borderLeft:'3px solid var(--red-b)',padding:24}}><div style={{fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--red-b)'}}>MINI PC SEM DADOS — Hermes offline?</div></div>;
-        const cpuPct = ru?.cpu_percent != null ? Math.round(ru.cpu_percent) : null;
-        const memPct = ru?.memory_mb && ru?.memory_total_mb ? Math.round(ru.memory_mb/ru.memory_total_mb*100) : (ru?.memory_percent != null ? Math.round(ru.memory_percent) : null);
-        const hdPct  = ru?.disk_percent != null ? Math.round(ru.disk_percent) : (ru?.disk_used_gb && ru?.disk_total_gb ? Math.round(ru.disk_used_gb/ru.disk_total_gb*100) : null);
-        const col = v => v==null?'var(--dim)':v>=85?'var(--red-b)':v>=70?'var(--amber)':'var(--green)';
+        if (!dashStatus && !hermesOk) return (
+          <div style={{...S.card,borderLeft:'3px solid var(--red-b)',padding:24}}>
+            <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--red-b)',marginBottom:8}}>MINI PC SEM DADOS — Hermes offline ou bloqueado?</div>
+            <div style={{fontSize:13,color:'var(--dim)',lineHeight:1.8}}>
+              Verifique: <code style={{background:'var(--bg3)',padding:'1px 6px',borderRadius:3,color:'var(--text)'}}>systemctl status hermes-gateway hermes-dashboard</code><br/>
+              e <code style={{background:'var(--bg3)',padding:'1px 6px',borderRadius:3,color:'var(--text)'}}>systemctl status cloudflared</code>
+            </div>
+          </div>
+        );
+        const wppOk  = wppState === 'connected';
+        const gwOk   = gatewayState === 'running';
+        const wppUpdated = dashStatus?.gateway_platforms?.whatsapp?.updated_at;
+        const wppAge = wppUpdated ? Math.round((Date.now() - new Date(wppUpdated)) / 60000) : null;
         return (
           <div>
+            {/* Header */}
             <div style={{marginBottom:20,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
               <div style={{display:'flex',alignItems:'center',gap:10}}>
                 <div style={{fontSize:24}}>🖥</div>
                 <div>
-                  <div style={{fontFamily:'Press Start 2P, monospace',fontSize:11,color:'var(--text)',marginBottom:2}}>Mini PC</div>
-                  <div style={{fontSize:12,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}><span style={{color:hermesOk?'var(--green)':'var(--amber)'}}>{hermesOk?'● ONLINE':'⚠ HERMES SEM RESPOSTA'}</span> · via /health/extended · {lastRefresh?lastRefresh.toLocaleTimeString('pt-BR'):'—'}</div>
+                  <div style={{fontFamily:'Press Start 2P, monospace',fontSize:11,color:'var(--text)',marginBottom:2}}>Mini PC · Hermes v{hermesVer}</div>
+                  <div style={{fontSize:12,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>
+                    <span style={{color:hermesOk?'var(--green)':'var(--amber)'}}>{hermesOk?'● ONLINE':'⚠ GATEWAY SEM RESPOSTA'}</span>
+                    {lastRefresh && <span> · {lastRefresh.toLocaleTimeString('pt-BR')}</span>}
+                  </div>
                 </div>
               </div>
               <Btn color="ghost" onClick={fetchAll} disabled={loading}>{loading?'...':'↻'}</Btn>
             </div>
+
+            {/* Cards de status */}
             <div className="ng-grid4" style={S.grid4}>
               {[
-                {label:'CPU', pct:cpuPct, sub:cpuPct!=null?`${cpuPct}% utilização`:'sem dado'},
-                {label:'RAM', pct:memPct, sub:ru?.memory_mb?`${Math.round(ru.memory_mb)}/${Math.round(ru.memory_total_mb||0)}MB`:(memPct!=null?`${memPct}%`:'sem dado')},
-                {label:'HD',  pct:hdPct,  sub:ru?.disk_used_gb?`${ru.disk_used_gb.toFixed(1)}/${ru.disk_total_gb?.toFixed(0)||'?'}GB`:(hdPct!=null?`${hdPct}%`:'não exposto')},
-                {label:'Agentes', pct:null, sub:`${healthEx.running_agents??'—'} rodando`, val:healthEx.active_sessions??'—'},
-              ].map(({label,pct,sub,val})=>(
-                <div key={label} style={{...S.card,borderTop:`3px solid ${col(pct)}`}}>
+                { label:'Gateway', val: gwOk?'ON':'OFF', sub: gatewayState||'desconhecido', color: gwOk?'var(--green)':'var(--red-b)' },
+                { label:'WhatsApp', val: wppOk?'✓':'✕', sub: wppOk?`conectado${wppAge!=null?' · '+wppAge+'min':''}`:(wppState||'desconhecido'), color: wppOk?'var(--green)':'var(--amber)' },
+                { label:'Sessões', val: activeSess, sub: activeSess===0?'nenhuma ativa':'ativas no momento', color: activeSess>0?'var(--cyan)':'var(--dim)' },
+                { label:'Cron Jobs', val: activeJobs, sub: `de ${jobs.length} total`, color: activeJobs>0?'var(--gold)':'var(--dim)' },
+              ].map(({label,val,sub,color})=>(
+                <div key={label} style={{...S.card,borderTop:`3px solid ${color}`}}>
                   <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:10,color:'var(--muted)',textTransform:'uppercase',marginBottom:8,letterSpacing:'0.15em'}}>{label}</div>
-                  <div style={{fontFamily:'Press Start 2P, monospace',fontSize:20,color:col(pct),marginBottom:4}}>{val!==undefined?val:(pct!=null?`${pct}%`:'—')}</div>
-                  <div style={{fontSize:11,color:'var(--muted)',marginBottom:2}}>{sub}</div>
-                  {pct!=null && <MBar pct={pct}/>}
+                  <div style={{fontFamily:'Press Start 2P, monospace',fontSize:20,color,marginBottom:4}}>{val}</div>
+                  <div style={{fontSize:11,color:'var(--muted)'}}>{sub}</div>
                 </div>
               ))}
             </div>
-            {((cpuPct!=null&&cpuPct>80)||(memPct!=null&&memPct>85)||(hdPct!=null&&hdPct>85)) && (
-              <div style={{...S.card,borderLeft:'3px solid var(--amber)',marginTop:16,padding:'12px 16px'}}>
+
+            {/* Info do gateway */}
+            <div style={{...S.card,marginBottom:16}}>
+              <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:12}}>// Hermes Agent Status</div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px 24px'}}>
+                {[
+                  ['Versão',        `v${hermesVer}`],
+                  ['Release date',  dashStatus?.release_date ?? '—'],
+                  ['Config version',`${dashStatus?.config_version ?? '—'} / ${dashStatus?.latest_config_version ?? '—'}`],
+                  ['Gateway PID',   dashStatus?.gateway_pid ?? '—'],
+                  ['Home dir',      dashStatus?.hermes_home ?? '—'],
+                  ['WPP estado',    wppState ?? '—'],
+                ].map(([k,v])=>(
+                  <div key={k} style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',padding:'4px 0',borderBottom:'1px solid var(--border)'}}>
+                    <span style={{fontSize:11,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>{k}</span>
+                    <span style={{fontSize:12,color:'var(--text)',fontFamily:'Share Tech Mono, monospace'}}>{v}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Alertas */}
+            {!wppOk && (
+              <div style={{...S.card,borderLeft:'3px solid var(--amber)',padding:'12px 16px'}}>
                 <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:10,color:'var(--amber)',letterSpacing:'0.15em',marginBottom:8}}>⚠ ALERTAS</div>
-                {cpuPct!=null&&cpuPct>80 && <div style={{fontSize:13,color:'var(--dim)',marginBottom:4}}>🔥 CPU alta ({cpuPct}%) — reduza WORKERS no Hermes</div>}
-                {memPct!=null&&memPct>85 && <div style={{fontSize:13,color:'var(--dim)',marginBottom:4}}>🧠 RAM alta ({memPct}%)</div>}
-                {hdPct!=null&&hdPct>85   && <div style={{fontSize:13,color:'var(--dim)'}}>💾 HD quase cheio ({hdPct}%)</div>}
+                <div style={{fontSize:13,color:'var(--dim)',marginBottom:4}}>📱 WhatsApp {wppState==='disconnected'?'desconectado':'com problema'} — clique em ↻ para atualizar ou reconecte via Hermes</div>
+                <div style={{fontSize:11,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>Ver: [[WhatsApp Bridge - Reconexão e Troubleshooting]] no Obsidian</div>
+              </div>
+            )}
+            {!gwOk && hermesOk && (
+              <div style={{...S.card,borderLeft:'3px solid var(--red-b)',marginTop:8,padding:'12px 16px'}}>
+                <div style={{fontSize:13,color:'var(--red-b)'}}>🤖 Gateway não está em estado &quot;running&quot; (atual: {gatewayState||'?'})</div>
               </div>
             )}
           </div>
