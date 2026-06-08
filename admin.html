@@ -1157,6 +1157,12 @@ const PedidosPage = () => {
     carregar();
   };
 
+  const deletarPedido = async (id) => {
+    if (!window.confirm('Tem certeza que deseja excluir PERMANENTEMENTE este pedido?')) return;
+    await supa(`pedidos?id=eq.${id}`, { method:'DELETE' });
+    carregar();
+  };
+
   const STATUS_COLOR = { pago:'#4ade80', pendente:'var(--gold)', fallback_wpp:'var(--purple)', cancelado:'var(--red-b)' };
   const STATUS_LABEL = { pago:'✅ PAGO', pendente:'⏳ PENDENTE', fallback_wpp:'📲 WPP', cancelado:'✕ CANCELADO' };
 
@@ -1225,8 +1231,9 @@ const PedidosPage = () => {
                     <td style={{padding:'10px 14px'}}>
                       <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
                         {p.status!=='pago' && <button onClick={()=>atualizarStatus(p.id,'pago')} style={{...S.btn,padding:'4px 10px',fontSize:11,background:'rgba(74,222,128,.1)',border:'1px solid rgba(74,222,128,.3)',color:'#4ade80'}}>✅ Pago</button>}
-                        {p.status!=='cancelado' && <button onClick={()=>atualizarStatus(p.id,'cancelado')} style={{...S.btn,padding:'4px 10px',fontSize:11,background:'rgba(204,20,20,.1)',border:'1px solid var(--border-r)',color:'var(--red-b)'}}>✕</button>}
+                        {p.status!=='cancelado' && <button onClick={()=>atualizarStatus(p.id,'cancelado')} style={{...S.btn,padding:'4px 10px',fontSize:11,background:'rgba(204,20,20,.1)',border:'1px solid var(--border-r)',color:'var(--red-b)'}}>Cancelar</button>}
                         {p.whatsapp && <a href={`https://wa.me/55${p.whatsapp.replace(/\D/g,'')}`} target="_blank" style={{...S.btn,padding:'4px 10px',fontSize:11,background:'rgba(37,211,102,.1)',border:'1px solid rgba(37,211,102,.3)',color:'var(--green)',textDecoration:'none'}}>💬</a>}
+                        <button onClick={()=>deletarPedido(p.id)} style={{...S.btn,padding:'4px 10px',fontSize:11,background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--muted)',marginLeft:'auto'}} title="Excluir permanentemente">✕</button>
                       </div>
                     </td>
                   </tr>
