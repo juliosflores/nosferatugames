@@ -664,6 +664,7 @@ const Analytics = ({visitas}) => {
   const hoje   = new Date().toDateString();
   const semana = visitas.filter(v=>{const d=new Date(v.created_at);const s=new Date();s.setDate(s.getDate()-7);return d>=s;});
   const mobile = visitas.filter(v=>v.dispositivo==='mobile').length;
+  const uniqueVisitors = new Set(visitas.filter(v=>v.pais && v.pais.startsWith('v_')).map(v=>v.pais)).size;
   const referrers = visitas.reduce((acc,v)=>{const r=v.referrer||'Direto';acc[r]=(acc[r]||0)+1;return acc;},{});
   const topRef = Object.entries(referrers).sort((a,b)=>b[1]-a[1]).slice(0,5);
   const recent = [...visitas].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,20);
@@ -672,7 +673,7 @@ const Analytics = ({visitas}) => {
     <div>
       <div style={{marginBottom:20}}><div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Analytics</div><div style={{fontSize:14,color:'var(--muted)'}}>Rastreamento de visitas</div></div>
       <div className="ng-grid4" style={S.grid4}>
-        <StatCard label="Total visitas" value={visitas.length} color="var(--purple)" icon="👁"/>
+        <StatCard label="Total views" value={visitas.length} sub={`${uniqueVisitors} visitantes únicos`} color="var(--purple)" icon="👁"/>
         <StatCard label="Esta semana" value={semana.length} color="var(--red-b)" icon="📅"/>
         <StatCard label="Hoje" value={visitas.filter(v=>new Date(v.created_at).toDateString()===hoje).length} color="var(--gold)" icon="☀️"/>
         <StatCard label="Mobile" value={`${visitas.length?Math.round(mobile/visitas.length*100):0}%`} sub={`${mobile} de ${visitas.length}`} color="var(--green)" icon="📱"/>

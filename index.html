@@ -1774,10 +1774,16 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load',()=>{ navigator.serviceWorker.register('/sw.js').catch(()=>{}); });
 }
 
+function getVisitorId() {
+  let vid = localStorage.getItem('ng_vid');
+  if (!vid) { vid = 'v_' + Math.random().toString(36).substr(2, 9); localStorage.setItem('ng_vid', vid); }
+  return vid;
+}
+
 async function registrarVisita() {
   try {
     const dispositivo=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?'mobile':'desktop';
-    await fetch(`${SUPA_URL}/rest/v1/visitas`,{ method:'POST', headers:{ apikey:SUPA_ANON, Authorization:`Bearer ${SUPA_ANON}`, 'Content-Type':'application/json' }, body:JSON.stringify({ pagina:'/', referrer:document.referrer||'Direto', dispositivo }) });
+    await fetch(`${SUPA_URL}/rest/v1/visitas`,{ method:'POST', headers:{ apikey:SUPA_ANON, Authorization:`Bearer ${SUPA_ANON}`, 'Content-Type':'application/json' }, body:JSON.stringify({ pagina:'/', referrer:document.referrer||'Direto', dispositivo, pais: getVisitorId() }) });
   } catch(e) {}
 }
 
@@ -1785,7 +1791,7 @@ const _abrirModalOrig = abrirModal;
 window.abrirModal = async function(p) {
   _abrirModalOrig(p);
   try {
-    await fetch(`${SUPA_URL}/rest/v1/visitas`,{ method:'POST', headers:{ apikey:SUPA_ANON, Authorization:`Bearer ${SUPA_ANON}`, 'Content-Type':'application/json' }, body:JSON.stringify({ pagina:'/produto', produto_id:p.id||null, produto_nome:p.nome, dispositivo:/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?'mobile':'desktop' }) });
+    await fetch(`${SUPA_URL}/rest/v1/visitas`,{ method:'POST', headers:{ apikey:SUPA_ANON, Authorization:`Bearer ${SUPA_ANON}`, 'Content-Type':'application/json' }, body:JSON.stringify({ pagina:'/produto', produto_id:p.id||null, produto_nome:p.nome, dispositivo:/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)?'mobile':'desktop', pais: getVisitorId() }) });
     await fetch(`${SUPA_URL}/rest/v1/rpc/incrementar_views`,{ method:'POST', headers:{ apikey:SUPA_ANON, Authorization:`Bearer ${SUPA_ANON}`, 'Content-Type':'application/json' }, body:JSON.stringify({ pid:p.id }) });
   } catch(e) {}
 };
