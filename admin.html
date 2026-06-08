@@ -1942,16 +1942,7 @@ const InfraPage = () => {
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3500); };
 
   // ── Fetch helpers ──
-  // Gateway (8080): health + chat — chave estática
-  const hermesGateway = async (path) => {
-    const r = await fetch(`https://hermes.nosferatugames.com.br${path}`, {
-      headers: { 'Authorization': `Bearer ${HERMES_KEY}` },
-      signal: AbortSignal.timeout(6000)
-    });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    return r.json();
-  };
-  // Dashboard (9119 via nginx /api/): sessions, status, jobs — session token
+  // Dashboard (9119 via nginx /api/): sessions, status, jobs, etc — session token
   const hermesDash = async (path) => {
     const token = await getActiveToken();
     const r = await fetch(`${HERMES_URL}${path}`, {
@@ -1967,15 +1958,13 @@ const InfraPage = () => {
   const fetchAll = async () => {
     setLoading(true);
     const results = await Promise.allSettled([
-      hermesGateway('/health'),           // 0: {status:"ok"}
-      hermesDash('/api/status'),          // 1: version, gateway_running, whatsapp, active_sessions
-      hermesDash('/capabilities'),        // 2: features
-      hermesDash('/v1/models'),           // 3: modelos
-      hermesDash('/api/sessions'),        // 4: {sessions:[], total:N}
-      hermesDash('/api/cron/jobs'),       // 5: [] ou [{...}]
+      hermesDash('/api/status'),          // 0: version, gateway_running, whatsapp, active_sessions
+      hermesDash('/capabilities'),        // 1: features
+      hermesDash('/v1/models'),           // 2: modelos
+      hermesDash('/api/sessions'),        // 3: {sessions:[], total:N}
+      hermesDash('/api/cron/jobs'),       // 4: [] ou [{...}]
     ]);
-    const [h, ds, cp, md, ss, jj] = results;
-    if (h.status  === 'fulfilled') setHealth(h.value);
+    const [ds, cp, md, ss, jj] = results;
     if (ds.status === 'fulfilled') { setDashStatus(ds.value); setHealthEx(ds.value); }
     if (cp.status === 'fulfilled') setCaps(cp.value);
     if (md.status === 'fulfilled') setModel(md.value);
@@ -2047,8 +2036,8 @@ const InfraPage = () => {
 
 
   // ── Derived state ──
-  const hermesOk      = health?.status === 'ok';
   // dashStatus = /api/status (9119): version, gateway_running, gateway_state, whatsapp, active_sessions
+  const hermesOk      = dashStatus?.gateway_running === true;
   const hermesVer     = dashStatus?.version ?? '—';
   const activeSess    = dashStatus?.active_sessions ?? '—';
   const wppState      = dashStatus?.gateway_platforms?.whatsapp?.state ?? null;
