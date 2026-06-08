@@ -1902,15 +1902,15 @@ const InfraPage = () => {
   const N8N_URL    = `https://n8n.${VPS_DOMAIN}`;
   const HERMES_URL = `https://hermes.${VPS_DOMAIN}`;
   const HERMES_KEY = 'hermes-n8n-key-2026';
-  let _activeSessionToken = null;
+  const _activeSessionTokenRef = useRef(null);
   const getActiveToken = async () => {
-    if (_activeSessionToken) return _activeSessionToken;
+    if (_activeSessionTokenRef.current) return _activeSessionTokenRef.current;
     try {
       const r = await fetch(`${HERMES_URL}/api/public/token`, { signal: AbortSignal.timeout(5000) });
       if (r.ok) {
         const data = await r.json();
-        _activeSessionToken = data.token;
-        return _activeSessionToken;
+        _activeSessionTokenRef.current = data.token;
+        return _activeSessionTokenRef.current;
       }
     } catch (e) {
       console.error('Failed to fetch public token:', e);
@@ -2039,14 +2039,7 @@ const InfraPage = () => {
     } catch (e) { showToast('✕ ' + e.message); }
   };
 
-  const handleManualTokenSync = async () => {
-    setLoading(true);
-    showToast('🔑 Sincronizando token ChatGPT...');
-    const ok = await forceRenovarToken();
-    setLoading(false);
-    if (ok) showToast('✅ Token atualizado na VPS!');
-    else    showToast('✕ Erro: Verifique se está logado no ChatGPT.');
-  };
+
 
   // ── Derived state ──
   const hermesOk    = health?.status === 'ok';
@@ -2076,8 +2069,8 @@ const InfraPage = () => {
     { id: 'status',   label: 'Status',   icon: '📊' },
     { id: 'minipc',   label: '🖥 Mini PC', icon: '🖥' },
     { id: 'pi',       label: '🍓 Pi',     icon: '🍓' },
-    { id: 'sessions', label: `Sessões (${sessions.length})`, icon: '💬' },
-    { id: 'jobs',     label: `Jobs (${activeJobs}/${jobs.length})`, icon: '⏱️' },
+    { id: 'sessions', label: loading ? 'Sessões...' : `Sessões (${sessions.length})`, icon: '💬' },
+    { id: 'jobs',     label: loading ? 'Jobs...' : `Jobs (${activeJobs}/${jobs.length})`, icon: '⏱️' },
     { id: 'hermes',   label: 'Chat',     icon: '🤖' },
     { id: 'n8n',      label: 'N8N',      icon: '🔄' },
     { id: 'ssh',      label: 'SSH Ref',  icon: '🖥️' },
@@ -2436,7 +2429,7 @@ const InfraPage = () => {
                 <div style={{fontSize:24}}>🖥</div>
                 <div>
                   <div style={{fontFamily:'Press Start 2P, monospace',fontSize:11,color:'var(--text)',marginBottom:2}}>Mini PC</div>
-                  <div style={{fontSize:12,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}><span style={{color:'var(--green)'}}>● ONLINE</span> · via Hermes /health/extended</div>
+                  <div style={{fontSize:12,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}><span style={{color:hermesOk?'var(--green)':'var(--amber)'}}>{hermesOk?'● ONLINE':'⚠ HERMES SEM RESPOSTA'}</span> · via /health/extended · {lastRefresh?lastRefresh.toLocaleTimeString('pt-BR'):'—'}</div>
                 </div>
               </div>
               <Btn color="ghost" onClick={fetchAll} disabled={loading}>{loading?'...':'↻'}</Btn>
@@ -2456,11 +2449,12 @@ const InfraPage = () => {
                 </div>
               ))}
             </div>
-            {(cpuPct>80||memPct>85||hdPct>85) && (
+            {((cpuPct!=null&&cpuPct>80)||(memPct!=null&&memPct>85)||(hdPct!=null&&hdPct>85)) && (
               <div style={{...S.card,borderLeft:'3px solid var(--amber)',marginTop:16,padding:'12px 16px'}}>
-                {cpuPct>80 && <div style={{fontSize:13,color:'var(--dim)',marginBottom:4}}>🔥 CPU alta ({cpuPct}%) — reduza WORKERS no Hermes</div>}
-                {memPct>85 && <div style={{fontSize:13,color:'var(--dim)',marginBottom:4}}>🧠 RAM alta ({memPct}%)</div>}
-                {hdPct>85  && <div style={{fontSize:13,color:'var(--dim)'}}>💾 HD quase cheio ({hdPct}%)</div>}
+                <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:10,color:'var(--amber)',letterSpacing:'0.15em',marginBottom:8}}>⚠ ALERTAS</div>
+                {cpuPct!=null&&cpuPct>80 && <div style={{fontSize:13,color:'var(--dim)',marginBottom:4}}>🔥 CPU alta ({cpuPct}%) — reduza WORKERS no Hermes</div>}
+                {memPct!=null&&memPct>85 && <div style={{fontSize:13,color:'var(--dim)',marginBottom:4}}>🧠 RAM alta ({memPct}%)</div>}
+                {hdPct!=null&&hdPct>85   && <div style={{fontSize:13,color:'var(--dim)'}}>💾 HD quase cheio ({hdPct}%)</div>}
               </div>
             )}
           </div>
