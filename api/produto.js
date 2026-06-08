@@ -5,7 +5,7 @@ export default async function handler(req, res) {
 
   const SUPA_URL = process.env.SUPABASE_URL || 'https://jcnncmfbodglvoyytgok.supabase.co';
   const SUPA_KEY = process.env.SUPABASE_KEY;
-  const SITE_URL = process.env.SITE_URL || 'https://nosferatugames.com.br';
+  const SITE_URL = process.env.SITE_URL || 'https://julioflores.com.br';
 
   try {
     const r = await fetch(
@@ -18,7 +18,7 @@ export default async function handler(req, res) {
 
     const img   = (p.imagens?.[0] || p.imagem_url || `${SITE_URL}/banner.png`);
     const preco = p.preco ? `R$ ${Number(p.preco).toLocaleString('pt-BR')}` : '';
-    const desc  = p.descricao || `${p.condicao || ''} · ${p.console || ''} · Nosferatu Games POA`.trim();
+    const desc  = p.descricao || `${p.condicao || ''} · ${p.console || ''} · Julio Flores`.trim();
     const slug  = (p.nome || 'produto').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,'');
     const url   = `${SITE_URL}/?produto=${p.id}&slug=${slug}`;
 
@@ -29,14 +29,14 @@ export default async function handler(req, res) {
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>${p.nome} — Nosferatu Games</title>
+<title>${p.nome} — Julio Flores</title>
 <meta name="description" content="${desc}">
 <meta property="og:title" content="${p.nome} — ${preco}">
 <meta property="og:description" content="${desc}">
 <meta property="og:image" content="${img}">
 <meta property="og:url" content="${url}">
 <meta property="og:type" content="product">
-<meta property="og:site_name" content="Nosferatu Games">
+<meta property="og:site_name" content="Julio Flores">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${p.nome} — ${preco}">
 <meta name="twitter:image" content="${img}">

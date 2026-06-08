@@ -1,4 +1,4 @@
-﻿// api/create-preference.js — SDK Mercado Pago v2 (ESM)
+// api/create-preference.js — SDK Mercado Pago v2 (ESM)
 import { MercadoPagoConfig, Preference } from 'mercadopago';
 
 const rateLimitMap = new Map();
@@ -12,7 +12,7 @@ function rateLimit(ip, max = 10, windowMs = 60000) {
 }
 
 export default async function handler(req, res) {
-  const ALLOWED_ORIGIN = process.env.SITE_URL || 'https://nosferatugames.com.br';
+  const ALLOWED_ORIGIN = process.env.SITE_URL || 'https://julioflores.com.br';
   res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -68,7 +68,7 @@ export default async function handler(req, res) {
       mp_items.push({
         id: String(db.id),
         title: db.nome,
-        description: item.descricao || `${item.console || ''} · Nosferatu Games`,
+        description: item.descricao || `${item.console || ''} · Julio Flores`,
         picture_url: (item.imagens && item.imagens[0]) || item.imagem_url || '',
         category_id: 'games',
         quantity: 1,
@@ -88,7 +88,7 @@ export default async function handler(req, res) {
       });
     }
 
-    const siteUrl = process.env.SITE_URL || 'https://nosferatugames.com.br';
+    const siteUrl = process.env.SITE_URL || 'https://julioflores.com.br';
 
     const result = await preference.create({
       body: {
@@ -102,7 +102,7 @@ export default async function handler(req, res) {
           pending: `${siteUrl}/?pagamento=pendente`,
         },
         auto_return: 'approved',
-        statement_descriptor: 'NOSFERATU GAMES',
+        statement_descriptor: 'JULIO FLORES',
         notification_url: `${siteUrl}/api/mp-webhook`,
       },
     });

@@ -4,9 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<meta name="referrer" content="no-referrer">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
-<title>Admin — Nosferatu Games</title>
+<title>Admin — Julio Flores</title>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Press+Start+2P&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
@@ -79,7 +78,7 @@ const HEADERS   = { apikey: SUPA_ANON, Authorization: `Bearer ${SUPA_ANON}`, 'Co
 
 // ── Garimpo: Postgres local (migrado do Supabase em 03/06) ───
 // PostgREST atrás de nginx Supabase-style (/rest/v1/<tabela>); role anon = web_anon (sem JWT).
-const GAR_URL = 'https://db.nosferatugames.com.br';
+const GAR_URL = 'https://db.julioflores.com.br';
 const gar = async (path, opts={}) => {
   const r = await fetch(`${GAR_URL}/rest/v1/${path}`, { headers: { 'Content-Type':'application/json', Prefer:'return=representation' }, ...opts });
   if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e?.message||r.status); }
@@ -250,7 +249,7 @@ const Login = ({onLogin}) => {
 
     // Supabase Auth — autentica e guarda sessao p/ acesso ao banco (RLS)
     try {
-      const _ar = await fetch(`${SUPA_URL}/auth/v1/token?grant_type=password`, { method:'POST', headers:{ apikey: SUPA_ANON, 'Content-Type':'application/json' }, body: JSON.stringify({ email:'admin@nosferatugames.com.br', password: pwd }) });
+      const _ar = await fetch(`${SUPA_URL}/auth/v1/token?grant_type=password`, { method:'POST', headers:{ apikey: SUPA_ANON, 'Content-Type':'application/json' }, body: JSON.stringify({ email:'admin@julioflores.com.br', password: pwd }) });
       const _ad = await _ar.json().catch(()=>({}));
       if (_ad.access_token) {
         sessionStorage.setItem('sb_access', _ad.access_token);
@@ -302,7 +301,7 @@ const Login = ({onLogin}) => {
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',background:'var(--bg)'}}>
       <div style={{...S.card,width:360,borderTop:'3px solid var(--red)'}}>
         <div style={{textAlign:'center',marginBottom:24}}>
-          <div style={{fontFamily:'Press Start 2P, monospace',fontSize:13,color:'var(--red-b)',textShadow:'0 0 20px rgba(204,20,20,.6)',lineHeight:1.6}}>NOSFERATU</div>
+          <div style={{fontFamily:'Press Start 2P, monospace',fontSize:13,color:'var(--red-b)',textShadow:'0 0 20px rgba(204,20,20,.6)',lineHeight:1.6}}>JULIO FLORES</div>
           <div style={{fontFamily:'Rajdhani, sans-serif',fontSize:13,color:'var(--gold)',letterSpacing:'0.3em',marginTop:4}}>PAINEL ADMIN</div>
         </div>
         <form onSubmit={submit}>
@@ -505,7 +504,7 @@ const ProductForm = ({initial, onSave, onClose}) => {
     if(!hook){ setToast('✕ Configure o Webhook do Make em Configuracoes'); return; }
     if(!p.imagens || !p.imagens.length || !p.preco){ setToast('✕ Precisa de fotos e preco antes'); return; }
     setSaving(true);
-    try { await fetch(hook,{method:'POST',mode:'no-cors',body:JSON.stringify({nome:p.nome,preco:p.preco,descricao:p.descricao||'',console:p.console,imagens:p.imagens,imagem_url:(p.imagens&&p.imagens[0])||p.imagem_url,link:'https://nosferatugames.com.br'})}); setToast('📸 Enviado pro Make (confira o Instagram)'); } catch(e){ setToast('✕ '+(e.message||'erro')); } setSaving(false);
+    try { await fetch(hook,{method:'POST',mode:'no-cors',body:JSON.stringify({nome:p.nome,preco:p.preco,descricao:p.descricao||'',console:p.console,imagens:p.imagens,imagem_url:(p.imagens&&p.imagens[0])||p.imagem_url,link:'https://julioflores.com.br'})}); setToast('📸 Enviado pro Make (confira o Instagram)'); } catch(e){ setToast('✕ '+(e.message||'erro')); } setSaving(false);
   };
   const salvar = async () => {
     if (!p.nome.trim()) { setToast('✕ Nome é obrigatório'); return; }
@@ -1622,7 +1621,7 @@ const FinanceiroPage = () => {
         +'<td style="padding:8px 10px;border-bottom:1px solid #eee;color:#888;font-size:12px">'+(item.status==='estoque'&&dias!==null?dias+'d':'--')+'</td></tr>';
     }).join('');
     const geradoEm = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-    const html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Financeiro Nosferatu Games</title>'
+    const html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Financeiro Julio Flores</title>'
       +'<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Segoe UI,Arial,sans-serif;background:#fff;color:#222;padding:32px}'
       +'table.data{width:100%;border-collapse:collapse;font-size:13px}'
       +'table.data thead tr{background:#1a1a2e;color:#fff}'
@@ -1632,7 +1631,7 @@ const FinanceiroPage = () => {
       +'.footer{margin-top:24px;font-size:11px;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:12px}'
       +'@media print{body{padding:16px}}</style></head><body>'
       +'<table style="width:100%;border-collapse:collapse;background:#1a1a2e;margin-bottom:20px"><tr>'
-      +'<td style="padding:18px 24px"><div style="font-size:20px;font-weight:900;color:#CC1414;letter-spacing:2px">NOSFERATU <span style="color:#FFB800">GAMES</span></div><div style="font-size:11px;color:#888;margin-top:3px">Relatorio Financeiro Mensal</div></td>'
+      +'<td style="padding:18px 24px"><div style="font-size:20px;font-weight:900;color:#CC1414;letter-spacing:2px">JULIO FLORES <span style="color:#FFB800">GAMES</span></div><div style="font-size:11px;color:#888;margin-top:3px">Relatorio Financeiro Mensal</div></td>'
       +'<td style="padding:18px 24px;text-align:right"><div style="font-size:14px;font-weight:700;color:#fff">'+mesLabel.toUpperCase()+'</div><div style="font-size:11px;color:#777;margin-top:3px">Gerado em '+geradoEm+'</div></td>'
       +'</tr></table>'
       +'<table style="width:100%;border-collapse:separate;border-spacing:10px;margin-bottom:20px"><tr>'
@@ -1643,7 +1642,7 @@ const FinanceiroPage = () => {
       +'</tr></table>'
       +'<table class="data"><thead><tr><th>Produto</th><th>Console</th><th>Origem</th><th>Compra</th><th>Extras</th><th>Venda</th><th>Lucro</th><th>Status</th><th>Data</th><th>Dias</th></tr></thead>'
       +'<tbody>'+rows+'</tbody></table>'
-      +'<div class="footer">Nosferatu Games &middot; Porto Alegre, RS &middot; nosferatugames.com.br</div>'
+      +'<div class="footer">Julio Flores &middot; Porto Alegre, RS &middot; julioflores.com.br</div>'
       +'<script>window.onload=function(){window.print();}<\/script>'
       +'</body></html>';
     const win = window.open('', '_blank');
@@ -1910,7 +1909,7 @@ const FinanceiroPage = () => {
 
 const InfraPage = () => {
   const VPS_IP     = '2.24.217.31';
-  const VPS_DOMAIN = 'nosferatugames.com.br';
+  const VPS_DOMAIN = 'julioflores.com.br';
   const N8N_URL    = `https://n8n.${VPS_DOMAIN}`;
   const HERMES_URL = `https://hermes.${VPS_DOMAIN}`;
   const HERMES_KEY = 'hermes-n8n-key-2026';
@@ -1976,7 +1975,7 @@ const InfraPage = () => {
       hermesDash('/v1/models'),           // 2: modelos
       hermesDash('/api/sessions'),        // 3: {sessions:[], total:N}
       hermesDash('/api/cron/jobs'),       // 4: [] ou [{...}]
-      fetch('https://hermes.nosferatugames.com.br/public/sysinfo.json').then(r=>r.json()), // 5: cpu, ram, hd
+      fetch('https://hermes.julioflores.com.br/public/sysinfo.json').then(r=>r.json()), // 5: cpu, ram, hd
     ]);
     const [ds, cp, md, ss, jj, si] = results;
     if (ds.status === 'fulfilled') { setDashStatus(ds.value); setHealthEx(ds.value); }
@@ -2810,7 +2809,7 @@ const CuponsPage = () => {
           <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:8,width:'100%',maxWidth:460,padding:24,position:'relative'}}>
             <button onClick={()=>setEditando(null)} style={{position:'absolute',top:14,right:14,background:'none',border:'none',color:'var(--dim)',fontSize:20,cursor:'pointer'}}>✕</button>
             <div style={{fontFamily:'Press Start 2P, monospace',fontSize:11,color:'var(--text)',marginBottom:20}}>{editando.id?'EDITAR CUPOM':'NOVO CUPOM'}</div>
-            <Input label="Código (ex: NOSFERATU10)" value={editando.codigo} onChange={e=>setEditando(p=>({...p,codigo:e.target.value.toUpperCase()}))} placeholder="NATAL20" />
+            <Input label="Código (ex: JULIO FLORES10)" value={editando.codigo} onChange={e=>setEditando(p=>({...p,codigo:e.target.value.toUpperCase()}))} placeholder="NATAL20" />
             <div className="ng-grid2" style={S.grid2}>
               <Input label="Desconto (%)" type="number" value={editando.desconto_pct} onChange={e=>setEditando(p=>({...p,desconto_pct:e.target.value}))} placeholder="10" />
               <Input label="Desc. Fixo (R$)" type="number" value={editando.desconto_fixo||''} onChange={e=>setEditando(p=>({...p,desconto_fixo:e.target.value}))} placeholder="0" />
@@ -4309,7 +4308,7 @@ const App = () => {
       {/* Sidebar */}
       <div className={`ng-sidebar${sidebarOpen?' open':''}`} style={S.sidebar}>
         <div style={{padding:'14px 12px 12px',borderBottom:'1px solid var(--border)'}}>
-          <div style={{fontFamily:'Press Start 2P, monospace',fontSize:9,color:'var(--red-b)',lineHeight:1.8,textShadow:'0 0 10px rgba(204,20,20,.5)'}}>🏰 NOSFERATU</div>
+          <div style={{fontFamily:'Press Start 2P, monospace',fontSize:9,color:'var(--red-b)',lineHeight:1.8,textShadow:'0 0 10px rgba(204,20,20,.5)'}}>🏰 JULIO FLORES</div>
           <div style={{fontFamily:'Rajdhani, sans-serif',fontSize:10,color:'var(--gold)',letterSpacing:'0.2em'}}>ADMIN PANEL</div>
         </div>
         <nav style={{flex:1,padding:'8px 8px',display:'flex',flexDirection:'column',gap:2,overflowY:'auto'}}>

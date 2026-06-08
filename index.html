@@ -1206,9 +1206,10 @@ async function consultarCEP(cep) {
 async function processarPedido(e) {
   e.preventDefault();
   if (meuCarrinho.length === 0) { showToast('erro','✕ Seu carrinho está vazio!'); fecharCheckoutEntrega(); return; }
-  const nome = document.getElementById('chk-nome').value.trim();
-  const wpp  = document.getElementById('chk-wpp').value.trim();
-  const cep  = document.getElementById('chk-cep').value.trim();
+  const nome  = document.getElementById('chk-nome').value.trim();
+  const email = document.getElementById('chk-email').value.trim();
+  const wpp   = document.getElementById('chk-wpp').value.trim();
+  const cep   = document.getElementById('chk-cep').value.trim();
   const end  = document.getElementById('chk-endereco').value.trim();
   const num  = document.getElementById('chk-numero').value.trim();
   const cpf  = document.getElementById('chk-cpf').value.trim();
@@ -1217,6 +1218,7 @@ async function processarPedido(e) {
   const isRetirada = !radioSelected || Number(radioSelected.value) === 0;
 
   if (!validarNome(nome))                      { mostrarErro('chk-nome','err-nome'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { mostrarErro('chk-email','err-email'); return; }
   if (wpp.replace(/\D/g,'').length < 10)       { mostrarErro('chk-wpp','err-wpp'); return; }
   if (!validarCPF(cpf))                        { mostrarErro('chk-cpf','err-cpf'); return; }
 
@@ -1245,9 +1247,8 @@ async function processarPedido(e) {
 
   let apiOk = false;
 
-  // Salva pedido no Supabase antes de ir pro MP
   const pedidoPayload = {
-    nome, whatsapp: wpp, cpf, cep,
+    nome, email, whatsapp: wpp, cpf, cep,
     endereco: isRetirada ? 'Retirada em Mãos' : `${end}, ${num}`,
     numero: num,
     metodo_envio: metodoEnvio,
