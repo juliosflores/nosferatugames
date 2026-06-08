@@ -1159,8 +1159,12 @@ const PedidosPage = () => {
 
   const deletarPedido = async (id) => {
     if (!window.confirm('Tem certeza que deseja excluir PERMANENTEMENTE este pedido?')) return;
-    await supa(`pedidos?id=eq.${id}`, { method:'DELETE' });
-    carregar();
+    try {
+      await supa(`pedidos?id=eq.${id}`, { method:'DELETE' });
+      carregar();
+    } catch(e) {
+      alert('Erro ao excluir: ' + e.message + '\\n(Verifique as políticas RLS no Supabase)');
+    }
   };
 
   const STATUS_COLOR = { pago:'#4ade80', pendente:'var(--gold)', fallback_wpp:'var(--purple)', cancelado:'var(--red-b)' };
