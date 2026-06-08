@@ -2184,23 +2184,23 @@ const InfraPage = () => {
                   </thead>
                   <tbody>
                     {jobs.map((j, i) => (
-                      <tr key={j.id || i} style={{ borderTop: '1px solid var(--border)', opacity: j.paused ? 0.5 : 1 }}>
+                      <tr key={j.id || i} style={{ borderTop: '1px solid var(--border)', opacity: j.state === 'paused' || j.paused ? 0.5 : 1 }}>
                         <td style={{ padding: '10px 14px' }}>
-                          <span style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 10, padding: '2px 8px', borderRadius: 2, background: j.paused ? 'var(--surface2)' : 'rgba(37,211,102,.1)', border: `1px solid ${j.paused ? 'var(--border)' : 'rgba(37,211,102,.3)'}`, color: j.paused ? 'var(--muted)' : 'var(--green)' }}>
-                            {j.paused ? 'PAUSADO' : 'ATIVO'}
+                          <span style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 10, padding: '2px 8px', borderRadius: 2, background: (j.state === 'paused' || j.paused) ? 'var(--surface2)' : 'rgba(37,211,102,.1)', border: `1px solid ${(j.state === 'paused' || j.paused) ? 'var(--border)' : 'rgba(37,211,102,.3)'}`, color: (j.state === 'paused' || j.paused) ? 'var(--muted)' : 'var(--green)' }}>
+                            {(j.state === 'paused' || j.paused) ? 'PAUSADO' : 'ATIVO'}
                           </span>
                         </td>
                         <td style={{ padding: '10px 14px', maxWidth: 200 }}>
                           <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{j.name || j.prompt?.slice(0, 40) || j.id}</div>
                           {j.platform && <div style={{ fontSize: 11, color: 'var(--dim)', fontFamily: 'Share Tech Mono, monospace' }}>→ {j.platform}</div>}
                         </td>
-                        <td style={{ padding: '10px 14px', fontFamily: 'Share Tech Mono, monospace', fontSize: 12, color: 'var(--cyan)' }}>{j.schedule || '—'}</td>
-                        <td style={{ padding: '10px 14px', fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--gold)' }}>{j.next_run ? fmtDateFull(j.next_run) : '—'}</td>
-                        <td style={{ padding: '10px 14px', fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--muted)' }}>{j.last_run ? fmtDateFull(j.last_run) : 'nunca'}</td>
+                        <td style={{ padding: '10px 14px', fontFamily: 'Share Tech Mono, monospace', fontSize: 12, color: 'var(--cyan)' }}>{j.schedule?.display || j.schedule?.expr || j.schedule || '—'}</td>
+                        <td style={{ padding: '10px 14px', fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--gold)' }}>{(j.next_run_at || j.next_run) ? fmtDateFull(j.next_run_at || j.next_run) : '—'}</td>
+                        <td style={{ padding: '10px 14px', fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--muted)' }}>{(j.last_run_at || j.last_run) ? fmtDateFull(j.last_run_at || j.last_run) : 'nunca'}</td>
                         <td style={{ padding: '10px 14px' }}>
                           <div style={{ display: 'flex', gap: 4 }}>
                             <button onClick={() => runJobNow(j)} title="Executar agora" style={{ ...S.btn, padding: '4px 8px', fontSize: 11, background: 'rgba(255,184,0,.1)', border: '1px solid rgba(255,184,0,.3)', color: 'var(--gold)' }}>▶</button>
-                            <button onClick={() => toggleJob(j)} title={j.paused ? 'Retomar' : 'Pausar'} style={{ ...S.btn, padding: '4px 8px', fontSize: 11, background: 'var(--surface2)', border: '1px solid var(--border)', color: 'var(--dim)' }}>{j.paused ? '▶▶' : '⏸'}</button>
+                            <button onClick={() => toggleJob(j)} title={(j.state === 'paused' || j.paused) ? 'Retomar' : 'Pausar'} style={{ ...S.btn, padding: '4px 8px', fontSize: 11, background: 'var(--surface2)', border: '1px solid var(--border)', color: 'var(--dim)' }}>{(j.state === 'paused' || j.paused) ? '▶▶' : '⏸'}</button>
                           </div>
                         </td>
                       </tr>
