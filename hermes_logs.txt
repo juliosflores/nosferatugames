@@ -1,0 +1,50 @@
+jun 07 03:02:52 julio-flores-C6300 python[1567182]:                     ^^^^^^^^^^^^^^^^^^^^^^
+jun 07 03:02:52 julio-flores-C6300 python[1567182]:   File "/root/.hermes/hermes-agent/venv/lib/python3.12/site-packages/telegram/request/_httpxrequest.py", line 296, in do_request
+jun 07 03:02:52 julio-flores-C6300 python[1567182]:     raise TimedOut from err
+jun 07 03:02:52 julio-flores-C6300 python[1567182]: telegram.error.TimedOut: Timed out
+jun 07 03:02:52 julio-flores-C6300 python[1567182]: WARNING gateway.platforms.telegram: [Telegram] Telegram polling reconnect failed: Timed out
+jun 07 03:02:52 julio-flores-C6300 python[1567182]: WARNING gateway.platforms.telegram: [Telegram] Telegram network error (attempt 4/10), reconnecting in 40s. Error: Timed out
+jun 07 14:30:04 julio-flores-C6300 systemd[1]: Stopping hermes-gateway.service - Hermes Agent Gateway - Messaging Platform Integration...
+jun 07 14:30:04 julio-flores-C6300 python[1567182]: WARNING gateway.run: Shutdown context: signal=SIGTERM under_systemd=yes parent_pid=1 parent_name=systemd loadavg_1m=0.42 parent_cmdline='/sbin/init splash'
+jun 07 14:30:07 julio-flores-C6300 python[1567182]: [Whatsapp] Poll error: Cannot connect to host 127.0.0.1:3000 ssl:default [Connect call failed ('127.0.0.1', 3000)]
+jun 07 14:30:07 julio-flores-C6300 python[1567182]: [Whatsapp] Disconnected
+jun 07 14:30:07 julio-flores-C6300 systemd[1]: hermes-gateway.service: Main process exited, code=exited, status=1/FAILURE
+jun 07 14:30:07 julio-flores-C6300 systemd[1]: hermes-gateway.service: Failed with result 'exit-code'.
+jun 07 14:30:07 julio-flores-C6300 systemd[1]: Stopped hermes-gateway.service - Hermes Agent Gateway - Messaging Platform Integration.
+jun 07 14:30:07 julio-flores-C6300 systemd[1]: hermes-gateway.service: Consumed 1h 36min 46.995s CPU time, 2.9G memory peak, 276.4M memory swap peak.
+jun 07 14:30:07 julio-flores-C6300 systemd[1]: Started hermes-gateway.service - Hermes Agent Gateway - Messaging Platform Integration.
+jun 07 14:30:09 julio-flores-C6300 python[3545451]: ┌─────────────────────────────────────────────────────────┐
+jun 07 14:30:09 julio-flores-C6300 python[3545451]: │           ⚕ Hermes Gateway Starting...                 │
+jun 07 14:30:09 julio-flores-C6300 python[3545451]: ├─────────────────────────────────────────────────────────┤
+jun 07 14:30:09 julio-flores-C6300 python[3545451]: │  Messaging platforms + cron scheduler                    │
+jun 07 14:30:09 julio-flores-C6300 python[3545451]: │  Press Ctrl+C to stop                                   │
+jun 07 14:30:09 julio-flores-C6300 python[3545451]: └─────────────────────────────────────────────────────────┘
+jun 07 14:30:09 julio-flores-C6300 python[3545451]: [hooks] Loaded hook 'blacklist' for events: ['agent:start']
+jun 07 14:30:09 julio-flores-C6300 python[3545451]: [hooks] Loaded hook 'boot-notify' for events: ['gateway:startup']
+jun 07 14:30:09 julio-flores-C6300 python[3545451]: [hooks] Loaded hook 'client-lockdown' for events: ['agent:start']
+jun 07 14:30:09 julio-flores-C6300 python[3545451]: [hooks] Loaded hook 'compra-price-guard' for events: ['agent:end']
+jun 07 14:30:09 julio-flores-C6300 python[3545451]: [hooks] Loaded hook 'filter-system-msgs' for events: ['agent:end']
+jun 07 14:30:09 julio-flores-C6300 python[3545451]: [hooks] Loaded hook 'human-takeover' for events: ['agent:start']
+jun 07 23:10:02 julio-flores-C6300 systemd[1]: Stopping hermes-gateway.service - Hermes Agent Gateway - Messaging Platform Integration...
+jun 07 23:10:02 julio-flores-C6300 python[3545451]: WARNING gateway.run: Shutdown context: signal=SIGTERM under_systemd=yes parent_pid=1 parent_name=systemd loadavg_1m=0.11 parent_cmdline='/sbin/init splash'
+jun 07 23:10:05 julio-flores-C6300 python[3545451]: [Whatsapp] Bridge ready (status: connected)
+jun 07 23:10:05 julio-flores-C6300 python[3545451]: [Whatsapp] Bridge started on port 3000
+jun 07 23:10:05 julio-flores-C6300 python[3545451]: [Whatsapp] Poll error: Cannot connect to host 127.0.0.1:3000 ssl:default [Connect call failed ('127.0.0.1', 3000)]
+jun 07 23:10:05 julio-flores-C6300 python[3545451]: [Whatsapp] Disconnected
+jun 07 23:10:05 julio-flores-C6300 systemd[1]: hermes-gateway.service: Main process exited, code=exited, status=1/FAILURE
+jun 07 23:10:05 julio-flores-C6300 systemd[1]: hermes-gateway.service: Failed with result 'exit-code'.
+jun 07 23:10:05 julio-flores-C6300 systemd[1]: Stopped hermes-gateway.service - Hermes Agent Gateway - Messaging Platform Integration.
+jun 07 23:10:05 julio-flores-C6300 systemd[1]: hermes-gateway.service: Consumed 2min 47.173s CPU time, 271.8M memory peak, 0B memory swap peak.
+jun 07 23:10:05 julio-flores-C6300 systemd[1]: Started hermes-gateway.service - Hermes Agent Gateway - Messaging Platform Integration.
+jun 07 23:10:06 julio-flores-C6300 python[3697341]: ┌─────────────────────────────────────────────────────────┐
+jun 07 23:10:06 julio-flores-C6300 python[3697341]: │           ⚕ Hermes Gateway Starting...                 │
+jun 07 23:10:06 julio-flores-C6300 python[3697341]: ├─────────────────────────────────────────────────────────┤
+jun 07 23:10:06 julio-flores-C6300 python[3697341]: │  Messaging platforms + cron scheduler                    │
+jun 07 23:10:06 julio-flores-C6300 python[3697341]: │  Press Ctrl+C to stop                                   │
+jun 07 23:10:06 julio-flores-C6300 python[3697341]: └─────────────────────────────────────────────────────────┘
+jun 07 23:10:06 julio-flores-C6300 python[3697341]: [hooks] Loaded hook 'blacklist' for events: ['agent:start']
+jun 07 23:10:06 julio-flores-C6300 python[3697341]: [hooks] Loaded hook 'boot-notify' for events: ['gateway:startup']
+jun 07 23:10:06 julio-flores-C6300 python[3697341]: [hooks] Loaded hook 'client-lockdown' for events: ['agent:start']
+jun 07 23:10:06 julio-flores-C6300 python[3697341]: [hooks] Loaded hook 'compra-price-guard' for events: ['agent:end']
+jun 07 23:10:06 julio-flores-C6300 python[3697341]: [hooks] Loaded hook 'filter-system-msgs' for events: ['agent:end']
+jun 07 23:10:06 julio-flores-C6300 python[3697341]: [hooks] Loaded hook 'human-takeover' for events: ['agent:start']

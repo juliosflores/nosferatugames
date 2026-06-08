@@ -1,0 +1,167 @@
+=== nosferatu-olx-scraping ===
+---
+name: nosferatu-olx-scraping
+description: Scraping de compras da OLX (Minhas Compras) para o financeiro do Garimpo. Usa cloudscraper + API direta + Supabase.
+version: 2.0.0
+metadata:
+  hermes:
+    tags: [nosferatu, olx, scraping, financeiro, garimpo]
+    category: automation
+---
+
+# Scraping OLX — Compras (Financeiro Garimpo)
+
+## Quando Usar
+- Dono pede pra puxar as compras da OLX
+- Script em `/opt/nosferatu/financeiro/olx/`
+- Qualquer tarefa que envolva extrair dados de compras realizadas na OLX
+
+## ⚠️ ALERTA: cloudscraper + API parou de funcionar (Jun/2026)
+
+**Método anterior (cloudscraper + cookies) está BLOQUEADO.** A OLX passou a bloquear até requisições HTTP diretas — mesmo com cookies renovados via Playwright, cloudscraper retorna 403. O Cloudflare detecta qualquer tráfego não-navegador.
+
+**A única solução que funciona atualmente:** Tampermonkey script rodando no navegador do dono.
+
+### Tampermonkey (solução atual — RECOMENDADA)
+
+O dono criou um script Tampermonkey que roda no navegador real (logado na OLX) e atualiza os `valor_pago` diretamente no Supabase. Não tenta acessar a API da OLX — o navegador real já está autenticado e passa pelo Cloudflare normalmente.
+
+- Roda no navegador desktop do dono
+- Usa a página `meus-pedidos.olx.com.br` já logada
+- Atualiza a tabela `compras_garimpo` no Supabase com os valores reais
+- **Não depende de servidor, cronjob ou script Python**
+
+**NÃO tente cloudscraper, Selenium, Playwright, undetected-chromedriver ou qualquer outra automação server-side.** Todas bloquearam. A solução é navegador real do dono.
+
+### Dependências
+```bash
+pip install cloudscraper supabase python-dotenv
+```
+
+### Como funciona
+
+1. **Sessão salva** em `/opt/nosferatu/financeiro/olx/olx_session.json` (formato Playwright storage_state com cookies)
+2. **cloudscraper** resolve o challenge do Cloudflare automaticamente
+3. **API direta** no endpoint: `https://apigw.olx.com.br/my-orders-bff/v1/orders/buyer?page=N&limit=50`
+4. **Paginação**: parâmetro `lastPage` no response indica se tem mais páginas
+5. **Dados retornados**: transactionId, listId, title, photo, status, transactionDate, trackingDescription, transactionValue (quando disponível)
+
+### Status da OLX → mapeamento interno
+| Status OLX | Interno |
+|---|---|
+| TRANSACTION_SUCCESSFUL | entregue |
+| PAYMENT_REVERSED | cancelado |
+| IN_TRANSIT | em_transito |
+| CANCELLED | cancelado |
+| PAYMENT_PENDING | aguardando_pagamento |
+| PAYMENT_CONFIRMED | pago |
+
+## Agendamento (Cronjob Hermes)
+
+**❌ Cronjob removido em Jun/2026** — o cloudscraper não funciona mais, então o cron de 08h foi desativado. Tampermonkey substitui.
+
+Se no futuro a API voltar a funcionar com cloudscraper, recriar com:
+```
+hermes cron --name "OLX Financeiro Diário" --schedule "0 8 * * *" --cmd "cd /opt/nosferatu/financeiro/olx && python3 olx_financeiro_v2.py"
+```
+
+O resultado é entregue no Telegram do dono (chat ID 23506339) automaticamente pelo Hermes.
+
+## Script Legado: `atualizar_valores.py`
+
+Caminho: `/opt/nosferatu/financeiro/olx/atualizar_valores.py`
+
+Script auxiliar que tenta preencher `valor_pago` nas compras antigas que ficaram com null. Só funciona se a sessão OLX estiver válida — caso contrário, retorna 403 e não consegue puxar os valores.
+
+**⚠️ NOTA SOBRE `transactionValue`**: A API da OLX frequentemente retorna `transactionValue` como `null` mesmo pra compras concluídas. Quando o script rodou pela primeira vez, **todas as 154 compras** salvaram `valor_pago = null`. Uma reexecução com sessão válida pode ou não resolver — depende se a API passou a retornar o valor. Não há garantia.
+
+## Script Atual: `olx_financeiro_v2.py`
+
+Caminho: `/opt/nosferatu/financeiro/olx/olx_financeiro_v2.py`
+
+```bash
+cd /opt/nosferatu/financeiro/olx && python3 olx_financeiro_v2.py
+```
+
+Faz tudo:
+- Carrega cookies do `olx_session.json`
+- Cria cloudscraper com os cookies
+- Busca TODAS as páginas da API de compras (pagina automaticamente)
+- Salva no Supabase tabela `compras_garimpo` (evita duplicatas por `numero_pedido`)
+- Exibe resumo no final (concluídas, canceladas, etc.)
+
+**Schema Supabase `compras_garimpo`:**
+| Coluna | Tipo | Descrição |
+|---|---|---|
+| id | uuid | PK (gerado) |
+| created_at | timestamptz | Auto |
+| produto | text | Nome do produto |
+| plataforma | text | "OLX" |
+| valor_pago | numeric | Valor pago (se disponível) |
+| numero_pedido | text | list_id da OLX (usado pra dedup) |
+| status | text | entregue/cancelado/em_transito/etc |
+| data_compra | date | transactionDate |
+| observacoes | text | trackingDescription |
+| valor_venda | numeric | (opcional, preencher depois) |
+| lucro_estimado | numeric | (opcional) |
+| numero_nf | text | (opcional) |
+
+## Manutenção da Sessão
+
+### ⚠️ Renovação da sessão OLX (quando começar a dar 403)
+
+**IMPORTANTE**: Quando a sessão expira, a API da OLX retorna 403 (Cloudflare) mesmo com cookies aparentemente válidos (ainda dentro da data de expiração). Selenium consegue carregar os cookies e acessar a página, mas a API **backend** continua bloqueando — sinal de que o **token de autenticação** expirou, não só os cookies de navegação.
+
+**A única solução comprovada é login manual:**
+
+1. Abra `https://meus-pedidos.olx.com.br` no navegador
+2. Faça login com sua conta Google
+3. Depois de logado, exporte os cookies (via extensão EditThisCookie, Get cookies.txt, ou console do navegador)
+4. Cole aqui no chat — converto e salvo como `olx_session.json`
+
+**NÃO perca tempo tentando:**
+- cloudscraper com cookies antigos (dá 403 mesmo com cookies renovados)
+- Selenium/Playwright headless (Cloudflare bloqueia)
+- undetected-chromedriver (crashou ou bloqueado)
+- Login automático via script (requer 2FA da conta Google)
+
+**Alternativa via VNC (não testada — VNC costuma dar tela preta):**
+- Subir x11vnc + noVNC + Cloudflare Tunnel
+- Dono acessa vnc.nosferatugames.com.br, abre Firefox/Chromium, loga na OLX
+- Script pode extrair cookies do navegador após login
+
+## Script Legado (não usar)
+
+### `olx_financeiro.py` (v1 — DEPRECATED)
+- Playwright headless com URL antiga
+- Bloqueado pela OLX desde Jun/2026
+- Não usar mais
+
+## Pitfalls
+
+- **cloudscraper vs undetected-chromedriver**: undetected-chromedriver falha com "Attention Required! You have been blocked" mesmo em modo headless. cloudscraper (requisição HTTP direta + cookies) passa pelo Cloudflare sem problemas. Preferir cloudscraper SEMPRE.
+- **API endpoint funcional**: `https://apigw.olx.com.br/my-orders-bff/v1/orders/buyer?page=N&limit=50` — descoberto analisando o JS bundle `main.9caeb488.js` que contém a string `/v1/orders/buyer`.
+- **Cookies do Playwright funcionam no cloudscraper**: o `olx_session.json` (formato Playwright storage_state, cookies em array) pode ser convertido diretamente num dict e passado pro cloudscraper com `scraper.cookies.set(nome, valor, domain='.olx.com.br')`.
+- **API responde 200 mas cookies expirados**: se a sessão expirar, a API retorna 200 com corpo vazio (`{"count":0,"lastPage":true,"orders":[]}`). Verificar se `count > 0` antes de assumir sucesso.
+- **cloudscraper precisa de Python >= 3.8**: já instalado no servidor.
+- **cloudscraper browser fingerprint**: configurar como `browser={'browser': 'chrome', 'platform': 'windows', 'desktop': True}` pra evitar bloqueio.
+- **Selenium com cookies renovados NÃO resolve bloqueio da API**: mesmo carregando cookies frescos no navegador, a API backend continua retornando 403. O Cloudflare detecta headless mesmo com `headless=new`. A única forma comprovada de renovar a sessão é login manual pelo navegador real.
+- **NÃO repita tentativas que já falharam em sessões anteriores**: Se cloudscraper, Selenium headless, undetected-chromedriver, Playwright ou VNC já foram testados e bloquearam, não tente de novo — a chance de funcionar depois de dias ou semanas é mínima. Vá direto pedir que o dono faça login manual e exporte os cookies.
+- **Supabase coluna `transaction_id` não existe**: usar `numero_pedido` com `list_id` pra dedup.
+- **Timeouts da API**: ocasionalmente a API demora > 10s. Usar timeout de 30s.
+- **Paginação**: API retorna no máximo 50 por página. O script itera até `lastPage = true`.
+- **ChromeDriver 148** em `/usr/local/bin/chromedriver` — só pra referência, não usado pelo script atual.
+- **VNC tunnel Cloudflare**: config ingress em `/root/.cloudflared/config.yml` com vnc.nosferatugames.com.br → localhost:6080.
+
+## Estrutura de arquivos
+```
+/opt/nosferatu/financeiro/olx/
+├── .env                          # Credenciais (Supabase)
+├── olx_session.json              # Cookies da sessão OLX (formato Playwright)
+├── olx_financeiro.py             # Script v1 (DEPRECATED — não usar)
+├── olx_financeiro_v2.py          # Script v2 (ATUAL — cloudscraper + API)
+├── testar_cookies.py             # Utilitário de teste de sessão
+├── testar_uc.py                  # Teste undetected-chromedriver (falhou)
+├── login_olx_auto.py             # Login automático (não finalizado)
+└── atualizar_valores.py          # Script p/ preencher valor_pago em compras antigas (precisa de sessão válida)
+```

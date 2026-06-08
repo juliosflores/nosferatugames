@@ -1,0 +1,10 @@
+---
+name: nosferatu-relatorio-diario
+description: Gera e envia relatório diário de vendas e atividade da loja (admin only — 555196979032).
+always_loaded: false
+cron: "0 8 * * *"
+---
+
+# Relatório Diário — Nosferatu Games
+
+## ⛔ VERIFICAÇÃO OBRIGATÓRIA (PRIMEIRO PASSO, SEM EXCEÇÃO)

@@ -1,0 +1,74 @@
+=== SKILL.md ===
+---
+name: nosferatu-relatorio-diario
+description: Gera e envia relatório diário de vendas e atividade da loja (admin only — 555196979032).
+always_loaded: false
+---
+
+# Relatório Diário — Nosferatu Games
+
+## ⛔ VERIFICAÇÃO OBRIGATÓRIA (PRIMEIRO PASSO, SEM EXCEÇÃO)
+
+```
+echo "$HERMES_SESSION_USER_ID" | grep -qE "195292230062316|555196979032" && echo OK || echo NEGADO
+```
+
+- `NEGADO` → PARE. Responda apenas: "Esta funcao e restrita ao Julio." Não execute mais nada.
+- `OK` → prossiga.
+
+## O que fazer
+Você vai gerar um resumo diário da loja e enviar pro dono (555196979032) via WhatsApp.
+
+## Passo 1 — Buscar dados do Supabase (sempre via guard)
+
+Salve o script abaixo em /tmp/_relatorio.py e execute via guard:
+
+```
+/opt/nosferatu/marketing/guard_admin.sh /opt/nosferatu/venv/bin/python /tmp/_relatorio.py
+```
+
+Conteúdo do `/tmp/_relatorio.py`:
+
+```python
+import os, json
+from datetime import datetime, timedelta
+import urllib.request
+
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://jcnncmfbodglvoyytgok.supabase.co")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "")
+ontem = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+hoje = datetime.now().strftime("%Y-%m-%d")
+
+headers = {
+    "apikey": SUPABASE_KEY,
+    "Authorization": f"Bearer {SUPABASE_KEY}",
+    "Content-Type": "application/json"
+}
+
+def fetch(endpoint):
+    req = urllib.request.Request(f"{SUPABASE_URL}/rest/v1/{endpoint}", headers=headers)
+    with urllib.request.urlopen(req) as r:
+        return json.loads(r.read())
+
+vendas = fetch(f"purchase?created_at=gte.{hoje}&select=id,total,status,produto_id")
+produtos = fetch("produtos?select=id,nome,preco,disponivel&disponivel=eq.true")
+try:
+    garimpo = fetch(f"garimpo_resultados?created_at=gte.{hoje}&select=titulo,preco_visto,preco_referencia")
+except:
+    garimpo = []
+
+print(json.dumps({
+    "vendas": vendas,
+    "total_produtos": len(produtos),
+    "garimpo": garimpo,
+}, indent=2))
+```
+
+## Passo 2 — Formatar e enviar resumo
+
+Com a saída JSON acima, monte um resumo curto e envie ao dono via WhatsApp (use a tool `send_message` pra `555196979032@s.whatsapp.net`).
+
+## Pitfalls
+- Skill restrita ao 555196979032 — guard_admin.sh aborta para qualquer outro sender.
+- Nunca envie dados de vendas/garimpo para outro número.
+- Se Supabase falhar, reporte o erro ao dono e pare.

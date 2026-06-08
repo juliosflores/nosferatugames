@@ -664,7 +664,7 @@ const Analytics = ({visitas}) => {
   const hoje   = new Date().toDateString();
   const semana = visitas.filter(v=>{const d=new Date(v.created_at);const s=new Date();s.setDate(s.getDate()-7);return d>=s;});
   const mobile = visitas.filter(v=>v.dispositivo==='mobile').length;
-  const uniqueVisitors = new Set(visitas.filter(v=>v.pais && v.pais.startsWith('v_')).map(v=>v.pais)).size;
+  const uniqueVisitors = new Set(visitas.filter(v=>v.visitor_id && v.visitor_id.startsWith('v_')).map(v=>v.visitor_id)).size;
   const referrers = visitas.reduce((acc,v)=>{const r=v.referrer||'Direto';acc[r]=(acc[r]||0)+1;return acc;},{});
   const topRef = Object.entries(referrers).sort((a,b)=>b[1]-a[1]).slice(0,5);
   const recent = [...visitas].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,20);

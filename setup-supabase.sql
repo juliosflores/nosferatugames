@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS visitas (
   pais        text,
   dispositivo text,        -- 'mobile' | 'desktop'
   produto_id  uuid,        -- preenchido quando cliente abre um produto
-  produto_nome text
+  produto_nome text,
+  visitor_id  text         -- rastreamento de visitantes únicos via localStorage
 );
 
 -- 2. RLS: qualquer um pode inserir (site público insere visitas)
