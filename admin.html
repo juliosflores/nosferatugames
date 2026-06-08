@@ -1918,7 +1918,7 @@ const InfraPage = () => {
     return HERMES_KEY;
   };
 
-  const [sub, setSub]               = useState('status');
+  const [sub, setSub]               = useState('minipc');
   const [loading, setLoading]       = useState(false);
 
   // ── Hermes data ──
@@ -2063,8 +2063,7 @@ const InfraPage = () => {
   };
 
   const INFRA_TABS = [
-    { id: 'status',   label: 'Status',   icon: '📊' },
-    { id: 'minipc',   label: '🖥 Mini PC', icon: '🖥' },
+    { id: 'minipc',   label: 'Visão Geral', icon: '🖥' },
     { id: 'pi',       label: '🍓 Pi',     icon: '🍓' },
     { id: 'sessions', label: loading ? 'Sessões...' : `Sessões (${sessions.length})`, icon: '💬' },
     { id: 'jobs',     label: loading ? 'Jobs...' : `Jobs (${activeJobs}/${jobs.length})`, icon: '⏱️' },
@@ -2105,109 +2104,7 @@ const InfraPage = () => {
         ))}
       </div>
 
-      {/* ── STATUS ── */}
-      {sub === 'status' && (
-        <div>
-          {/* Stat cards */}
-          <div className="ng-grid4" style={S.grid4}>
-            <StatCard
-              label="Hermes Agent"
-              value={hermesOk ? 'OK' : loading ? '...' : 'ERR'}
-              sub={hermesOk ? `v${hermesVer} · online` : 'Sem resposta'}
-              color={hermesOk ? 'var(--green)' : loading ? 'var(--dim)' : 'var(--red-b)'}
-              icon="🤖"
-            />
-            <StatCard
-              label="Sessões ativas"
-              value={activeSess}
-              sub={`${runningAg} agentes rodando`}
-              color="var(--cyan)"
-              icon="💬"
-            />
-            <StatCard
-              label="Memória"
-              value={memUsage}
-              sub={`CPU: ${cpuUsage}`}
-              color="var(--purple)"
-              icon="🖥️"
-            />
-            <StatCard
-              label="Cron Jobs"
-              value={activeJobs}
-              sub={`de ${jobs.length} total`}
-              color="var(--gold)"
-              icon="⏱️"
-            />
-          </div>
-
-          {/* Conectividade */}
-          <div style={{ ...S.card, marginBottom: 16 }}>
-            <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--dim)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 16 }}>// Mapa de Conectividade</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'center', padding: '8px 0' }}>
-              {[
-                { label: 'Admin', color: 'var(--red-b)', icon: '🏰', ok: true },
-                { label: '→', color: 'var(--muted)', icon: '', ok: true, arrow: true },
-                { label: 'Hermes', color: hermesOk ? 'var(--green)' : 'var(--red-b)', icon: '🤖', ok: hermesOk },
-                { label: '→', color: 'var(--muted)', icon: '', ok: true, arrow: true },
-                { label: 'N8N', color: 'var(--gold)', icon: '🔄', ok: true },
-                { label: '→', color: 'var(--muted)', icon: '', ok: true, arrow: true },
-                { label: 'WhatsApp', color: 'var(--green)', icon: '💬', ok: true },
-              ].map((node, i) =>
-                node.arrow ? (
-                  <div key={i} style={{ color: 'var(--border)', fontSize: 20, fontWeight: 300 }}>→</div>
-                ) : (
-                  <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-                    <div style={{ width: 56, height: 56, borderRadius: 8, background: `${node.color}18`, border: `2px solid ${node.color}55`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>{node.icon}</div>
-                    <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 10, color: node.color }}>{node.label}</div>
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: node.ok ? 'var(--green)' : 'var(--red-b)', boxShadow: `0 0 6px ${node.ok ? 'var(--green)' : 'var(--red-b)'}` }} />
-                  </div>
-                )
-              )}
-            </div>
-            <div style={{ marginTop: 16, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {[
-                { label: 'Supabase', url: 'https://supabase.com', color: 'var(--green)', icon: '🗄️' },
-                { label: 'Cloudinary', url: 'https://cloudinary.com', color: 'var(--cyan)', icon: '🖼️' },
-                { label: 'Vercel', url: 'https://vercel.com', color: 'var(--dim)', icon: '▲' },
-              ].map(s => (
-                <a key={s.label} href={s.url} target="_blank" rel="noopener" style={{ ...S.btn, padding: '5px 12px', fontSize: 12, background: `${s.color}12`, border: `1px solid ${s.color}40`, color: s.color, textDecoration: 'none', gap: 6 }}>
-                  {s.icon} {s.label}
-                </a>
-              ))}
-            </div>
-          </div>
-
-          {/* Features do Hermes */}
-          {caps && (
-            <div style={{ ...S.card, marginBottom: 16 }}>
-              <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--dim)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 12 }}>// Capabilities do Hermes</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                {Object.entries(FEATURE_LABELS).map(([key, label]) => (
-                  <span key={key} style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 11, padding: '4px 10px', borderRadius: 2, background: features[key] ? 'rgba(37,211,102,.1)' : 'var(--surface2)', border: `1px solid ${features[key] ? 'rgba(37,211,102,.3)' : 'var(--border)'}`, color: features[key] ? 'var(--green)' : 'var(--muted)' }}>
-                    {features[key] ? '✔' : '✕'} {label}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Modelo ativo */}
-          {model && (
-            <div style={{ ...S.card }}>
-              <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--dim)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 12 }}>// Modelo LLM ativo</div>
-              {(model.data || [model]).map((m, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--green)', flexShrink: 0 }} />
-                  <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 13, color: 'var(--cyan)' }}>{m.id || m.model || 'hermes-agent'}</div>
-                  {m.created && <div style={{ fontSize: 11, color: 'var(--muted)', marginLeft: 'auto' }}>{new Date(m.created * 1000).toLocaleDateString('pt-BR')}</div>}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ── SESSIONS ── */}
+          {/* ── SESSIONS ── */}
       {sub === 'sessions' && (
         <div>
           <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -2522,6 +2419,72 @@ const InfraPage = () => {
                 <div style={{fontSize:13,color:'var(--red-b)'}}>🤖 Gateway não está em estado &quot;running&quot; (atual: {gatewayState||'?'})</div>
               </div>
             )}
+
+            {/* Conectividade */}
+            <div style={{ ...S.card, marginTop: 16, marginBottom: 16 }}>
+              <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--dim)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 16 }}>// Mapa de Conectividade</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'center', padding: '8px 0' }}>
+                {[
+                  { label: 'Admin', color: 'var(--red-b)', icon: '🏰', ok: true },
+                  { label: '→', color: 'var(--muted)', icon: '', ok: true, arrow: true },
+                  { label: 'Hermes', color: hermesOk ? 'var(--green)' : 'var(--red-b)', icon: '🤖', ok: hermesOk },
+                  { label: '→', color: 'var(--muted)', icon: '', ok: true, arrow: true },
+                  { label: 'N8N', color: 'var(--gold)', icon: '🔄', ok: true },
+                  { label: '→', color: 'var(--muted)', icon: '', ok: true, arrow: true },
+                  { label: 'WhatsApp', color: 'var(--green)', icon: '💬', ok: true },
+                ].map((node, i) =>
+                  node.arrow ? (
+                    <div key={i} style={{ color: 'var(--border)', fontSize: 20, fontWeight: 300 }}>→</div>
+                  ) : (
+                    <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                      <div style={{ width: 56, height: 56, borderRadius: 8, background: `${node.color}18`, border: `2px solid ${node.color}55`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>{node.icon}</div>
+                      <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 10, color: node.color }}>{node.label}</div>
+                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: node.ok ? 'var(--green)' : 'var(--red-b)', boxShadow: `0 0 6px ${node.ok ? 'var(--green)' : 'var(--red-b)'}` }} />
+                    </div>
+                  )
+                )}
+              </div>
+              <div style={{ marginTop: 16, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {[
+                  { label: 'Supabase', url: 'https://supabase.com', color: 'var(--green)', icon: '🗄️' },
+                  { label: 'Cloudinary', url: 'https://cloudinary.com', color: 'var(--cyan)', icon: '🖼️' },
+                  { label: 'Vercel', url: 'https://vercel.com', color: 'var(--dim)', icon: '▲' },
+                ].map(s => (
+                  <a key={s.label} href={s.url} target="_blank" rel="noopener" style={{ ...S.btn, padding: '5px 12px', fontSize: 12, background: `${s.color}12`, border: `1px solid ${s.color}40`, color: s.color, textDecoration: 'none', gap: 6 }}>
+                    {s.icon} {s.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* Features do Hermes */}
+            {caps && (
+              <div style={{ ...S.card, marginBottom: 16 }}>
+                <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--dim)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 12 }}>// Capabilities do Hermes</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {Object.entries(FEATURE_LABELS).map(([key, label]) => (
+                    <span key={key} style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 11, padding: '4px 10px', borderRadius: 2, background: features[key] ? 'rgba(37,211,102,.1)' : 'var(--surface2)', border: `1px solid ${features[key] ? 'rgba(37,211,102,.3)' : 'var(--border)'}`, color: features[key] ? 'var(--green)' : 'var(--muted)' }}>
+                      {features[key] ? '✔' : '✕'} {label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Modelo ativo */}
+            {model && (
+              <div style={{ ...S.card }}>
+                <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--dim)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 12 }}>// Modelo LLM ativo</div>
+                {(model.data || [model]).map((m, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--green)', flexShrink: 0 }} />
+                    <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 13, color: 'var(--cyan)' }}>{m.id || m.model || 'hermes-agent'}</div>
+                    {m.created && <div style={{ fontSize: 11, color: 'var(--muted)', marginLeft: 'auto' }}>{new Date(m.created * 1000).toLocaleDateString('pt-BR')}</div>}
+                  </div>
+                ))}
+              </div>
+            )}
+
           </div>
         );
       })()}
@@ -2549,8 +2512,6 @@ const InfraPage = () => {
               { label: 'Uso de memória',        cmd: 'free -h' },
               { label: 'Uso de disco',          cmd: 'df -h /' },
               { label: 'Processos top',         cmd: 'htop' },
-              { label: 'Testar Hermes /health', cmd: `curl ${HERMES_URL}/health` },
-              { label: 'Testar Hermes /ext',    cmd: `curl -H "Authorization: Bearer hermes-n8n-key-2026" ${HERMES_URL}/health/extended` },
             ].map(({ label, cmd }) => (
               <div key={cmd} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
                 <div style={{ fontSize: 12, color: 'var(--dim)', minWidth: 180, flexShrink: 0 }}>{label}</div>
