@@ -227,21 +227,6 @@ const Login = ({onLogin}) => {
   const [attempts,setAttempts] = useState(0);
   const [locked,setLocked] = useState(false);
 
-  // Hash djb2 da senha — pré-calculado, a senha NUNCA aparece no código
-  // Para gerar novo hash: cole no console do browser:
-  //   (s=>{let h=5381;for(let i=0;i<s.length;i++){h=((h<<5)+h)+s.charCodeAt(i);h=h&h}return Math.abs(h).toString(16).padStart(8,'0')})('SUA_SENHA')
-  const SENHA_HASH_LOCAL = '23e21b0e';
-
-  // Função djb2 — funciona em qualquer browser, não depende de HTTPS
-  const hashSimples = (str) => {
-    let h = 5381;
-    for (let i = 0; i < str.length; i++) {
-      h = ((h << 5) + h) + str.charCodeAt(i);
-      h = h & h;
-    }
-    return Math.abs(h).toString(16).padStart(8, '0');
-  };
-
   const submit = async (e) => {
     e.preventDefault();
     if (loading || locked) return;
@@ -259,11 +244,10 @@ const Login = ({onLogin}) => {
       }
     } catch {}
 
-    // Tenta API serverless primeiro (Vercel com functions)
-    let apiOk = false;
+    // Tenta API serverless (Vercel com functions)
     try {
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 3000);
+      const timer = setTimeout(() => controller.abort(), 5000);
       const res = await fetch('/api/admin-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -274,27 +258,24 @@ const Login = ({onLogin}) => {
       const data = await res.json();
       if (data.success) {
         sessionStorage.setItem('ng_admin_token', data.token || 'ok');
+        setLoading(false);
         onLogin();
-        apiOk = true;
         return;
       }
-      setErr(data.message || 'Senha incorreta');
-      apiOk = true;
-    } catch { /* API não disponível — usa fallback local */ }
-
-    // Fallback: verifica via hash local (funciona em file://, HTTP e HTTPS)
-    if (!apiOk) {
-      if (hashSimples(pwd) === SENHA_HASH_LOCAL) {
-        sessionStorage.setItem('ng_admin_token', 'local-' + Date.now());
-        onLogin();
-      } else {
-        const att2 = attempts+1; setAttempts(att2);
-        const rem = 5-att2;
-        setErr(att2>=5 ? 'Muitas tentativas. Aguarde 60s.' : 'Senha incorreta' + (att2>=3 ? ' ('+rem+' restantes)' : ''));
-        if(att2>=5){setLocked(true);setTimeout(()=>{setLocked(false);setAttempts(0);},60000);}
+      
+      const att2 = attempts + 1;
+      setAttempts(att2);
+      const rem = 5 - att2;
+      setErr(att2 >= 5 ? 'Muitas tentativas. Aguarde 60s.' : 'Senha incorreta' + (att2 >= 3 ? ' (' + rem + ' restantes)' : ''));
+      if (att2 >= 5) {
+        setLocked(true);
+        setTimeout(() => { setLocked(false); setAttempts(0); }, 60000);
       }
+    } catch (apiErr) {
+      setErr('Erro de conexão ou servidor indisponível.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
