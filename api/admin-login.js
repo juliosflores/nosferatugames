@@ -1,11 +1,21 @@
 // api/admin-login.js
 import crypto from 'crypto';
 
-const ALLOWED_ORIGIN = process.env.SITE_URL || 'https://julioflores.com.br';
+const ALLOWED_ORIGINS = [
+  'https://julioflores.com.br',
+  'https://www.julioflores.com.br',
+  'https://nosferatugames.com.br',
+  'https://www.nosferatugames.com.br',
+  'https://nosferatugames.vercel.app'
+];
 
 export default async function handler(req, res) {
-  // CORS restrito — só aceita do próprio site
-  res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
+  const origin = req.headers.origin;
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin)
+    ? origin
+    : (process.env.SITE_URL || 'https://julioflores.com.br');
+
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('X-Content-Type-Options', 'nosniff');
