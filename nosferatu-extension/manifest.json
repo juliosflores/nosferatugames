@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Nosferatu Token Sync",
+  "name": "Julio Flores Token Sync",
   "version": "1.0",
   "description": "Sincroniza automaticamente o token do ChatGPT com a VPS Hermes.",
   "permissions": [
@@ -9,7 +9,7 @@
   ],
   "host_permissions": [
     "https://chatgpt.com/*",
-    "https://hermes.nosferatugames.com.br/*"
+    "https://hermes.julioflores.com.br/*"
   ],
   "action": {
     "default_popup": "popup.html",

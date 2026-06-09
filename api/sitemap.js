@@ -2,7 +2,7 @@
 export default async function handler(req, res) {
   const SUPA_URL  = process.env.SUPABASE_URL  || 'https://jcnncmfbodglvoyytgok.supabase.co';
   const SUPA_KEY  = process.env.SUPABASE_KEY;
-  const SITE_URL  = process.env.SITE_URL || 'https://nosferatugames.com.br';
+  const SITE_URL  = process.env.SITE_URL || 'https://julioflores.com.br';
 
   const hoje = new Date().toISOString().split('T')[0];
 

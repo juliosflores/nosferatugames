@@ -7,12 +7,12 @@
 //   GEMINI_API_KEY         = sua_chave_gemini
 // ============================================================
 
-const CHAT2API_URL = 'https://hermes.nosferatugames.com.br/chat2api/v1/chat/completions';
+const CHAT2API_URL = 'https://hermes.julioflores.com.br/chat2api/v1/chat/completions';
 const CHAT2API_KEY = process.env.CHAT2API_AUTHORIZATION || '';
 const GEMINI_KEY   = process.env.GEMINI_API_KEY || '';
 const TIMEOUT_MS   = 25000;
 
-const PROMPT = `Você é um avaliador expert de games usados para a loja Nosferatu Games, Porto Alegre/RS.
+const PROMPT = `Você é um avaliador expert de games usados para a loja Julio Flores, Porto Alegre/RS.
 Analise a foto e responda APENAS com JSON válido, sem markdown, sem explicações.
 
 Formato exato:

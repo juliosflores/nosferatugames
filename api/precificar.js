@@ -22,7 +22,7 @@ export default async function handler(req, res) {
 
     const r = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; NosferatuGamesBot/1.0)',
+        'User-Agent': 'Mozilla/5.0 (compatible; JulioFloresBot/1.0)',
         'Accept-Language': 'pt-BR,pt;q=0.9'
       }
     });

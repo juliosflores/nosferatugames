@@ -124,7 +124,7 @@ const exportarCSV = (produtos) => {
   const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
-  a.href=url; a.download=`nosferatu-estoque-${new Date().toISOString().slice(0,10)}.csv`;
+  a.href=url; a.download=`julioflores-estoque-${new Date().toISOString().slice(0,10)}.csv`;
   a.click(); URL.revokeObjectURL(url);
 };
 
@@ -538,9 +538,9 @@ const ProductForm = ({initial, onSave, onClose}) => {
         <div style={{marginBottom:14}}>
           <label style={S.label}>Fotos</label>
           <div style={{display:'flex',flexWrap:'wrap',gap:8,marginBottom:8}}>
-            {(p.imagens||[]).map((url,i)=>(<div key={i} style={{position:'relative',width:72,height:72}}><img src={url} alt="" style={{width:72,height:72,objectFit:'cover',borderRadius:4,border:'1px solid var(--border)'}}/><button onClick={()=>girarFoto(i)} title="Girar 90 graus" style={{position:'absolute',top:-6,left:-6,width:18,height:18,borderRadius:'50%',background:'var(--gold)',border:'none',color:'#000',fontSize:12,cursor:'pointer',lineHeight:'1'}}>↻</button><button onClick={()=>aplicarFundo(i)} title="Aplicar fundo escuro Nosferatu" style={{position:'absolute',bottom:-6,left:-6,width:18,height:18,borderRadius:'50%',background:'var(--purple)',border:'none',color:'#fff',fontSize:9,cursor:'pointer'}}>🦇</button><button onClick={()=>removerImg(i)} style={{position:'absolute',top:-6,right:-6,width:18,height:18,borderRadius:'50%',background:'var(--red)',border:'none',color:'#fff',fontSize:10,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button></div>))}
+            {(p.imagens||[]).map((url,i)=>(<div key={i} style={{position:'relative',width:72,height:72}}><img src={url} alt="" style={{width:72,height:72,objectFit:'cover',borderRadius:4,border:'1px solid var(--border)'}}/><button onClick={()=>girarFoto(i)} title="Girar 90 graus" style={{position:'absolute',top:-6,left:-6,width:18,height:18,borderRadius:'50%',background:'var(--gold)',border:'none',color:'#000',fontSize:12,cursor:'pointer',lineHeight:'1'}}>↻</button><button onClick={()=>aplicarFundo(i)} title="Aplicar fundo escuro Julio Flores" style={{position:'absolute',bottom:-6,left:-6,width:18,height:18,borderRadius:'50%',background:'var(--purple)',border:'none',color:'#fff',fontSize:9,cursor:'pointer'}}>🦇</button><button onClick={()=>removerImg(i)} style={{position:'absolute',top:-6,right:-6,width:18,height:18,borderRadius:'50%',background:'var(--red)',border:'none',color:'#fff',fontSize:10,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button></div>))}
             <button onClick={()=>fileRef.current.click()} disabled={uploading} style={{width:72,height:72,borderRadius:4,border:'2px dashed var(--border)',background:'var(--bg3)',color:'var(--muted)',cursor:'pointer',fontSize:22,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:2}}>{uploading ? <span style={{fontSize:11}}>...</span> : <>+<span style={{fontSize:10}}>foto</span></>}</button>
-            <label style={{display:'flex',alignItems:'center',gap:6,fontSize:12,color:estiloNsf?'var(--purple)':'var(--dim)',marginLeft:8,cursor:'pointer',whiteSpace:'nowrap'}} title="Recorta e poe no fundo escuro Nosferatu ao subir"><input type="checkbox" checked={estiloNsf} onChange={e=>setEstiloNsf(e.target.checked)}/>🦇 Fundo escuro</label>
+            <label style={{display:'flex',alignItems:'center',gap:6,fontSize:12,color:estiloNsf?'var(--purple)':'var(--dim)',marginLeft:8,cursor:'pointer',whiteSpace:'nowrap'}} title="Recorta e poe no fundo escuro Julio Flores ao subir"><input type="checkbox" checked={estiloNsf} onChange={e=>setEstiloNsf(e.target.checked)}/>🦇 Fundo escuro</label>
             <input ref={fileRef} type="file" accept="image/*" multiple style={{display:'none'}} onChange={e=>uploadFotos(e.target.files)}/>
           </div>
         </div>
@@ -2987,7 +2987,7 @@ const UploadCSVPage = () => {
     const blob = new Blob([csv], { type:'text/csv' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'template_produtos_nosferatu.csv';
+    a.download = 'template_produtos_julioflores.csv';
     a.click();
   };
 
@@ -3506,7 +3506,7 @@ const PhotoStudioPage = () => {
     if (!result) return;
     const a = document.createElement('a');
     a.href = result;
-    a.download = `nosferatu-${preset}-${Date.now()}.jpg`;
+    a.download = `julioflores-${preset}-${Date.now()}.jpg`;
     a.click();
   };
 

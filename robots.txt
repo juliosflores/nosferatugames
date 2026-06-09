@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin.html
 Disallow: /api/
 
-Sitemap: https://nosferatugames.com.br/sitemap.xml
+Sitemap: https://julioflores.com.br/sitemap.xml

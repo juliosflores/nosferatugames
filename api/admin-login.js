@@ -1,7 +1,7 @@
 // api/admin-login.js
 import crypto from 'crypto';
 
-const ALLOWED_ORIGIN = process.env.SITE_URL || 'https://nosferatugames.com.br';
+const ALLOWED_ORIGIN = process.env.SITE_URL || 'https://julioflores.com.br';
 
 export default async function handler(req, res) {
   // CORS restrito — só aceita do próprio site

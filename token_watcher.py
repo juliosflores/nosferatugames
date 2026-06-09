@@ -84,12 +84,12 @@ def run_check():
     log.warning(f"⚠️  Token inválido: {msg}")
 
     if try_auto_renew():
-        notify_whatsapp("✅ *Nosferatu Games* — Token renovado automaticamente! Sistema OK.")
+        notify_whatsapp("✅ *Julio Flores* — Token renovado automaticamente! Sistema OK.")
         return True
 
     log.error("❌ Falha na renovação automática. Notificando...")
     notify_whatsapp(
-        "🔴 *Nosferatu Games — Token Expirado*\n\n"
+        "🔴 *Julio Flores — Token Expirado*\n\n"
         "Não consegui renovar automaticamente.\n\n"
         "Execute na VPS:\n"
         "`python3 /opt/nosferatu/chatgpt_login.py`\n\n"
@@ -102,7 +102,7 @@ def main():
         run_check()
     else:
         log.info("🚀 Token Watcher iniciado.")
-        notify_whatsapp("🟢 *Nosferatu Games* — Monitor de token iniciado.")
+        notify_whatsapp("🟢 *Julio Flores* — Monitor de token iniciado.")
         while True:
             run_check()
             time.sleep(CHECK_INTERVAL_S)

@@ -35,7 +35,7 @@ def print_step(msg):
     print(f"\n{'─'*50}\n▶ {msg}\n{'─'*50}")
 
 def get_credentials():
-    print("\n🎮 Nosferatu Games — Login ChatGPT\n")
+    print("\n🎮 Julio Flores — Login ChatGPT\n")
     email = input("📧 E-mail do ChatGPT Plus: ").strip()
     password = input("🔑 Senha: ").strip()
     if not email or not password:

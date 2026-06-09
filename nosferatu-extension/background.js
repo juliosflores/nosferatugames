@@ -1,10 +1,10 @@
 // ============================================================
-// background.js — Nosferatu Token Sync
+// background.js — Julio Flores Token Sync
 // Captura token do ChatGPT e envia para VPS automaticamente.
 // Roda em background, sem interação do usuário.
 // ============================================================
 
-const VPS_URL  = 'https://hermes.nosferatugames.com.br/atualizar-token';
+const VPS_URL  = 'https://hermes.julioflores.com.br/atualizar-token';
 const ADMIN_KEY = 'nosferatu_chat2api_key';
 const CHATGPT_SESSION_URL = 'https://chatgpt.com/api/auth/session';
 

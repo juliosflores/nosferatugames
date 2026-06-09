@@ -32,7 +32,7 @@ export default async function handler(req, res) {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
-        'User-Agent': 'NosferatuGames/1.0'
+        'User-Agent': 'JulioFlores/1.0'
       },
       body: JSON.stringify({
         from: { postal_code: '90430100' },
