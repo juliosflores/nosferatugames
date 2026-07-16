@@ -6,28 +6,31 @@
 <meta name="robots" content="noindex, nofollow">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <title>Admin — Julio Flores</title>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --red:#CC1414;--red-b:#FF2222;--gold:#FFB800;--purple:#A855F7;
-  --bg:#050508;--bg2:#0A0A12;--bg3:#0F0F1A;
-  --surface:#12121E;--surface2:#1A1A2E;
-  --border:#2A1A3A;--border-r:#4A0A0A;
-  --text:#E8E0F0;--dim:#9080A0;--muted:#5A4A6A;
-  --green:#25D366;--green-d:#1a5c2a;
-  --cyan:#00FFFF;--amber:#F5A800;
+  /* Júlio Flores — azul e preto, tom de luz de CRT ligado */
+  --blue:#1E6FD9;--blue-d:#155AB0;--cyan:#5FE8E8;
+  --red:#E5484D;--red-b:#FF5A5F;--gold:#5FE8E8;--purple:#1E6FD9;
+  --bg:#05070A;--bg2:#070C14;--bg3:#0A1626;
+  --surface:#0B1C34;--surface2:#102A48;
+  --border:#1B3A5C;--border-r:#3A1A24;
+  --text:#E8EEF5;--dim:#A9B6C6;--muted:#7A8290;
+  --green:#22D3A0;--green-d:#0E5C42;
+  --amber:#F5A800;
 }
 html,body,#root{height:100%}
 * { touch-action:manipulation; }
-body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;overflow:hidden;-webkit-tap-highlight-color:transparent;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overflow:hidden;-webkit-tap-highlight-color:transparent;}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:var(--bg2)}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-input,select,textarea,button{font-family:'Rajdhani',sans-serif}
+input,select,textarea,button{font-family:'Inter',sans-serif}
 input::placeholder,textarea::placeholder{color:var(--muted);opacity:1}
 select option{background:var(--bg3);color:var(--text)}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -171,10 +174,10 @@ const S = {
   grid4:   { display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))', gap:16, marginBottom:24 },
   grid2:   { display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginBottom:24 },
   grid3:   { display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:16, marginBottom:24 },
-  label:   { display:'block', fontSize:12, fontWeight:600, letterSpacing:'0.1em', color:'var(--dim)', textTransform:'uppercase', marginBottom:6, fontFamily:'Share Tech Mono, monospace' },
+  label:   { display:'block', fontSize:12, fontWeight:600, letterSpacing:'0.1em', color:'var(--dim)', textTransform:'uppercase', marginBottom:6, fontFamily:'JetBrains Mono, monospace' },
   input:   { width:'100%', padding:'9px 12px', background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:4, color:'var(--text)', fontSize:16, outline:'none' },
   btn:     { padding:'9px 18px', borderRadius:4, border:'none', cursor:'pointer', fontWeight:700, fontSize:14, letterSpacing:'0.05em', display:'inline-flex', alignItems:'center', gap:6, transition:'all 0.15s' },
-  tag:     (c) => ({ padding:'2px 8px', borderRadius:2, fontSize:11, fontWeight:700, fontFamily:'Share Tech Mono, monospace', background:c==='Novo'?'rgba(74,222,128,.15)':c==='Seminovo'?'rgba(168,85,247,.15)':'rgba(255,184,0,.15)', color:c==='Novo'?'#4ade80':c==='Seminovo'?'var(--purple)':'var(--gold)', border:`1px solid ${c==='Novo'?'#166534':c==='Seminovo'?'#4c1d95':'#713f12'}` }),
+  tag:     (c) => ({ padding:'2px 8px', borderRadius:2, fontSize:11, fontWeight:700, fontFamily:'JetBrains Mono, monospace', background:c==='Novo'?'rgba(74,222,128,.15)':c==='Seminovo'?'rgba(168,85,247,.15)':'rgba(255,184,0,.15)', color:c==='Novo'?'#4ade80':c==='Seminovo'?'var(--purple)':'var(--gold)', border:`1px solid ${c==='Novo'?'#166534':c==='Seminovo'?'#4c1d95':'#713f12'}` }),
 };
 
 const Btn = ({children, color='red', onClick, disabled, style={}}) => {
@@ -205,8 +208,8 @@ const StatCard = ({label, value, sub, color='var(--red-b)', icon}) => (
   <div style={{...S.card, borderTop:`3px solid ${color}`}}>
     <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
       <div>
-        <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--muted)',letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:6}}>{label}</div>
-        <div style={{fontFamily:'Press Start 2P, monospace',fontSize:18,color,wordBreak:'break-all'}}>{value}</div>
+        <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--muted)',letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:6}}>{label}</div>
+        <div style={{fontFamily:'Space Grotesk, monospace',fontSize:18,color,wordBreak:'break-all'}}>{value}</div>
         {sub && <div style={{fontSize:13,color:'var(--muted)',marginTop:4}}>{sub}</div>}
       </div>
       {icon && <div style={{fontSize:28,opacity:.5}}>{icon}</div>}
@@ -215,7 +218,7 @@ const StatCard = ({label, value, sub, color='var(--red-b)', icon}) => (
 );
 
 const MonoTag = ({children, color='var(--dim)', bg='var(--surface2)'}) => (
-  <span style={{fontFamily:'Share Tech Mono, monospace',fontSize:10,padding:'2px 8px',borderRadius:2,background:bg,color,letterSpacing:'0.1em'}}>{children}</span>
+  <span style={{fontFamily:'JetBrains Mono, monospace',fontSize:10,padding:'2px 8px',borderRadius:2,background:bg,color,letterSpacing:'0.1em'}}>{children}</span>
 );
 
 // ── Login ────────────────────────────────────────────────────
@@ -282,15 +285,15 @@ const Login = ({onLogin}) => {
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',background:'var(--bg)'}}>
       <div style={{...S.card,width:360,borderTop:'3px solid var(--red)'}}>
         <div style={{textAlign:'center',marginBottom:24}}>
-          <div style={{fontFamily:'Press Start 2P, monospace',fontSize:13,color:'var(--red-b)',textShadow:'0 0 20px rgba(204,20,20,.6)',lineHeight:1.6}}>JULIO FLORES</div>
-          <div style={{fontFamily:'Rajdhani, sans-serif',fontSize:13,color:'var(--gold)',letterSpacing:'0.3em',marginTop:4}}>PAINEL ADMIN</div>
+          <div style={{fontFamily:'Space Grotesk, sans-serif',fontSize:22,fontWeight:700,color:'var(--text)',textShadow:'0 0 24px rgba(95,232,232,.25)',letterSpacing:'0.01em',lineHeight:1.2}}>JÚLIO <span style={{color:'var(--blue)'}}>FLORES</span></div>
+          <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:10,color:'var(--cyan)',letterSpacing:'0.28em',marginTop:6}}>PAINEL ADMIN</div>
         </div>
         <form onSubmit={submit}>
           <div style={{position:'relative',marginBottom:8}}>
             <input id="ng-pwd" type={show?'text':'password'} placeholder="Senha" value={pwd} onChange={e=>{setPwd(e.target.value);setErr('')}} style={{...S.input,paddingRight:44}} autoFocus autoComplete="current-password" />
             <button type="button" onClick={()=>setShow(s=>!s)} style={{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',color:'var(--dim)',cursor:'pointer',fontSize:16}}>{show?'🙈':'👁'}</button>
           </div>
-          {err && <div style={{color:'var(--red-b)',fontSize:13,marginBottom:10,fontFamily:'Share Tech Mono, monospace'}}>✕ {err}</div>}
+          {err && <div style={{color:'var(--red-b)',fontSize:13,marginBottom:10,fontFamily:'JetBrains Mono, monospace'}}>✕ {err}</div>}
           <Btn style={{width:'100%',justifyContent:'center',marginTop:4}} disabled={loading||locked}>{loading?'Validando...':locked?'Aguarde 60s...':'Entrar'}</Btn>
         </form>
       </div>
@@ -347,8 +350,8 @@ const Dashboard = ({produtos, visitas}) => {
   return (
     <div>
       <div style={{marginBottom:20,display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:8}}>
-        <div><div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Dashboard</div><div style={{fontSize:14,color:'var(--muted)'}}>Visão geral — {new Date().toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}</div></div>
-        {varLucro!==null && <div style={{fontSize:12,fontFamily:'Share Tech Mono, monospace',color:varLucro>=0?'var(--green)':'var(--red-b)',background:varLucro>=0?'rgba(37,211,102,.1)':'rgba(204,20,20,.1)',border:'1px solid currentColor',padding:'4px 10px',borderRadius:4}}>{varLucro>=0?'↑':'↓'} {Math.abs(varLucro)}% vs mês anterior</div>}
+        <div><div style={{fontFamily:'Space Grotesk, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Dashboard</div><div style={{fontSize:14,color:'var(--muted)'}}>Visão geral — {new Date().toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}</div></div>
+        {varLucro!==null && <div style={{fontSize:12,fontFamily:'JetBrains Mono, monospace',color:varLucro>=0?'var(--green)':'var(--red-b)',background:varLucro>=0?'rgba(37,211,102,.1)':'rgba(204,20,20,.1)',border:'1px solid currentColor',padding:'4px 10px',borderRadius:4}}>{varLucro>=0?'↑':'↓'} {Math.abs(varLucro)}% vs mês anterior</div>}
       </div>
 
       {/* Cards financeiros */}
@@ -376,13 +379,13 @@ const Dashboard = ({produtos, visitas}) => {
       <div className="ng-grid2" style={S.grid2}>
         {/* Visitas 7 dias */}
         <div style={S.card}>
-          <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:16}}>// Visitas — últimos 7 dias</div>
+          <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:16}}>// Visitas — últimos 7 dias</div>
           <div style={{display:'flex',alignItems:'flex-end',gap:8,height:100}}>
             {dias.map(({label,count})=>(
               <div key={label} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
                 <div style={{fontSize:11,color:'var(--muted)'}}>{count||''}</div>
                 <div style={{width:'100%',background:'var(--red)',borderRadius:'2px 2px 0 0',height:Math.max((count/maxV)*80,count>0?4:0)+'px',opacity:.85}}/>
-                <div style={{fontSize:10,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>{label}</div>
+                <div style={{fontSize:10,color:'var(--muted)',fontFamily:'JetBrains Mono, monospace'}}>{label}</div>
               </div>
             ))}
           </div>
@@ -394,44 +397,44 @@ const Dashboard = ({produtos, visitas}) => {
 
         {/* Últimas vendas */}
         <div style={S.card}>
-          <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:16}}>// Últimas vendas</div>
+          <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:16}}>// Últimas vendas</div>
           {ultimasVendas.length===0
             ? <div style={{fontSize:13,color:'var(--muted)'}}>Nenhuma venda registrada ainda</div>
             : ultimasVendas.map((v,i)=>(
               <div key={v.id||i} style={{display:'flex',alignItems:'center',gap:10,padding:'7px 0',borderBottom:i<4?'1px solid var(--border)':'none'}}>
-                <div style={{flex:1}}><div style={{fontSize:13,fontWeight:600,color:'var(--text)'}}>{v.produto}</div><div style={{fontSize:11,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>{v.data_venda||''}</div></div>
-                <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--green)'}}>+R${Number(v.preco_venda||0).toLocaleString('pt-BR')}</div>
+                <div style={{flex:1}}><div style={{fontSize:13,fontWeight:600,color:'var(--text)'}}>{v.produto}</div><div style={{fontSize:11,color:'var(--muted)',fontFamily:'JetBrains Mono, monospace'}}>{v.data_venda||''}</div></div>
+                <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:12,color:'var(--green)'}}>+R${Number(v.preco_venda||0).toLocaleString('pt-BR')}</div>
               </div>
             ))}
         </div>
 
         {/* Top produtos vistos */}
         <div style={S.card}>
-          <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:16}}>// Mais vistos no site</div>
+          <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:16}}>// Mais vistos no site</div>
           {topProd.length===0
             ? <div style={{fontSize:13,color:'var(--muted)'}}>Nenhum dado ainda</div>
             : topProd.map((p,i)=>(
               <div key={p.id} style={{display:'flex',alignItems:'center',gap:10,padding:'7px 0',borderBottom:i<4?'1px solid var(--border)':'none'}}>
-                <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--muted)',width:16}}>#{i+1}</div>
+                <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--muted)',width:16}}>#{i+1}</div>
                 <div style={{flex:1}}><div style={{fontSize:13,fontWeight:700,color:p.vendido?'var(--muted)':'var(--text)'}}>{p.nome}{p.vendido?' (vendido)':''}</div><div style={{fontSize:11,color:'var(--muted)'}}>{p.console||'—'}</div></div>
-                <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--purple)'}}>{p.viewed_count||0}x</div>
+                <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:12,color:'var(--purple)'}}>{p.viewed_count||0}x</div>
               </div>
             ))}
         </div>
 
         {/* Status pedidos */}
         <div style={S.card}>
-          <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:16}}>// Pedidos do site</div>
+          <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:16}}>// Pedidos do site</div>
           <div style={{display:'flex',flexDirection:'column',gap:10}}>
             {[['✅ Pagos',pedidosPagos,'var(--green)'],['⏳ Pendentes',pedidosPendentes,'var(--gold)'],['📲 Via WhatsApp',pedidos.filter(p=>p.status==='fallback_wpp').length,'var(--purple)'],['✕ Cancelados',pedidos.filter(p=>p.status==='cancelado').length,'var(--red-b)']].map(([label,val,color])=>(
               <div key={label} style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                 <span style={{fontSize:13,color:'var(--dim)'}}>{label}</span>
-                <span style={{fontFamily:'Share Tech Mono, monospace',fontSize:14,fontWeight:700,color}}>{val}</span>
+                <span style={{fontFamily:'JetBrains Mono, monospace',fontSize:14,fontWeight:700,color}}>{val}</span>
               </div>
             ))}
             <div style={{borderTop:'1px solid var(--border)',paddingTop:10,display:'flex',justifyContent:'space-between'}}>
               <span style={{fontSize:12,color:'var(--muted)'}}>Total</span>
-              <span style={{fontFamily:'Share Tech Mono, monospace',fontSize:13,color:'var(--text)'}}>{pedidos.length}</span>
+              <span style={{fontFamily:'JetBrains Mono, monospace',fontSize:13,color:'var(--text)'}}>{pedidos.length}</span>
             </div>
           </div>
         </div>
@@ -498,7 +501,7 @@ const ProductForm = ({initial, onSave, onClose}) => {
     <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.85)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
       <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:8,width:'100%',maxWidth:600,maxHeight:'90vh',overflow:'auto',padding:24,position:'relative'}}>
         <button onClick={onClose} style={{position:'absolute',top:14,right:14,background:'none',border:'none',color:'var(--dim)',fontSize:20,cursor:'pointer'}}>✕</button>
-        <div style={{fontFamily:'Press Start 2P, monospace',fontSize:11,color:'var(--text)',marginBottom:20}}>{initial?.id ? 'EDITAR PRODUTO' : 'NOVO PRODUTO'}</div>
+        <div style={{fontFamily:'Space Grotesk, monospace',fontSize:11,color:'var(--text)',marginBottom:20}}>{initial?.id ? 'EDITAR PRODUTO' : 'NOVO PRODUTO'}</div>
         <div className="ng-grid2" style={S.grid2}>
           <Input label="Nome do produto" value={p.nome} onChange={e=>set('nome',e.target.value)} placeholder="Ex: God of War Ragnarök" />
           <Input label="Custo de reparo (R$)" type="number" value={p.custo_reparo||''} onChange={e=>set('custo_reparo',e.target.value)} placeholder="0 (se precisou consertar)" />
@@ -531,7 +534,7 @@ const ProductForm = ({initial, onSave, onClose}) => {
           <Toggle label="Vendido" checked={!!p.vendido} onChange={()=>set('vendido',!p.vendido)} />
           <Toggle label="Frete Grátis" checked={!!p.frete_gratis} onChange={()=>set('frete_gratis',!p.frete_gratis)} />
         </div>
-        {toast && <div style={{fontSize:13,color:'var(--red-b)',marginBottom:12,fontFamily:'Share Tech Mono, monospace'}}>{toast}</div>}
+        {toast && <div style={{fontSize:13,color:'var(--red-b)',marginBottom:12,fontFamily:'JetBrains Mono, monospace'}}>{toast}</div>}
         <div style={{display:'flex',gap:10,justifyContent:'flex-end'}}><Btn color="ghost" onClick={onClose}>Cancelar</Btn><Btn color="ghost" onClick={postarInstagram} disabled={saving}>📸 Instagram</Btn><Btn onClick={salvar} disabled={saving}>{saving?'Salvando...':'Salvar produto'}</Btn></div>
       </div>
     </div>
@@ -595,7 +598,7 @@ const ProductsPage = ({produtos, reload}) => {
   return (
     <div>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20,flexWrap:'wrap',gap:12}}>
-        <div><div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Produtos</div><div style={{fontSize:14,color:'var(--muted)'}}>{filtrados.length} de {produtos.length} produtos</div></div>
+        <div><div style={{fontFamily:'Space Grotesk, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Produtos</div><div style={{fontSize:14,color:'var(--muted)'}}>{filtrados.length} de {produtos.length} produtos</div></div>
         <div style={{display:'flex',gap:8}}><Btn color="ghost" onClick={()=>exportarCSV(filtrados)}>⬇ CSV</Btn><Btn onClick={()=>setEditando({})}>+ Novo produto</Btn></div>
       </div>
       <div style={{display:'flex',gap:8,marginBottom:8,flexWrap:'wrap'}}>
@@ -607,17 +610,17 @@ const ProductsPage = ({produtos, reload}) => {
       <div style={{...S.card,padding:0,overflow:'hidden'}}>
         <div style={{overflowX:'auto'}}>
           <table style={{width:'100%',borderCollapse:'collapse',minWidth:640}}>
-            <thead><tr style={{background:'var(--bg3)'}}>{['Produto','Console','Preço','Cond.','Status','Views','Ações'].map(h=>(<th key={h} style={{padding:'10px 14px',textAlign:'left',fontFamily:'Share Tech Mono, monospace',fontSize:10,color:'var(--muted)',letterSpacing:'0.15em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>))}</tr></thead>
+            <thead><tr style={{background:'var(--bg3)'}}>{['Produto','Console','Preço','Cond.','Status','Views','Ações'].map(h=>(<th key={h} style={{padding:'10px 14px',textAlign:'left',fontFamily:'JetBrains Mono, monospace',fontSize:10,color:'var(--muted)',letterSpacing:'0.15em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>))}</tr></thead>
             <tbody>
-              {filtrados.length===0&&(<tr><td colSpan={7} style={{padding:'2rem',textAlign:'center',color:'var(--muted)',fontFamily:'Share Tech Mono, monospace',fontSize:13}}>nenhum produto encontrado</td></tr>)}
+              {filtrados.length===0&&(<tr><td colSpan={7} style={{padding:'2rem',textAlign:'center',color:'var(--muted)',fontFamily:'JetBrains Mono, monospace',fontSize:13}}>nenhum produto encontrado</td></tr>)}
               {filtrados.map(p=>(
                 <tr key={p.id} style={{borderTop:'1px solid var(--border)'}}>
                   <td style={{padding:'10px 14px'}}><div style={{display:'flex',alignItems:'center',gap:10}}>{imgs(p).length?<img src={imgs(p)[0]} alt="" style={{width:40,height:40,objectFit:'cover',borderRadius:4,flexShrink:0}}/>:<div style={{width:40,height:40,background:'var(--bg3)',borderRadius:4,display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}}>🎮</div>}<div style={{fontSize:14,fontWeight:700,color:'var(--text)',maxWidth:180,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.nome}</div></div></td>
                   <td style={{padding:'10px 14px',fontSize:13,color:'var(--dim)',whiteSpace:'nowrap'}}>{p.console||'—'}</td>
-                  <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:13,color:'var(--gold)',whiteSpace:'nowrap'}}>{fmtBRL(p.preco)}</td>
+                  <td style={{padding:'10px 14px',fontFamily:'JetBrains Mono, monospace',fontSize:13,color:'var(--gold)',whiteSpace:'nowrap'}}>{fmtBRL(p.preco)}</td>
                   <td style={{padding:'10px 14px'}}><span style={S.tag(p.condicao)}>{p.condicao||'—'}</span></td>
-                  <td style={{padding:'10px 14px'}}><div style={{display:'flex',flexDirection:'column',gap:4}}>{p.vendido&&<span style={{fontSize:11,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>VENDIDO</span>}{p.destaque&&<span style={{fontSize:11,color:'var(--gold)',fontFamily:'Share Tech Mono, monospace'}}>⭐ DESTAQUE</span>}{p.frete_gratis&&<span style={{fontSize:11,color:'#4ade80',fontFamily:'Share Tech Mono, monospace'}}>🚚 FRETE</span>}{p.ativo===false&&<span style={{fontSize:11,color:'var(--red-b)',fontFamily:'Share Tech Mono, monospace'}}>INATIVO</span>}{p.ativo!==false&&!p.vendido&&!p.destaque&&<span style={{fontSize:11,color:'#4ade80',fontFamily:'Share Tech Mono, monospace'}}>ATIVO</span>}</div></td>
-                  <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--purple)'}}>{p.viewed_count||0}</td>
+                  <td style={{padding:'10px 14px'}}><div style={{display:'flex',flexDirection:'column',gap:4}}>{p.vendido&&<span style={{fontSize:11,color:'var(--muted)',fontFamily:'JetBrains Mono, monospace'}}>VENDIDO</span>}{p.destaque&&<span style={{fontSize:11,color:'var(--gold)',fontFamily:'JetBrains Mono, monospace'}}>⭐ DESTAQUE</span>}{p.frete_gratis&&<span style={{fontSize:11,color:'#4ade80',fontFamily:'JetBrains Mono, monospace'}}>🚚 FRETE</span>}{p.ativo===false&&<span style={{fontSize:11,color:'var(--red-b)',fontFamily:'JetBrains Mono, monospace'}}>INATIVO</span>}{p.ativo!==false&&!p.vendido&&!p.destaque&&<span style={{fontSize:11,color:'#4ade80',fontFamily:'JetBrains Mono, monospace'}}>ATIVO</span>}</div></td>
+                  <td style={{padding:'10px 14px',fontFamily:'JetBrains Mono, monospace',fontSize:12,color:'var(--purple)'}}>{p.viewed_count||0}</td>
                   <td style={{padding:'10px 14px'}}><div style={{display:'flex',gap:6}}>
                     <button title="Editar" onClick={()=>setEditando(p)} style={{...S.btn,padding:'5px 10px',fontSize:13,background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--dim)'}}>✏</button>
                     <button title="Duplicar" onClick={()=>duplicar(p)} style={{...S.btn,padding:'5px 10px',fontSize:13,background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--dim)'}}>⧉</button>
@@ -634,7 +637,7 @@ const ProductsPage = ({produtos, reload}) => {
         </div>
       </div>
       {editando!==null && <ProductForm initial={editando?.id?editando:null} onSave={salvar} onClose={()=>setEditando(null)} />}
-      {deleting && (<div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.85)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{...S.card,maxWidth:360,borderTop:'3px solid var(--red-b)',textAlign:'center',padding:28}}><div style={{fontSize:32,marginBottom:12}}>🗑</div><div style={{fontFamily:'Press Start 2P, monospace',fontSize:11,color:'var(--text)',marginBottom:8}}>Excluir produto?</div><div style={{fontSize:14,color:'var(--dim)',marginBottom:20}}>Esta ação não pode ser desfeita.</div><div style={{display:'flex',gap:10,justifyContent:'center'}}><Btn color="ghost" onClick={()=>setDeleting(null)}>Cancelar</Btn><Btn color="danger" onClick={()=>deletar(deleting)}>Excluir</Btn></div></div></div>)}
+      {deleting && (<div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.85)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{...S.card,maxWidth:360,borderTop:'3px solid var(--red-b)',textAlign:'center',padding:28}}><div style={{fontSize:32,marginBottom:12}}>🗑</div><div style={{fontFamily:'Space Grotesk, monospace',fontSize:11,color:'var(--text)',marginBottom:8}}>Excluir produto?</div><div style={{fontSize:14,color:'var(--dim)',marginBottom:20}}>Esta ação não pode ser desfeita.</div><div style={{display:'flex',gap:10,justifyContent:'center'}}><Btn color="ghost" onClick={()=>setDeleting(null)}>Cancelar</Btn><Btn color="danger" onClick={()=>deletar(deleting)}>Excluir</Btn></div></div></div>)}
     </div>
   );
 };
@@ -651,7 +654,7 @@ const Analytics = ({visitas}) => {
 
   return (
     <div>
-      <div style={{marginBottom:20}}><div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Analytics</div><div style={{fontSize:14,color:'var(--muted)'}}>Rastreamento de visitas</div></div>
+      <div style={{marginBottom:20}}><div style={{fontFamily:'Space Grotesk, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Analytics</div><div style={{fontSize:14,color:'var(--muted)'}}>Rastreamento de visitas</div></div>
       <div className="ng-grid4" style={S.grid4}>
         <StatCard label="Total views" value={visitas.length} sub={`${uniqueVisitors} visitantes únicos`} color="var(--purple)" icon="👁"/>
         <StatCard label="Esta semana" value={semana.length} color="var(--red-b)" icon="📅"/>
@@ -659,8 +662,8 @@ const Analytics = ({visitas}) => {
         <StatCard label="Mobile" value={`${visitas.length?Math.round(mobile/visitas.length*100):0}%`} sub={`${mobile} de ${visitas.length}`} color="var(--green)" icon="📱"/>
       </div>
       <div className="ng-grid2" style={S.grid2}>
-        <div style={S.card}><div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:16}}>// Origem do tráfego</div>{topRef.length===0?<div style={{fontSize:13,color:'var(--muted)'}}>Nenhum dado ainda</div>:topRef.map(([ref,cnt])=>(<div key={ref} style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}><div style={{flex:1,fontSize:13,color:'var(--dim)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{ref}</div><div style={{width:`${Math.round(cnt/topRef[0][1]*100)}%`,minWidth:4,height:4,background:'var(--purple)',borderRadius:2,maxWidth:80}}/><div style={{fontSize:12,color:'var(--text)',fontFamily:'Share Tech Mono, monospace',width:30,textAlign:'right'}}>{cnt}</div></div>))}</div>
-        <div style={S.card}><div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:16}}>// Atividade recente</div><div style={{maxHeight:200,overflow:'auto'}}>{recent.length===0?<div style={{fontSize:13,color:'var(--muted)'}}>Nenhuma visita registrada.</div>:recent.map((v,i)=>(<div key={v.id||i} style={{display:'flex',gap:10,padding:'6px 0',borderBottom:i<recent.length-1?'1px solid var(--border)':'none',alignItems:'flex-start'}}><div style={{fontSize:14}}>{v.dispositivo==='mobile'?'📱':'🖥'}</div><div style={{flex:1}}><div style={{fontSize:12,color:'var(--text)'}}>{v.produto_nome||v.pagina||'/'}</div><div style={{fontSize:11,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>{fmtDate(v.created_at)}</div></div></div>))}</div></div>
+        <div style={S.card}><div style={{fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:16}}>// Origem do tráfego</div>{topRef.length===0?<div style={{fontSize:13,color:'var(--muted)'}}>Nenhum dado ainda</div>:topRef.map(([ref,cnt])=>(<div key={ref} style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}><div style={{flex:1,fontSize:13,color:'var(--dim)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{ref}</div><div style={{width:`${Math.round(cnt/topRef[0][1]*100)}%`,minWidth:4,height:4,background:'var(--purple)',borderRadius:2,maxWidth:80}}/><div style={{fontSize:12,color:'var(--text)',fontFamily:'JetBrains Mono, monospace',width:30,textAlign:'right'}}>{cnt}</div></div>))}</div>
+        <div style={S.card}><div style={{fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:16}}>// Atividade recente</div><div style={{maxHeight:200,overflow:'auto'}}>{recent.length===0?<div style={{fontSize:13,color:'var(--muted)'}}>Nenhuma visita registrada.</div>:recent.map((v,i)=>(<div key={v.id||i} style={{display:'flex',gap:10,padding:'6px 0',borderBottom:i<recent.length-1?'1px solid var(--border)':'none',alignItems:'flex-start'}}><div style={{fontSize:14}}>{v.dispositivo==='mobile'?'📱':'🖥'}</div><div style={{flex:1}}><div style={{fontSize:12,color:'var(--text)'}}>{v.produto_nome||v.pagina||'/'}</div><div style={{fontSize:11,color:'var(--muted)',fontFamily:'JetBrains Mono, monospace'}}>{fmtDate(v.created_at)}</div></div></div>))}</div></div>
       </div>
     </div>
   );
@@ -685,9 +688,9 @@ const Config = () => {
   
   return (
     <div style={{maxWidth:480}}>
-      <div style={{marginBottom:20}}><div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Configurações</div><div style={{fontSize:14,color:'var(--muted)'}}>Preferências e chaves de API</div></div>
+      <div style={{marginBottom:20}}><div style={{fontFamily:'Space Grotesk, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Configurações</div><div style={{fontSize:14,color:'var(--muted)'}}>Preferências e chaves de API</div></div>
       <div style={{...S.card,borderTop:'3px solid var(--gold)',marginBottom:16}}>
-        <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--gold)',letterSpacing:'0.2em',marginBottom:16}}>// CREDENCIAIS E INTEGRACÕES</div>
+        <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--gold)',letterSpacing:'0.2em',marginBottom:16}}>// CREDENCIAIS E INTEGRACÕES</div>
         
         <Input label="Cloud Name (Cloudinary)" value={cloud} onChange={e=>setCloud(e.target.value)} placeholder="ddaadz8ut" />
         <Input label="Upload Preset (Cloudinary unsigned)" value={preset} onChange={e=>setPreset(e.target.value)} placeholder="ytsmjllb" />
@@ -836,7 +839,7 @@ const GarimpoPage = () => {
 
   const EMPTY_ALVO = { nome:'', palavras_chave:[], preco_max:0, grupo:1, prioridade:2, ativo:true, aceita_defeito:false, preco_max_defeito:0, desconto_minimo:25 };
 
-  if (loading) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:300}}><div style={{fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--muted)'}}>Carregando garimpo...</div></div>;
+  if (loading) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:300}}><div style={{fontFamily:'JetBrains Mono, monospace',fontSize:12,color:'var(--muted)'}}>Carregando garimpo...</div></div>;
 
   const SUB_TABS = [
     { id:'overview', label:'Visão Geral', icon:'📊' },
@@ -850,14 +853,14 @@ const GarimpoPage = () => {
     <div>
       {/* Toast */}
       {toast && (
-        <div style={{position:'fixed',top:70,right:24,zIndex:2000,background:'var(--surface2)',border:'1px solid var(--border)',padding:'10px 18px',borderRadius:4,fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--text)',animation:'slideIn .2s ease',maxWidth:320}}>
+        <div style={{position:'fixed',top:70,right:24,zIndex:2000,background:'var(--surface2)',border:'1px solid var(--border)',padding:'10px 18px',borderRadius:4,fontFamily:'JetBrains Mono, monospace',fontSize:12,color:'var(--text)',animation:'slideIn .2s ease',maxWidth:320}}>
           {toast}
         </div>
       )}
 
       <div style={{marginBottom:20,display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
         <div>
-          <div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Garimpo OLX</div>
+          <div style={{fontFamily:'Space Grotesk, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Garimpo OLX</div>
           <div style={{fontSize:14,color:'var(--muted)'}}>Monitor do raspador da Raspberry Pi</div>
         </div>
         <Btn color="ghost" onClick={carregar}>↻ Atualizar</Btn>
@@ -911,7 +914,7 @@ const GarimpoPage = () => {
             <div style={{...S.card,borderLeft:'3px solid var(--red-b)',marginBottom:24,display:'flex',alignItems:'center',gap:16}}>
               <div style={{fontSize:28}}>🚫</div>
               <div>
-                <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--red-b)',marginBottom:4}}>IP BLOQUEADO PELA OLX</div>
+                <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:12,color:'var(--red-b)',marginBottom:4}}>IP BLOQUEADO PELA OLX</div>
                 <div style={{fontSize:13,color:'var(--dim)',lineHeight:1.6}}>
                   {statusIP==='bloqueado'
                     ? 'O garimpo levou muitos 403 na última hora. Reinicie o roteador para mudar o IP. Depois reinicie o script na Pi com: bash iniciar_garimpo.sh'
@@ -923,19 +926,19 @@ const GarimpoPage = () => {
 
           {/* Últimos achados */}
           <div style={S.card}>
-            <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:16}}>// Últimos 10 achados</div>
+            <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:16}}>// Últimos 10 achados</div>
             {achados.length===0
-              ? <div style={{fontSize:13,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>Nenhum achado ainda. O garimpo está rodando na Pi?</div>
+              ? <div style={{fontSize:13,color:'var(--muted)',fontFamily:'JetBrains Mono, monospace'}}>Nenhum achado ainda. O garimpo está rodando na Pi?</div>
               : achados.slice(0,10).map(a=>(
                 <div key={a.id} style={{display:'flex',gap:12,padding:'10px 0',borderBottom:'1px solid var(--border)',alignItems:'flex-start',animation:'slideIn .3s ease'}}>
                   <div style={{fontSize:20,flexShrink:0}}>{a.status==='comprado'?'✅':a.status==='descartado'?'🚫':'💎'}</div>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{fontSize:14,fontWeight:700,color:a.status==='comprado'?'var(--green)':a.status==='descartado'?'var(--muted)':'var(--text)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.titulo}</div>
                     <div style={{display:'flex',gap:8,marginTop:4,flexWrap:'wrap'}}>
-                      <span style={{fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--gold)'}}>R$ {Number(a.preco).toLocaleString('pt-BR')}</span>
+                      <span style={{fontFamily:'JetBrains Mono, monospace',fontSize:12,color:'var(--gold)'}}>R$ {Number(a.preco).toLocaleString('pt-BR')}</span>
                       {a.descricao && <span style={{fontSize:11,color:'var(--dim)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:200}}>{a.descricao}</span>}
                     </div>
-                    <div style={{fontSize:11,color:'var(--muted)',marginTop:2,fontFamily:'Share Tech Mono, monospace'}}>{fmtDateFull(a.created_at)}</div>
+                    <div style={{fontSize:11,color:'var(--muted)',marginTop:2,fontFamily:'JetBrains Mono, monospace'}}>{fmtDateFull(a.created_at)}</div>
                   </div>
                   <div style={{display:'flex',gap:6,flexShrink:0}}>
                     {a.url && <a href={a.url} target="_blank" rel="noopener" style={{...S.btn,padding:'5px 10px',fontSize:11,background:'rgba(0,255,255,.1)',color:'var(--cyan)',textDecoration:'none',border:'1px solid rgba(0,255,255,.2)'}}>↗ OLX</a>}
@@ -963,22 +966,22 @@ const GarimpoPage = () => {
           <div style={{...S.card,padding:0,overflow:'hidden'}}>
             <div style={{overflowX:'auto'}}>
               <table style={{width:'100%',borderCollapse:'collapse',minWidth:700}}>
-                <thead><tr style={{background:'var(--bg3)'}}>{['Status','Produto','Preço','Motivo','Quando','Ações'].map(h=><th key={h} style={{padding:'10px 14px',textAlign:'left',fontFamily:'Share Tech Mono, monospace',fontSize:10,color:'var(--muted)',letterSpacing:'0.15em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>)}</tr></thead>
+                <thead><tr style={{background:'var(--bg3)'}}>{['Status','Produto','Preço','Motivo','Quando','Ações'].map(h=><th key={h} style={{padding:'10px 14px',textAlign:'left',fontFamily:'JetBrains Mono, monospace',fontSize:10,color:'var(--muted)',letterSpacing:'0.15em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>)}</tr></thead>
                 <tbody>
-                  {achados.length===0&&<tr><td colSpan={6} style={{padding:'2rem',textAlign:'center',color:'var(--muted)',fontFamily:'Share Tech Mono, monospace',fontSize:13}}>nenhum achado no banco</td></tr>}
+                  {achados.length===0&&<tr><td colSpan={6} style={{padding:'2rem',textAlign:'center',color:'var(--muted)',fontFamily:'JetBrains Mono, monospace',fontSize:13}}>nenhum achado no banco</td></tr>}
                   {achados.map(a=>(
                     <tr key={a.id} style={{borderTop:'1px solid var(--border)',opacity:a.status==='descartado'?.4:1}}>
                       <td style={{padding:'10px 14px'}}>
-                        <span style={{fontFamily:'Share Tech Mono, monospace',fontSize:10,padding:'2px 8px',borderRadius:2,
+                        <span style={{fontFamily:'JetBrains Mono, monospace',fontSize:10,padding:'2px 8px',borderRadius:2,
                           background:a.status==='comprado'?'rgba(37,211,102,.12)':a.status==='descartado'?'var(--surface2)':'rgba(168,85,247,.12)',
                           color:a.status==='comprado'?'var(--green)':a.status==='descartado'?'var(--muted)':'var(--purple)',
                           border:`1px solid ${a.status==='comprado'?'rgba(37,211,102,.3)':a.status==='descartado'?'var(--border)':'rgba(168,85,247,.3)'}`
                         }}>{(a.status||'pendente').toUpperCase()}</span>
                       </td>
                       <td style={{padding:'10px 14px',maxWidth:240}}><div style={{fontSize:13,fontWeight:700,color:'var(--text)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.titulo}</div></td>
-                      <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:13,color:'var(--gold)',whiteSpace:'nowrap'}}>R$ {Number(a.preco).toLocaleString('pt-BR')}</td>
+                      <td style={{padding:'10px 14px',fontFamily:'JetBrains Mono, monospace',fontSize:13,color:'var(--gold)',whiteSpace:'nowrap'}}>R$ {Number(a.preco).toLocaleString('pt-BR')}</td>
                       <td style={{padding:'10px 14px',fontSize:12,color:'var(--dim)',maxWidth:200,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.descricao||'—'}</td>
-                      <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--muted)',whiteSpace:'nowrap'}}>{fmtDateFull(a.created_at)}</td>
+                      <td style={{padding:'10px 14px',fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--muted)',whiteSpace:'nowrap'}}>{fmtDateFull(a.created_at)}</td>
                       <td style={{padding:'10px 14px'}}>
                         <div style={{display:'flex',gap:4}}>
                           {a.url&&<a href={a.url} target="_blank" rel="noopener" style={{...S.btn,padding:'4px 8px',fontSize:11,background:'rgba(0,255,255,.1)',color:'var(--cyan)',textDecoration:'none'}}>↗</a>}
@@ -1004,14 +1007,14 @@ const GarimpoPage = () => {
           <div style={{...S.card,padding:0,overflow:'hidden'}}>
             <div style={{overflowX:'auto'}}>
               <table style={{width:'100%',borderCollapse:'collapse',minWidth:700}}>
-                <thead><tr style={{background:'var(--bg3)'}}>{['Ativo','Nome','Busca','Preço max','Defeito','Grupo','Prioridade','Ações'].map(h=><th key={h} style={{padding:'10px 14px',textAlign:'left',fontFamily:'Share Tech Mono, monospace',fontSize:10,color:'var(--muted)',letterSpacing:'0.15em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>)}</tr></thead>
+                <thead><tr style={{background:'var(--bg3)'}}>{['Ativo','Nome','Busca','Preço max','Defeito','Grupo','Prioridade','Ações'].map(h=><th key={h} style={{padding:'10px 14px',textAlign:'left',fontFamily:'JetBrains Mono, monospace',fontSize:10,color:'var(--muted)',letterSpacing:'0.15em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>)}</tr></thead>
                 <tbody>
                   {alvos.map(a=>(
                     <tr key={a.id} style={{borderTop:'1px solid var(--border)',opacity:a.ativo?1:.4}}>
                       <td style={{padding:'10px 14px'}}><button onClick={()=>toggleAlvo(a)} style={{...S.btn,padding:'4px 10px',fontSize:11,background:a.ativo?'rgba(37,211,102,.12)':'var(--surface2)',color:a.ativo?'var(--green)':'var(--muted)',border:`1px solid ${a.ativo?'rgba(37,211,102,.3)':'var(--border)'}`}}>{a.ativo?'ON':'OFF'}</button></td>
                       <td style={{padding:'10px 14px',fontSize:14,fontWeight:700,color:'var(--text)'}}>{a.nome}</td>
-                      <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--dim)'}}>{Array.isArray(a.palavras_chave)?a.palavras_chave[0]:a.palavras_chave||a.nome}</td>
-                      <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:13,color:'var(--gold)'}}>R$ {Number(a.preco_max).toLocaleString('pt-BR')}</td>
+                      <td style={{padding:'10px 14px',fontFamily:'JetBrains Mono, monospace',fontSize:12,color:'var(--dim)'}}>{Array.isArray(a.palavras_chave)?a.palavras_chave[0]:a.palavras_chave||a.nome}</td>
+                      <td style={{padding:'10px 14px',fontFamily:'JetBrains Mono, monospace',fontSize:13,color:'var(--gold)'}}>R$ {Number(a.preco_max).toLocaleString('pt-BR')}</td>
                       <td style={{padding:'10px 14px',fontSize:12,color:a.aceita_defeito?'var(--amber)':'var(--muted)'}}>{a.aceita_defeito?`✔ até R$${a.preco_max_defeito||0}`:'—'}</td>
                       <td style={{padding:'10px 14px'}}><MonoTag>{a.grupo||1}</MonoTag></td>
                       <td style={{padding:'10px 14px'}}><MonoTag color={a.prioridade===1?'var(--red-b)':a.prioridade===2?'var(--gold)':'var(--dim)'}>{a.prioridade===1?'🔥 TURBO':a.prioridade===2?'NORMAL':'LENTO'}</MonoTag></td>
@@ -1028,7 +1031,7 @@ const GarimpoPage = () => {
             <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.85)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
               <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:8,width:'100%',maxWidth:520,maxHeight:'90vh',overflow:'auto',padding:24,position:'relative'}}>
                 <button onClick={()=>setEditAlvo(null)} style={{position:'absolute',top:14,right:14,background:'none',border:'none',color:'var(--dim)',fontSize:20,cursor:'pointer'}}>✕</button>
-                <div style={{fontFamily:'Press Start 2P, monospace',fontSize:11,color:'var(--text)',marginBottom:20}}>{editAlvo.id?'EDITAR ALVO':'NOVO ALVO'}</div>
+                <div style={{fontFamily:'Space Grotesk, monospace',fontSize:11,color:'var(--text)',marginBottom:20}}>{editAlvo.id?'EDITAR ALVO':'NOVO ALVO'}</div>
                 <AlvoForm alvo={editAlvo} onSave={salvarAlvo} onClose={()=>setEditAlvo(null)} saving={savingAlvo} />
               </div>
             </div>
@@ -1046,7 +1049,7 @@ const GarimpoPage = () => {
           {precos.length===0
             ? (
               <div style={{...S.card,borderLeft:'3px solid var(--amber)',padding:24}}>
-                <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--amber)',marginBottom:8}}>TABELA VAZIA</div>
+                <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:12,color:'var(--amber)',marginBottom:8}}>TABELA VAZIA</div>
                 <div style={{fontSize:13,color:'var(--dim)',lineHeight:1.8}}>
                   A tabela <code style={{background:'var(--bg3)',padding:'1px 6px',borderRadius:3,color:'var(--text)'}}>precos_mercado</code> está vazia.<br/>
                   Ela é preenchida automaticamente a cada 6h pelo <code style={{background:'var(--bg3)',padding:'1px 6px',borderRadius:3,color:'var(--text)'}}>garimpo_olx.py</code> quando encontra anúncios suficientes.<br/><br/>
@@ -1058,7 +1061,7 @@ const GarimpoPage = () => {
               <div style={{...S.card,padding:0,overflow:'hidden'}}>
                 <div style={{overflowX:'auto'}}>
                   <table style={{width:'100%',borderCollapse:'collapse',minWidth:600}}>
-                    <thead><tr style={{background:'var(--bg3)'}}>{['Produto','Mín','Médio','Máx','Compra (50%)','Amostras','Atualizado'].map(h=><th key={h} style={{padding:'10px 14px',textAlign:'left',fontFamily:'Share Tech Mono, monospace',fontSize:10,color:'var(--muted)',letterSpacing:'0.15em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>)}</tr></thead>
+                    <thead><tr style={{background:'var(--bg3)'}}>{['Produto','Mín','Médio','Máx','Compra (50%)','Amostras','Atualizado'].map(h=><th key={h} style={{padding:'10px 14px',textAlign:'left',fontFamily:'JetBrains Mono, monospace',fontSize:10,color:'var(--muted)',letterSpacing:'0.15em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>)}</tr></thead>
                     <tbody>
                       {precos.map(p=>{
                         // Verifica se o preço médio está suspeito comparando com alvo correspondente
@@ -1066,13 +1069,13 @@ const GarimpoPage = () => {
                         const suspeito = alvo && p.preco_medio > alvo.preco_max * 3;
                         return (
                           <tr key={p.id||p.produto} style={{borderTop:'1px solid var(--border)'}}>
-                            <td style={{padding:'10px 14px',fontSize:14,fontWeight:700,color:'var(--text)'}}>{p.produto}{suspeito&&<span style={{marginLeft:6,fontFamily:'Share Tech Mono, monospace',fontSize:9,color:'var(--amber)'}}>⚠ SUSPEITO</span>}</td>
-                            <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--green)'}}>R$ {Number(p.preco_minimo||0).toLocaleString('pt-BR')}</td>
-                            <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:13,color:suspeito?'var(--amber)':'var(--gold)',fontWeight:700}}>R$ {Number(p.preco_medio||0).toLocaleString('pt-BR')}</td>
-                            <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--red-b)'}}>R$ {Number(p.preco_maximo||0).toLocaleString('pt-BR')}</td>
-                            <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--purple)'}}>R$ {Number(p.preco_sugerido_compra||0).toLocaleString('pt-BR')}</td>
-                            <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--dim)'}}>{p.total_anuncios||'—'}</td>
-                            <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--muted)'}}>{p.ultima_atualizacao?fmtDateFull(p.ultima_atualizacao):'—'}</td>
+                            <td style={{padding:'10px 14px',fontSize:14,fontWeight:700,color:'var(--text)'}}>{p.produto}{suspeito&&<span style={{marginLeft:6,fontFamily:'JetBrains Mono, monospace',fontSize:9,color:'var(--amber)'}}>⚠ SUSPEITO</span>}</td>
+                            <td style={{padding:'10px 14px',fontFamily:'JetBrains Mono, monospace',fontSize:12,color:'var(--green)'}}>R$ {Number(p.preco_minimo||0).toLocaleString('pt-BR')}</td>
+                            <td style={{padding:'10px 14px',fontFamily:'JetBrains Mono, monospace',fontSize:13,color:suspeito?'var(--amber)':'var(--gold)',fontWeight:700}}>R$ {Number(p.preco_medio||0).toLocaleString('pt-BR')}</td>
+                            <td style={{padding:'10px 14px',fontFamily:'JetBrains Mono, monospace',fontSize:12,color:'var(--red-b)'}}>R$ {Number(p.preco_maximo||0).toLocaleString('pt-BR')}</td>
+                            <td style={{padding:'10px 14px',fontFamily:'JetBrains Mono, monospace',fontSize:12,color:'var(--purple)'}}>R$ {Number(p.preco_sugerido_compra||0).toLocaleString('pt-BR')}</td>
+                            <td style={{padding:'10px 14px',fontFamily:'JetBrains Mono, monospace',fontSize:12,color:'var(--dim)'}}>{p.total_anuncios||'—'}</td>
+                            <td style={{padding:'10px 14px',fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--muted)'}}>{p.ultima_atualizacao?fmtDateFull(p.ultima_atualizacao):'—'}</td>
                           </tr>
                         );
                       })}
@@ -1094,11 +1097,11 @@ const GarimpoPage = () => {
                 {n}: {logs.filter(l=>l.nivel===n).length}
               </MonoTag>
             ))}
-            <div style={{fontSize:12,color:'var(--muted)',marginLeft:'auto',fontFamily:'Share Tech Mono, monospace'}}>
+            <div style={{fontSize:12,color:'var(--muted)',marginLeft:'auto',fontFamily:'JetBrains Mono, monospace'}}>
               Atualiza a cada 30s · {logs.length} entradas
             </div>
           </div>
-          <div style={{background:'rgba(0,0,0,.5)',border:'1px solid var(--border)',borderRadius:4,padding:16,height:480,overflowY:'auto',fontFamily:'Share Tech Mono, monospace',fontSize:11,lineHeight:1.9}}>
+          <div style={{background:'rgba(0,0,0,.5)',border:'1px solid var(--border)',borderRadius:4,padding:16,height:480,overflowY:'auto',fontFamily:'JetBrains Mono, monospace',fontSize:11,lineHeight:1.9}}>
             {logs.length===0
               ? <div style={{color:'var(--muted)'}}>Nenhum log registrado ainda.<br/>Os logs de WARNING e ERROR chegam aqui automaticamente quando o garimpo está rodando.</div>
               : logs.map((l,i)=>(
@@ -1157,7 +1160,7 @@ const PedidosPage = () => {
     <div>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20,flexWrap:'wrap',gap:12}}>
         <div>
-          <div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Pedidos</div>
+          <div style={{fontFamily:'Space Grotesk, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Pedidos</div>
           <div style={{fontSize:14,color:'var(--muted)'}}>{filtrados.length} pedidos · R$ {totalPago.toLocaleString('pt-BR')} confirmados</div>
         </div>
         <Btn color="ghost" onClick={carregar}>↻ Atualizar</Btn>
@@ -1178,27 +1181,27 @@ const PedidosPage = () => {
         ))}
       </div>
 
-      {loading ? <div style={{textAlign:'center',padding:40,fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--muted)'}}>Carregando pedidos...</div> : (
+      {loading ? <div style={{textAlign:'center',padding:40,fontFamily:'JetBrains Mono, monospace',fontSize:12,color:'var(--muted)'}}>Carregando pedidos...</div> : (
         <div style={{...S.card,padding:0,overflow:'hidden'}}>
           <div style={{overflowX:'auto'}}>
             <table style={{width:'100%',borderCollapse:'collapse',minWidth:700}}>
               <thead>
                 <tr style={{background:'var(--bg3)'}}>
                   {['Data','Cliente','Itens','Entrega','Total','Status','Ações'].map(h=>(
-                    <th key={h} style={{padding:'10px 14px',textAlign:'left',fontFamily:'Share Tech Mono, monospace',fontSize:10,color:'var(--muted)',letterSpacing:'0.15em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>
+                    <th key={h} style={{padding:'10px 14px',textAlign:'left',fontFamily:'JetBrains Mono, monospace',fontSize:10,color:'var(--muted)',letterSpacing:'0.15em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {filtrados.length===0 && (
-                  <tr><td colSpan={7} style={{padding:'2rem',textAlign:'center',color:'var(--muted)',fontFamily:'Share Tech Mono, monospace',fontSize:13}}>nenhum pedido encontrado</td></tr>
+                  <tr><td colSpan={7} style={{padding:'2rem',textAlign:'center',color:'var(--muted)',fontFamily:'JetBrains Mono, monospace',fontSize:13}}>nenhum pedido encontrado</td></tr>
                 )}
                 {filtrados.map(p=>(
                   <tr key={p.id} style={{borderTop:'1px solid var(--border)'}}>
-                    <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--muted)',whiteSpace:'nowrap'}}>{fmtDate(p.created_at)}</td>
+                    <td style={{padding:'10px 14px',fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--muted)',whiteSpace:'nowrap'}}>{fmtDate(p.created_at)}</td>
                     <td style={{padding:'10px 14px'}}>
                       <div style={{fontSize:14,fontWeight:700,color:'var(--text)'}}>{p.nome}</div>
-                      <div style={{fontSize:11,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>{p.whatsapp}</div>
+                      <div style={{fontSize:11,color:'var(--muted)',fontFamily:'JetBrains Mono, monospace'}}>{p.whatsapp}</div>
                     </td>
                     <td style={{padding:'10px 14px',maxWidth:200}}>
                       {(p.itens||[]).map((it,i)=>(
@@ -1206,9 +1209,9 @@ const PedidosPage = () => {
                       ))}
                     </td>
                     <td style={{padding:'10px 14px',fontSize:12,color:'var(--dim)',maxWidth:150,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.metodo_envio||'—'}</td>
-                    <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:13,color:'var(--gold)',whiteSpace:'nowrap'}}>R$ {Number(p.total||0).toLocaleString('pt-BR')}</td>
+                    <td style={{padding:'10px 14px',fontFamily:'JetBrains Mono, monospace',fontSize:13,color:'var(--gold)',whiteSpace:'nowrap'}}>R$ {Number(p.total||0).toLocaleString('pt-BR')}</td>
                     <td style={{padding:'10px 14px'}}>
-                      <span style={{fontFamily:'Share Tech Mono, monospace',fontSize:10,padding:'3px 8px',borderRadius:2,background:'rgba(255,255,255,.05)',color:STATUS_COLOR[p.status]||'var(--dim)',border:`1px solid ${STATUS_COLOR[p.status]||'var(--border)'}33`}}>
+                      <span style={{fontFamily:'JetBrains Mono, monospace',fontSize:10,padding:'3px 8px',borderRadius:2,background:'rgba(255,255,255,.05)',color:STATUS_COLOR[p.status]||'var(--dim)',border:`1px solid ${STATUS_COLOR[p.status]||'var(--border)'}33`}}>
                         {STATUS_LABEL[p.status]||p.status}
                       </span>
                     </td>
@@ -1275,7 +1278,7 @@ const PiMonitor = () => {
     <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:300 }}>
       <div style={{ textAlign:'center' }}>
         <div style={{ width:32, height:32, border:'3px solid var(--border)', borderTopColor:'var(--red-b)', borderRadius:'50%', animation:'spin 0.8s linear infinite', margin:'0 auto 12px' }} />
-        <div style={{ fontFamily:'Share Tech Mono, monospace', fontSize:11, color:'var(--muted)' }}>Carregando dados da Pi...</div>
+        <div style={{ fontFamily:'JetBrains Mono, monospace', fontSize:11, color:'var(--muted)' }}>Carregando dados da Pi...</div>
       </div>
     </div>
   );
@@ -1285,7 +1288,7 @@ const PiMonitor = () => {
       <div style={{ display:'flex', alignItems:'center', gap:16 }}>
         <div style={{ fontSize:32 }}>🍓</div>
         <div>
-          <div style={{ fontFamily:'Share Tech Mono, monospace', fontSize:12, color:'var(--red-b)', marginBottom:4 }}>PI SEM DADOS</div>
+          <div style={{ fontFamily:'JetBrains Mono, monospace', fontSize:12, color:'var(--red-b)', marginBottom:4 }}>PI SEM DADOS</div>
           <div style={{ fontSize:13, color:'var(--dim)' }}>pi_monitor.py rodando? <code style={{ color:'var(--cyan)' }}>sudo systemctl status pi-monitor</code></div>
         </div>
       </div>
@@ -1301,43 +1304,43 @@ const PiMonitor = () => {
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
           <div style={{ fontSize:24 }}>🍓</div>
           <div>
-            <div style={{ fontFamily:'Press Start 2P, monospace', fontSize:11, color:'var(--text)', marginBottom:2 }}>Raspberry Pi</div>
-            <div style={{ fontSize:12, color:'var(--muted)', fontFamily:'Share Tech Mono, monospace' }}><span style={{ color:'var(--green)' }}>● ONLINE</span> · {fmtDateFull(stats.criado_em)}</div>
+            <div style={{ fontFamily:'Space Grotesk, monospace', fontSize:11, color:'var(--text)', marginBottom:2 }}>Raspberry Pi</div>
+            <div style={{ fontSize:12, color:'var(--muted)', fontFamily:'JetBrains Mono, monospace' }}><span style={{ color:'var(--green)' }}>● ONLINE</span> · {fmtDateFull(stats.criado_em)}</div>
           </div>
         </div>
         <Btn color="ghost" onClick={carregar} style={{ fontSize:12 }}>↻</Btn>
       </div>
       <div className="ng-grid4" style={S.grid4}>
         <div style={{ ...S.card, borderTop:`3px solid ${stats.cpu_percent > 80 ? 'var(--red-b)' : stats.cpu_percent > 60 ? 'var(--amber)' : 'var(--green)'}` }}>
-          <div style={{ fontFamily:'Share Tech Mono, monospace', fontSize:10, color:'var(--muted)', textTransform:'uppercase', marginBottom:8, letterSpacing:'0.15em' }}>CPU</div>
-          <div style={{ fontFamily:'Press Start 2P, monospace', fontSize:22, color:stats.cpu_percent > 80 ? 'var(--red-b)' : stats.cpu_percent > 60 ? 'var(--amber)' : 'var(--green)', marginBottom:4 }}>{stats.cpu_percent}%</div>
+          <div style={{ fontFamily:'JetBrains Mono, monospace', fontSize:10, color:'var(--muted)', textTransform:'uppercase', marginBottom:8, letterSpacing:'0.15em' }}>CPU</div>
+          <div style={{ fontFamily:'Space Grotesk, monospace', fontSize:22, color:stats.cpu_percent > 80 ? 'var(--red-b)' : stats.cpu_percent > 60 ? 'var(--amber)' : 'var(--green)', marginBottom:4 }}>{stats.cpu_percent}%</div>
           <Bar value={stats.cpu_percent} />
         </div>
         <div style={{ ...S.card, borderTop:`3px solid ${memPct > 80 ? 'var(--red-b)' : memPct > 60 ? 'var(--amber)' : 'var(--purple)'}` }}>
-          <div style={{ fontFamily:'Share Tech Mono, monospace', fontSize:10, color:'var(--muted)', textTransform:'uppercase', marginBottom:8, letterSpacing:'0.15em' }}>Memória</div>
-          <div style={{ fontFamily:'Press Start 2P, monospace', fontSize:18, color:memPct > 80 ? 'var(--red-b)' : 'var(--purple)', marginBottom:4 }}>{Math.round(stats.mem_usado_mb)}MB</div>
+          <div style={{ fontFamily:'JetBrains Mono, monospace', fontSize:10, color:'var(--muted)', textTransform:'uppercase', marginBottom:8, letterSpacing:'0.15em' }}>Memória</div>
+          <div style={{ fontFamily:'Space Grotesk, monospace', fontSize:18, color:memPct > 80 ? 'var(--red-b)' : 'var(--purple)', marginBottom:4 }}>{Math.round(stats.mem_usado_mb)}MB</div>
           <div style={{ fontSize:11, color:'var(--muted)', marginBottom:2 }}>de {Math.round(stats.mem_total_mb)}MB ({Math.round(memPct)}%)</div>
           <Bar value={memPct} />
         </div>
         <div style={{ ...S.card, borderTop:`3px solid ${stats.temp_cpu > 70 ? 'var(--red-b)' : stats.temp_cpu > 55 ? 'var(--amber)' : 'var(--gold)'}` }}>
-          <div style={{ fontFamily:'Share Tech Mono, monospace', fontSize:10, color:'var(--muted)', textTransform:'uppercase', marginBottom:8, letterSpacing:'0.15em' }}>Temperatura</div>
-          <div style={{ fontFamily:'Press Start 2P, monospace', fontSize:22, color:stats.temp_cpu > 70 ? 'var(--red-b)' : 'var(--gold)', marginBottom:4 }}>{stats.temp_cpu ? `${stats.temp_cpu}°C` : '—'}</div>
+          <div style={{ fontFamily:'JetBrains Mono, monospace', fontSize:10, color:'var(--muted)', textTransform:'uppercase', marginBottom:8, letterSpacing:'0.15em' }}>Temperatura</div>
+          <div style={{ fontFamily:'Space Grotesk, monospace', fontSize:22, color:stats.temp_cpu > 70 ? 'var(--red-b)' : 'var(--gold)', marginBottom:4 }}>{stats.temp_cpu ? `${stats.temp_cpu}°C` : '—'}</div>
           {stats.temp_cpu && <Bar value={stats.temp_cpu} max={85} />}
         </div>
         <div style={{ ...S.card, borderTop:`3px solid ${discoPct > 80 ? 'var(--red-b)' : discoPct > 60 ? 'var(--amber)' : 'var(--cyan)'}` }}>
-          <div style={{ fontFamily:'Share Tech Mono, monospace', fontSize:10, color:'var(--muted)', textTransform:'uppercase', marginBottom:8, letterSpacing:'0.15em' }}>SD Card</div>
-          <div style={{ fontFamily:'Press Start 2P, monospace', fontSize:18, color:'var(--cyan)', marginBottom:4 }}>{stats.disco_usado_gb}GB</div>
+          <div style={{ fontFamily:'JetBrains Mono, monospace', fontSize:10, color:'var(--muted)', textTransform:'uppercase', marginBottom:8, letterSpacing:'0.15em' }}>SD Card</div>
+          <div style={{ fontFamily:'Space Grotesk, monospace', fontSize:18, color:'var(--cyan)', marginBottom:4 }}>{stats.disco_usado_gb}GB</div>
           <div style={{ fontSize:11, color:'var(--muted)', marginBottom:2 }}>de {stats.disco_total_gb}GB ({Math.round(discoPct)}%)</div>
           <Bar value={discoPct} />
         </div>
       </div>
       <div style={S.card}>
-        <div style={{ fontFamily:'Share Tech Mono, monospace', fontSize:11, color:'var(--dim)', letterSpacing:'0.2em', textTransform:'uppercase', marginBottom:12 }}>// Uptime</div>
-        <div style={{ fontFamily:'Press Start 2P, monospace', fontSize:16, color:'var(--gold)' }}>{fmtUptime(stats.uptime_segundos)}</div>
+        <div style={{ fontFamily:'JetBrains Mono, monospace', fontSize:11, color:'var(--dim)', letterSpacing:'0.2em', textTransform:'uppercase', marginBottom:12 }}>// Uptime</div>
+        <div style={{ fontFamily:'Space Grotesk, monospace', fontSize:16, color:'var(--gold)' }}>{fmtUptime(stats.uptime_segundos)}</div>
       </div>
       {(stats.cpu_percent > 80 || memPct > 85 || discoPct > 85 || (stats.temp_cpu && stats.temp_cpu > 70)) && (
         <div style={{ ...S.card, borderLeft:'3px solid var(--amber)', marginTop:16 }}>
-          <div style={{ fontFamily:'Share Tech Mono, monospace', fontSize:11, color:'var(--amber)', marginBottom:8 }}>⚠ ALERTAS</div>
+          <div style={{ fontFamily:'JetBrains Mono, monospace', fontSize:11, color:'var(--amber)', marginBottom:8 }}>⚠ ALERTAS</div>
           {stats.cpu_percent > 80 && <div style={{ fontSize:13, color:'var(--dim)', marginBottom:4 }}>🔥 CPU alta ({stats.cpu_percent}%) — reduza WORKERS para 2</div>}
           {memPct > 85 && <div style={{ fontSize:13, color:'var(--dim)', marginBottom:4 }}>💾 Memória alta ({Math.round(memPct)}%) — reinicie containers</div>}
           {discoPct > 85 && <div style={{ fontSize:13, color:'var(--dim)', marginBottom:4 }}>💿 SD Card quase cheio ({Math.round(discoPct)}%)</div>}
@@ -1391,7 +1394,7 @@ const FinanceiroModal = ({ editando, setEditando, salvar, saving, ORIGENS, ORIGE
     <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.85)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
       <div style={{ background:'var(--surface)', border:'1px solid var(--border)', borderRadius:8, width:'100%', maxWidth:560, maxHeight:'90vh', overflow:'auto', padding:24, position:'relative' }}>
         <button onClick={()=>setEditando(null)} style={{ position:'absolute', top:14, right:14, background:'none', border:'none', color:'var(--dim)', fontSize:20, cursor:'pointer' }}>✕</button>
-        <div style={{ fontFamily:'Press Start 2P, monospace', fontSize:11, color:'var(--text)', marginBottom:20 }}>{editando.id?'EDITAR ITEM':'NOVO ITEM'}</div>
+        <div style={{ fontFamily:'Space Grotesk, monospace', fontSize:11, color:'var(--text)', marginBottom:20 }}>{editando.id?'EDITAR ITEM':'NOVO ITEM'}</div>
 
         {/* Seletor produto do site */}
         <div style={{ marginBottom:14 }}>
@@ -1413,16 +1416,16 @@ const FinanceiroModal = ({ editando, setEditando, salvar, saving, ORIGENS, ORIGE
                     onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
                     <div>
                       <div style={{ fontSize:13, color:'var(--text)', fontWeight:600 }}>{p.nome}</div>
-                      <div style={{ fontSize:11, color:'var(--muted)', fontFamily:'Share Tech Mono, monospace' }}>{p.console||'—'}</div>
+                      <div style={{ fontSize:11, color:'var(--muted)', fontFamily:'JetBrains Mono, monospace' }}>{p.console||'—'}</div>
                     </div>
-                    <div style={{ fontSize:12, color:'var(--gold)', fontFamily:'Share Tech Mono, monospace' }}>R${Number(p.preco||0).toLocaleString('pt-BR')}</div>
+                    <div style={{ fontSize:12, color:'var(--gold)', fontFamily:'JetBrains Mono, monospace' }}>R${Number(p.preco||0).toLocaleString('pt-BR')}</div>
                   </div>
                 ))}
               </div>
             )}
           </div>
           {editando.produto_site_id && (
-            <div style={{ fontSize:11, color:'var(--green)', fontFamily:'Share Tech Mono, monospace', marginTop:4 }}>✔ Vinculado ao produto do site</div>
+            <div style={{ fontSize:11, color:'var(--green)', fontFamily:'JetBrains Mono, monospace', marginTop:4 }}>✔ Vinculado ao produto do site</div>
           )}
         </div>
 
@@ -1473,7 +1476,7 @@ const FinanceiroModal = ({ editando, setEditando, salvar, saving, ORIGENS, ORIGE
         <Input label="Observação" as="textarea" rows={2} value={editando.observacao||''} onChange={e=>setEditando(p=>({...p,observacao:e.target.value}))} placeholder="Link do anúncio, condição, etc..." />
 
         {lucroEstimado !== null && (
-          <div style={{ background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:4, padding:'10px 14px', marginBottom:14, fontFamily:'Share Tech Mono, monospace', fontSize:12 }}>
+          <div style={{ background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:4, padding:'10px 14px', marginBottom:14, fontFamily:'JetBrains Mono, monospace', fontSize:12 }}>
             💰 Lucro estimado: <span style={{ color:lucroEstimado>=0?'var(--gold)':'var(--red-b)', fontWeight:700 }}>
               R${lucroEstimado.toLocaleString('pt-BR')}
             </span>
@@ -1514,8 +1517,23 @@ const FinanceiroPage = () => {
   const [editMeta, setEditMeta]     = useState(false);
   const [metaInput, setMetaInput]   = useState('');
   const [toast, setToast]           = useState('');
+  const [editGarimpo, setEditGarimpo] = useState(null);
 
   const showToast = (msg) => { setToast(msg); setTimeout(()=>setToast(''), 3000); };
+
+  // Salva custo de reparo/desbloqueio e/ou venda de uma compra da OLX (compras_garimpo)
+  const salvarGarimpo = async () => {
+    const g = editGarimpo; if (!g) return;
+    setSaving(true);
+    const body = { custo_reparo: Number(String(g.custo_reparo||'').replace(',','.'))||0 };
+    const pv = String(g.preco_venda||'').replace(',','.');
+    body.valor_venda = pv!=='' ? (Number(pv)||null) : null;
+    try {
+      await supa(`compras_garimpo?id=eq.${g.id}`, { method:'PATCH', body: JSON.stringify(body) });
+      setEditGarimpo(null); showToast('✓ Salvo'); carregar();
+    } catch(e){ showToast('Erro: '+e.message); }
+    finally { setSaving(false); }
+  };
 
   const carregar = async () => {
     setLoading(true);
@@ -1524,7 +1542,7 @@ const FinanceiroPage = () => {
         supa('financeiro?order=criado_em.desc&limit=500'),
         supa('compras_garimpo?order=data_compra.desc&limit=2000')
       ]);
-      const garItens = (gar||[]).filter(g => !/cancel|fail|recus|mediac|n[aã]o.?aprov|reembols|estorn/i.test(g.status||'')).map(g => ({ id:g.id, _garimpo:true, foto:g.foto, fotos:g.fotos, produto:g.produto, console:g.plataforma||'OLX', preco_compra:g.valor_pago, preco_venda:null, custo_extra:0, data_compra:g.data_compra, data_venda:null, origem:'olx_garimpo', status:'estoque' }));
+      const garItens = (gar||[]).filter(g => !/cancel|fail|recus|mediac|n[aã]o.?aprov|reembols|estorn/i.test(g.status||'')).map(g => ({ id:g.id, _garimpo:true, foto:g.foto, fotos:g.fotos, produto:g.produto, console:g.plataforma||'OLX', preco_compra:g.valor_pago, preco_venda:(g.valor_venda!=null?Number(g.valor_venda):null), custo_extra:Number(g.custo_reparo)||0, custo_reparo:Number(g.custo_reparo)||0, data_compra:g.data_compra, data_venda:null, origem:'olx_garimpo', status:(g.valor_venda!=null?'vendido':'estoque'), entrega:(g.status||'') }));
       setItens([...(fin||[]), ...garItens]);
     }
     catch(e) { console.error(e); }
@@ -1552,7 +1570,7 @@ const FinanceiroPage = () => {
   const criarProduto = async (item) => {
     if (!item._garimpo) { showToast('So para compras do garimpo'); return; }
     showToast('Criando produto...');
-    const dados = { nome:item.produto, console:'Acessórios', condicao:'Usado', preco:null, descricao:'', imagem_url:((item.fotos&&item.fotos[0])||item.foto||''), imagens:((item.fotos&&item.fotos.length)?item.fotos:(item.foto?[item.foto]:[])), compra_id:item.id, custo_compra:Number(item.preco_compra)||0, ativo:false, vendido:false };
+    const dados = { nome:item.produto, console:'Acessórios', condicao:'Usado', preco:null, descricao:'', imagem_url:((item.fotos&&item.fotos[0])||item.foto||''), imagens:((item.fotos&&item.fotos.length)?item.fotos:(item.foto?[item.foto]:[])), compra_id:item.id, custo_compra:Number(item.preco_compra)||0, custo_reparo:Number(item.custo_reparo)||0, ativo:false, vendido:false };
     try {
       if (item.foto) {
         try {
@@ -1612,7 +1630,7 @@ const FinanceiroPage = () => {
       +'.footer{margin-top:24px;font-size:11px;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:12px}'
       +'@media print{body{padding:16px}}</style></head><body>'
       +'<table style="width:100%;border-collapse:collapse;background:#1a1a2e;margin-bottom:20px"><tr>'
-      +'<td style="padding:18px 24px"><div style="font-size:20px;font-weight:900;color:#CC1414;letter-spacing:2px">JULIO FLORES <span style="color:#FFB800">GAMES</span></div><div style="font-size:11px;color:#888;margin-top:3px">Relatorio Financeiro Mensal</div></td>'
+      +'<td style="padding:18px 24px"><div style="font-size:20px;font-weight:800;color:#E8EEF5;letter-spacing:1px">JÚLIO <span style="color:#1E6FD9">FLORES</span></div><div style="font-size:11px;color:#888;margin-top:3px">Relatório Financeiro Mensal</div></td>'
       +'<td style="padding:18px 24px;text-align:right"><div style="font-size:14px;font-weight:700;color:#fff">'+mesLabel.toUpperCase()+'</div><div style="font-size:11px;color:#777;margin-top:3px">Gerado em '+geradoEm+'</div></td>'
       +'</tr></table>'
       +'<table style="width:100%;border-collapse:separate;border-spacing:10px;margin-bottom:20px"><tr>'
@@ -1672,12 +1690,12 @@ const FinanceiroPage = () => {
 
   return (
     <div>
-      {toast && <div style={{ position:'fixed', top:70, right:24, zIndex:2000, background:'var(--surface2)', border:'1px solid var(--border)', padding:'10px 18px', borderRadius:4, fontFamily:'Share Tech Mono, monospace', fontSize:12, color:'var(--text)' }}>{toast}</div>}
+      {toast && <div style={{ position:'fixed', top:70, right:24, zIndex:2000, background:'var(--surface2)', border:'1px solid var(--border)', padding:'10px 18px', borderRadius:4, fontFamily:'JetBrains Mono, monospace', fontSize:12, color:'var(--text)' }}>{toast}</div>}
 
       {/* Header */}
       <div style={{ marginBottom:20, display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
         <div>
-          <div style={{ fontFamily:'Press Start 2P, monospace', fontSize:14, color:'var(--text)', marginBottom:4 }}>Financeiro</div>
+          <div style={{ fontFamily:'Space Grotesk, monospace', fontSize:14, color:'var(--text)', marginBottom:4 }}>Financeiro</div>
           <div style={{ fontSize:14, color:'var(--muted)' }}>Controle de compra e venda</div>
         </div>
         <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
@@ -1712,7 +1730,7 @@ const FinanceiroPage = () => {
           <div style={{ display:'flex', alignItems:'center', gap:12 }}>
             <span style={{ fontSize:16 }}>🎯</span>
             <div>
-              <div style={{ fontSize:11, color:'var(--muted)', fontFamily:'Share Tech Mono, monospace', letterSpacing:'0.1em' }}>META DO MÊS</div>
+              <div style={{ fontSize:11, color:'var(--muted)', fontFamily:'JetBrains Mono, monospace', letterSpacing:'0.1em' }}>META DO MÊS</div>
               {editMeta
                 ? <div style={{ display:'flex', gap:6, marginTop:4 }}>
                     <input type="number" value={metaInput} onChange={e=>setMetaInput(e.target.value)} placeholder="Ex: 2000" style={{ ...S.input, width:120, height:30, fontSize:13 }} autoFocus />
@@ -1727,7 +1745,7 @@ const FinanceiroPage = () => {
           </div>
           {metaMes > 0 && !editMeta && (
             <div style={{ flex:1, minWidth:200 }}>
-              <div style={{ display:'flex', justifyContent:'space-between', fontSize:11, color:'var(--muted)', marginBottom:4, fontFamily:'Share Tech Mono, monospace' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', fontSize:11, color:'var(--muted)', marginBottom:4, fontFamily:'JetBrains Mono, monospace' }}>
                 <span>{Math.round(lucro).toLocaleString('pt-BR')} / {metaMes.toLocaleString('pt-BR')}</span>
                 <span>{Math.min(100,Math.round((lucro/metaMes)*100))}%</span>
               </div>
@@ -1737,7 +1755,7 @@ const FinanceiroPage = () => {
             </div>
           )}
           <div style={{ textAlign:'right' }}>
-            <div style={{ fontSize:10, color:'var(--muted)', fontFamily:'Share Tech Mono, monospace' }}>TICKET MÉDIO</div>
+            <div style={{ fontSize:10, color:'var(--muted)', fontFamily:'JetBrains Mono, monospace' }}>TICKET MÉDIO</div>
             <div style={{ fontSize:16, fontWeight:700, color:'var(--purple)' }}>R${ticketMedio.toLocaleString('pt-BR')}</div>
           </div>
         </div>
@@ -1755,24 +1773,24 @@ const FinanceiroPage = () => {
             {s==='todos'?'Todos':s==='estoque'?'📦 Estoque':'✅ Vendidos'}
           </button>
         ))}
-        {subTab==='tabela' && <div style={{ marginLeft:'auto', fontSize:12, color:'var(--muted)', alignSelf:'center', fontFamily:'Share Tech Mono, monospace' }}>{filtrados.length} itens</div>}
+        {subTab==='tabela' && <div style={{ marginLeft:'auto', fontSize:12, color:'var(--muted)', alignSelf:'center', fontFamily:'JetBrains Mono, monospace' }}>{filtrados.length} itens</div>}
       </div>
 
       {/* TABELA */}
       {subTab==='tabela' && (loading
-        ? <div style={{ textAlign:'center', padding:40, color:'var(--muted)', fontFamily:'Share Tech Mono, monospace', fontSize:12 }}>Carregando...</div>
+        ? <div style={{ textAlign:'center', padding:40, color:'var(--muted)', fontFamily:'JetBrains Mono, monospace', fontSize:12 }}>Carregando...</div>
         : <div style={{ ...S.card, padding:0, overflow:'hidden' }}>
             <div style={{ overflowX:'auto' }}>
               <table style={{ width:'100%', borderCollapse:'collapse', minWidth:900 }}>
                 <thead>
                   <tr style={{ background:'var(--bg3)' }}>
                     {['Produto','Console','Origem','Compra','Venda','Lucro','Margem','Status','Dias','Ações'].map(h=>(
-                      <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontFamily:'Share Tech Mono, monospace', fontSize:10, color:'var(--muted)', letterSpacing:'0.15em', textTransform:'uppercase', whiteSpace:'nowrap' }}>{h}</th>
+                      <th key={h} style={{ padding:'10px 14px', textAlign:'left', fontFamily:'JetBrains Mono, monospace', fontSize:10, color:'var(--muted)', letterSpacing:'0.15em', textTransform:'uppercase', whiteSpace:'nowrap' }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {filtrados.length===0 && <tr><td colSpan={10} style={{ padding:'2rem', textAlign:'center', color:'var(--muted)', fontFamily:'Share Tech Mono, monospace', fontSize:13 }}>nenhum item encontrado</td></tr>}
+                  {filtrados.length===0 && <tr><td colSpan={10} style={{ padding:'2rem', textAlign:'center', color:'var(--muted)', fontFamily:'JetBrains Mono, monospace', fontSize:13 }}>nenhum item encontrado</td></tr>}
                   {filtrados.map(item => {
                     const lucroItem = item.status==='vendido' ? Number(item.preco_venda||0) - Number(item.preco_compra||0) - Number(item.custo_extra||0) : null;
                     const margemPct = lucroItem!==null && item.preco_compra>0 ? Math.round((lucroItem/(Number(item.preco_compra)+Number(item.custo_extra||0)))*100) : null;
@@ -1786,31 +1804,38 @@ const FinanceiroPage = () => {
                         </td>
                         <td style={{ padding:'10px 14px', fontSize:12, color:'var(--dim)' }}>{item.console||'—'}</td>
                         <td style={{ padding:'10px 14px' }}>
-                          <span style={{ fontFamily:'Share Tech Mono, monospace', fontSize:10, padding:'2px 6px', borderRadius:2, background:'var(--surface2)', color:oc, border:'1px solid var(--border)' }}>
+                          <span style={{ fontFamily:'JetBrains Mono, monospace', fontSize:10, padding:'2px 6px', borderRadius:2, background:'var(--surface2)', color:oc, border:'1px solid var(--border)' }}>
                             {ORIGEM_LABEL[item.origem]||item.origem}
                           </span>
                         </td>
-                        <td style={{ padding:'10px 14px', fontFamily:'Share Tech Mono, monospace', fontSize:13, color:'var(--red-b)' }}>{item.preco_compra ? 'R$'+Number(item.preco_compra).toLocaleString('pt-BR') : '—'}</td>
-                        <td style={{ padding:'10px 14px', fontFamily:'Share Tech Mono, monospace', fontSize:13, color:'var(--green)' }}>{item.preco_venda ? 'R$'+Number(item.preco_venda).toLocaleString('pt-BR') : '—'}</td>
-                        <td style={{ padding:'10px 14px', fontFamily:'Share Tech Mono, monospace', fontSize:13, color:lucroItem===null?'var(--muted)':lucroItem>=0?'var(--gold)':'var(--red-b)' }}>
+                        <td style={{ padding:'10px 14px', fontFamily:'JetBrains Mono, monospace', fontSize:13, color:'var(--red-b)', whiteSpace:'nowrap' }}>
+                          {item.preco_compra ? 'R$'+Number(item.preco_compra).toLocaleString('pt-BR') : '—'}
+                          {Number(item.custo_reparo||item.custo_extra)>0 && <span style={{ display:'block', fontSize:10, color:'var(--amber)' }} title="reparo/desbloqueio">🔧 +R${Number(item.custo_reparo||item.custo_extra).toLocaleString('pt-BR')}</span>}
+                        </td>
+                        <td style={{ padding:'10px 14px', fontFamily:'JetBrains Mono, monospace', fontSize:13, color:'var(--green)' }}>{item.preco_venda ? 'R$'+Number(item.preco_venda).toLocaleString('pt-BR') : '—'}</td>
+                        <td style={{ padding:'10px 14px', fontFamily:'JetBrains Mono, monospace', fontSize:13, color:lucroItem===null?'var(--muted)':lucroItem>=0?'var(--gold)':'var(--red-b)' }}>
                           {lucroItem===null ? '—' : (lucroItem>=0?'+':'')+'R$'+lucroItem.toLocaleString('pt-BR')}
                         </td>
-                        <td style={{ padding:'10px 14px', fontFamily:'Share Tech Mono, monospace', fontSize:12, color:margemPct===null?'var(--muted)':margemPct>=30?'var(--green)':margemPct>=15?'var(--gold)':'var(--red-b)' }}>
+                        <td style={{ padding:'10px 14px', fontFamily:'JetBrains Mono, monospace', fontSize:12, color:margemPct===null?'var(--muted)':margemPct>=30?'var(--green)':margemPct>=15?'var(--gold)':'var(--red-b)' }}>
                           {margemPct===null ? '—' : margemPct+'%'}
                         </td>
                         <td style={{ padding:'10px 14px' }}>
-                          <span style={{ fontFamily:'Share Tech Mono, monospace', fontSize:10, padding:'2px 8px', borderRadius:2, background:item.status==='vendido'?'rgba(37,211,102,.12)':'rgba(255,184,0,.12)', color:item.status==='vendido'?'var(--green)':'var(--gold)', border:`1px solid ${item.status==='vendido'?'rgba(37,211,102,.3)':'rgba(255,184,0,.3)'}`}}>
-                            {item.status==='vendido'?'✅ VENDIDO':'📦 ESTOQUE'}
+                          <span style={{ fontFamily:'JetBrains Mono, monospace', fontSize:10, padding:'2px 8px', borderRadius:2, background:item.status==='vendido'?'rgba(34,211,160,.12)':'rgba(30,111,217,.12)', color:item.status==='vendido'?'var(--green)':'var(--blue)', border:`1px solid ${item.status==='vendido'?'rgba(34,211,160,.3)':'rgba(30,111,217,.3)'}`}}>
+                            {item.status==='vendido'?'✓ VENDIDO':'◆ ESTOQUE'}
                           </span>
+                          {item._garimpo && item.entrega && item.status!=='vendido' && (
+                            <div style={{ fontFamily:'JetBrains Mono, monospace', fontSize:9, color:'var(--cyan)', marginTop:4, letterSpacing:'0.04em', opacity:.9 }}>{item.entrega}</div>
+                          )}
                         </td>
-                        <td style={{ padding:'10px 14px', fontFamily:'Share Tech Mono, monospace', fontSize:12, color:parado?'var(--red-b)':'var(--muted)', whiteSpace:'nowrap' }}>
+                        <td style={{ padding:'10px 14px', fontFamily:'JetBrains Mono, monospace', fontSize:12, color:parado?'var(--red-b)':'var(--muted)', whiteSpace:'nowrap' }}>
                           {item.status==='estoque' && dias!==null ? dias+'d' : item.data_venda||'—'}
                         </td>
                         <td style={{ padding:'10px 14px' }}>
                           <div style={{ display:'flex', gap:4 }}>
                             {!item._garimpo && <button onClick={()=>setEditando(item)} style={{ ...S.btn, padding:'4px 8px', fontSize:12, background:'var(--surface2)', border:'1px solid var(--border)', color:'var(--dim)' }}>✏</button>}
                             {!item._garimpo && item.status==='estoque' && <button onClick={()=>marcarVendido(item)} style={{ ...S.btn, padding:'4px 8px', fontSize:12, background:'rgba(37,211,102,.1)', border:'1px solid rgba(37,211,102,.3)', color:'var(--green)' }}>✅</button>}
-                            {item._garimpo && <button onClick={()=>criarProduto(item)} style={{ ...S.btn, padding:'4px 8px', fontSize:12, background:'rgba(124,58,237,.15)', border:'1px solid var(--purple)', color:'var(--purple)' }}>📤</button>}<button onClick={()=>deletar(item)} style={{ ...S.btn, padding:'4px 8px', fontSize:12, background:'rgba(204,20,20,.1)', border:'1px solid var(--border-r)', color:'var(--red-b)' }}>🗑</button>
+                            {item._garimpo && <button onClick={()=>setEditGarimpo({...item, custo_reparo:item.custo_reparo||'', preco_venda:item.preco_venda||''})} title="Custo de reparo / desbloqueio · vender" style={{ ...S.btn, padding:'4px 8px', fontSize:12, background:'var(--surface2)', border:'1px solid var(--border)', color:'var(--dim)' }}>✏</button>}
+                            {item._garimpo && <button onClick={()=>criarProduto(item)} title="Publicar como produto" style={{ ...S.btn, padding:'4px 8px', fontSize:12, background:'rgba(30,111,217,.15)', border:'1px solid var(--blue)', color:'var(--blue)' }}>📤</button>}<button onClick={()=>deletar(item)} style={{ ...S.btn, padding:'4px 8px', fontSize:12, background:'rgba(229,72,77,.1)', border:'1px solid var(--border-r)', color:'var(--red-b)' }}>🗑</button>
                           </div>
                         </td>
                       </tr>
@@ -1827,7 +1852,7 @@ const FinanceiroPage = () => {
         <div>
           {/* Gráfico de lucro últimos 6 meses */}
           <div style={{ ...S.card, marginBottom:16 }}>
-            <div style={{ fontFamily:'Share Tech Mono, monospace', fontSize:11, color:'var(--dim)', letterSpacing:'0.15em', textTransform:'uppercase', marginBottom:16 }}>// Lucro — últimos 6 meses</div>
+            <div style={{ fontFamily:'JetBrains Mono, monospace', fontSize:11, color:'var(--dim)', letterSpacing:'0.15em', textTransform:'uppercase', marginBottom:16 }}>// Lucro — últimos 6 meses</div>
             <div style={{ display:'flex', alignItems:'flex-end', gap:8, height:120 }}>
               {dadosMeses.map(d=>{
                 const h = Math.round((Math.abs(d.lucro)/maxLucro)*100);
@@ -1835,9 +1860,9 @@ const FinanceiroPage = () => {
                 const atual = d.mes === new Date().toISOString().slice(0,7);
                 return (
                   <div key={d.mes} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:4 }}>
-                    <div style={{ fontSize:10, fontFamily:'Share Tech Mono, monospace', color:positivo?'var(--gold)':'var(--red-b)' }}>{d.lucro!==0?(positivo?'+':'')+'R$'+Math.abs(Math.round(d.lucro)).toLocaleString('pt-BR'):''}</div>
+                    <div style={{ fontSize:10, fontFamily:'JetBrains Mono, monospace', color:positivo?'var(--gold)':'var(--red-b)' }}>{d.lucro!==0?(positivo?'+':'')+'R$'+Math.abs(Math.round(d.lucro)).toLocaleString('pt-BR'):''}</div>
                     <div style={{ width:'100%', height:h+'%', background:positivo?'var(--gold)':'var(--red-b)', borderRadius:'3px 3px 0 0', opacity:atual?1:0.6, minHeight:4 }}/>
-                    <div style={{ fontSize:10, color:atual?'var(--text)':'var(--muted)', fontFamily:'Share Tech Mono, monospace' }}>{d.label}</div>
+                    <div style={{ fontSize:10, color:atual?'var(--text)':'var(--muted)', fontFamily:'JetBrains Mono, monospace' }}>{d.label}</div>
                   </div>
                 );
               })}
@@ -1846,18 +1871,18 @@ const FinanceiroPage = () => {
 
           {/* Ranking por console */}
           <div style={{ ...S.card }}>
-            <div style={{ fontFamily:'Share Tech Mono, monospace', fontSize:11, color:'var(--dim)', letterSpacing:'0.15em', textTransform:'uppercase', marginBottom:16 }}>// Ranking — console mais lucrativo</div>
+            <div style={{ fontFamily:'JetBrains Mono, monospace', fontSize:11, color:'var(--dim)', letterSpacing:'0.15em', textTransform:'uppercase', marginBottom:16 }}>// Ranking — console mais lucrativo</div>
             {rankConsole.length===0
               ? <div style={{ fontSize:13, color:'var(--muted)', textAlign:'center', padding:20 }}>Sem vendas registradas ainda.</div>
               : rankConsole.map(([console, dados], i) => (
                 <div key={console} style={{ display:'flex', alignItems:'center', gap:12, marginBottom:12 }}>
-                  <div style={{ width:20, fontFamily:'Share Tech Mono, monospace', fontSize:12, color:'var(--muted)' }}>#{i+1}</div>
+                  <div style={{ width:20, fontFamily:'JetBrains Mono, monospace', fontSize:12, color:'var(--muted)' }}>#{i+1}</div>
                   <div style={{ width:120, fontSize:13, color:'var(--text)', fontWeight:i===0?700:400 }}>{console}</div>
                   <div style={{ flex:1, height:8, background:'var(--bg3)', borderRadius:4, overflow:'hidden' }}>
                     <div style={{ height:'100%', width:Math.round((dados.lucro/maxRank)*100)+'%', background:i===0?'var(--gold)':'var(--purple)', borderRadius:4 }}/>
                   </div>
-                  <div style={{ width:100, textAlign:'right', fontFamily:'Share Tech Mono, monospace', fontSize:12, color:'var(--gold)' }}>+R${Math.round(dados.lucro).toLocaleString('pt-BR')}</div>
-                  <div style={{ width:50, textAlign:'right', fontFamily:'Share Tech Mono, monospace', fontSize:11, color:'var(--muted)' }}>{dados.qtd} vnd</div>
+                  <div style={{ width:100, textAlign:'right', fontFamily:'JetBrains Mono, monospace', fontSize:12, color:'var(--gold)' }}>+R${Math.round(dados.lucro).toLocaleString('pt-BR')}</div>
+                  <div style={{ width:50, textAlign:'right', fontFamily:'JetBrains Mono, monospace', fontSize:11, color:'var(--muted)' }}>{dados.qtd} vnd</div>
                 </div>
               ))
             }
@@ -1878,6 +1903,31 @@ const FinanceiroPage = () => {
           FORMAS_PAG={FORMAS_PAG}
           FORMA_LABEL={FORMA_LABEL}
         />
+      )}
+
+      {/* Modal editar compra da OLX — custo de reparo/desbloqueio + venda */}
+      {editGarimpo && (
+        <div onClick={()=>!saving && setEditGarimpo(null)} style={{ position:'fixed', inset:0, zIndex:3000, background:'rgba(3,6,10,.72)', backdropFilter:'blur(3px)', display:'flex', alignItems:'center', justifyContent:'center', padding:16, animation:'fadeIn .15s ease' }}>
+          <div onClick={e=>e.stopPropagation()} style={{ width:'100%', maxWidth:430, background:'var(--surface)', border:'1px solid var(--border)', borderRadius:8, padding:22, animation:'slideIn .2s ease' }}>
+            <div style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:16, fontWeight:700, color:'var(--text)', marginBottom:2 }}>Editar compra</div>
+            <div style={{ fontFamily:'JetBrains Mono, monospace', fontSize:11, color:'var(--cyan)', marginBottom:18, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{editGarimpo.produto}</div>
+            <label style={{ display:'block', fontSize:12, color:'var(--dim)', marginBottom:6 }}>🔧 Custo de reparo / desbloqueio (R$)</label>
+            <input type="number" value={editGarimpo.custo_reparo} onChange={e=>setEditGarimpo(p=>({...p,custo_reparo:e.target.value}))} placeholder="0 — se precisou consertar ou desbloquear" style={{ ...S.input, width:'100%', marginBottom:16 }} />
+            <label style={{ display:'block', fontSize:12, color:'var(--dim)', marginBottom:6 }}>✓ Preço de venda (só se já vendeu)</label>
+            <input type="number" value={editGarimpo.preco_venda} onChange={e=>setEditGarimpo(p=>({...p,preco_venda:e.target.value}))} placeholder="deixe vazio se ainda em estoque" style={{ ...S.input, width:'100%', marginBottom:8 }} />
+            {(() => {
+              const c = Number(editGarimpo.preco_compra||0) + (Number(String(editGarimpo.custo_reparo||'').replace(',','.'))||0);
+              const v = Number(String(editGarimpo.preco_venda||'').replace(',','.'))||0;
+              if (!v) return <div style={{ fontFamily:'JetBrains Mono, monospace', fontSize:11, color:'var(--muted)', marginBottom:16 }}>Custo total: R${c.toLocaleString('pt-BR')}</div>;
+              const l = v - c;
+              return <div style={{ fontFamily:'JetBrains Mono, monospace', fontSize:12, color:l>=0?'var(--green)':'var(--red-b)', marginBottom:16 }}>Lucro: {l>=0?'+':''}R${l.toLocaleString('pt-BR')} · {c>0?Math.round(l/c*100):0}%</div>;
+            })()}
+            <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
+              <button onClick={()=>setEditGarimpo(null)} disabled={saving} style={{ ...S.btn, padding:'9px 16px', background:'var(--surface2)', border:'1px solid var(--border)', color:'var(--dim)' }}>Cancelar</button>
+              <button onClick={salvarGarimpo} disabled={saving} style={{ ...S.btn, padding:'9px 18px', background:'var(--blue)', border:'1px solid var(--blue)', color:'#fff', fontWeight:600, opacity:saving?.6:1 }}>{saving?'Salvando…':'Salvar'}</button>
+            </div>
+          </div>
+        </div>
       )}
 
     </div>
@@ -2068,7 +2118,7 @@ const InfraPage = () => {
     <div>
       {/* Toast */}
       {toast && (
-        <div style={{ position: 'fixed', top: 70, right: 24, zIndex: 2000, background: 'var(--surface2)', border: '1px solid var(--border)', padding: '10px 18px', borderRadius: 4, fontFamily: 'Share Tech Mono, monospace', fontSize: 12, color: 'var(--text)', animation: 'slideIn .2s ease', maxWidth: 320 }}>
+        <div style={{ position: 'fixed', top: 70, right: 24, zIndex: 2000, background: 'var(--surface2)', border: '1px solid var(--border)', padding: '10px 18px', borderRadius: 4, fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: 'var(--text)', animation: 'slideIn .2s ease', maxWidth: 320 }}>
           {toast}
         </div>
       )}
@@ -2076,7 +2126,7 @@ const InfraPage = () => {
       {/* Header */}
       <div style={{ marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <div style={{ fontFamily: 'Press Start 2P, monospace', fontSize: 14, color: 'var(--text)', marginBottom: 4 }}>Infraestrutura</div>
+          <div style={{ fontFamily: 'Space Grotesk, monospace', fontSize: 14, color: 'var(--text)', marginBottom: 4 }}>Infraestrutura</div>
           <div style={{ fontSize: 14, color: 'var(--muted)' }}>
             Hermes {hermesVer} · VPS {VPS_IP} · {lastRefresh ? `atualizado ${lastRefresh.toLocaleTimeString('pt-BR')}` : 'carregando...'}
           </div>
@@ -2105,7 +2155,7 @@ const InfraPage = () => {
           </div>
           {sessions.length === 0 ? (
             <div style={{ ...S.card, borderLeft: '3px solid var(--amber)', padding: 24 }}>
-              <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 12, color: 'var(--amber)', marginBottom: 8 }}>SEM DADOS</div>
+              <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: 'var(--amber)', marginBottom: 8 }}>SEM DADOS</div>
               <div style={{ fontSize: 13, color: 'var(--dim)', lineHeight: 1.8 }}>
                 O endpoint <code style={{ background: 'var(--bg3)', padding: '1px 6px', borderRadius: 3, color: 'var(--text)' }}>/api/dashboard/sessions</code> retornou vazio.<br />
                 Isso acontece se o dashboard plugin não estiver instalado (<code style={{ background: 'var(--bg3)', padding: '1px 6px', borderRadius: 3, color: 'var(--text)' }}>hermes dashboard</code>).<br />
@@ -2119,7 +2169,7 @@ const InfraPage = () => {
                   <thead>
                     <tr style={{ background: 'var(--bg3)' }}>
                       {['Plataforma', 'Título', 'Modelo', 'Msgs', 'Tokens', 'Última atividade'].map(h => (
-                        <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontFamily: 'Share Tech Mono, monospace', fontSize: 10, color: 'var(--muted)', letterSpacing: '0.15em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
+                        <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'var(--muted)', letterSpacing: '0.15em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -2133,12 +2183,12 @@ const InfraPage = () => {
                           </td>
                           <td style={{ padding: '10px 14px', maxWidth: 200 }}>
                             <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.title || s.id || '—'}</div>
-                            {s.live && <span style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 9, color: 'var(--green)', animation: 'pulse 1s infinite' }}>● LIVE</span>}
+                            {s.live && <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: 'var(--green)', animation: 'pulse 1s infinite' }}>● LIVE</span>}
                           </td>
-                          <td style={{ padding: '10px 14px', fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--cyan)' }}>{s.model || '—'}</td>
-                          <td style={{ padding: '10px 14px', fontFamily: 'Share Tech Mono, monospace', fontSize: 12, color: 'var(--dim)' }}>{s.message_count ?? '—'}</td>
-                          <td style={{ padding: '10px 14px', fontFamily: 'Share Tech Mono, monospace', fontSize: 12, color: 'var(--purple)' }}>{s.total_tokens ? s.total_tokens.toLocaleString('pt-BR') : '—'}</td>
-                          <td style={{ padding: '10px 14px', fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--muted)' }}>{s.updated_at || s.last_active ? fmtDateFull(s.updated_at || s.last_active) : '—'}</td>
+                          <td style={{ padding: '10px 14px', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: 'var(--cyan)' }}>{s.model || '—'}</td>
+                          <td style={{ padding: '10px 14px', fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: 'var(--dim)' }}>{s.message_count ?? '—'}</td>
+                          <td style={{ padding: '10px 14px', fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: 'var(--purple)' }}>{s.total_tokens ? s.total_tokens.toLocaleString('pt-BR') : '—'}</td>
+                          <td style={{ padding: '10px 14px', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: 'var(--muted)' }}>{s.updated_at || s.last_active ? fmtDateFull(s.updated_at || s.last_active) : '—'}</td>
                         </tr>
                       );
                     })}
@@ -2158,7 +2208,7 @@ const InfraPage = () => {
           </div>
           {jobs.length === 0 ? (
             <div style={{ ...S.card, borderLeft: '3px solid var(--dim)', padding: 24 }}>
-              <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 12, color: 'var(--muted)', marginBottom: 8 }}>NENHUM JOB CADASTRADO</div>
+              <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: 'var(--muted)', marginBottom: 8 }}>NENHUM JOB CADASTRADO</div>
               <div style={{ fontSize: 13, color: 'var(--dim)', lineHeight: 1.8 }}>
                 Crie cron jobs pelo Hermes com <code style={{ background: 'var(--bg3)', padding: '1px 6px', borderRadius: 3, color: 'var(--text)' }}>hermes cron</code> ou via POST em <code style={{ background: 'var(--bg3)', padding: '1px 6px', borderRadius: 3, color: 'var(--text)' }}>/api/jobs</code>.
               </div>
@@ -2170,7 +2220,7 @@ const InfraPage = () => {
                   <thead>
                     <tr style={{ background: 'var(--bg3)' }}>
                       {['Status', 'Nome', 'Schedule', 'Próxima execução', 'Última execução', 'Ações'].map(h => (
-                        <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontFamily: 'Share Tech Mono, monospace', fontSize: 10, color: 'var(--muted)', letterSpacing: '0.15em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
+                        <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'var(--muted)', letterSpacing: '0.15em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -2178,17 +2228,17 @@ const InfraPage = () => {
                     {jobs.map((j, i) => (
                       <tr key={j.id || i} style={{ borderTop: '1px solid var(--border)', opacity: j.state === 'paused' || j.paused ? 0.5 : 1 }}>
                         <td style={{ padding: '10px 14px' }}>
-                          <span style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 10, padding: '2px 8px', borderRadius: 2, background: (j.state === 'paused' || j.paused) ? 'var(--surface2)' : 'rgba(37,211,102,.1)', border: `1px solid ${(j.state === 'paused' || j.paused) ? 'var(--border)' : 'rgba(37,211,102,.3)'}`, color: (j.state === 'paused' || j.paused) ? 'var(--muted)' : 'var(--green)' }}>
+                          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '2px 8px', borderRadius: 2, background: (j.state === 'paused' || j.paused) ? 'var(--surface2)' : 'rgba(37,211,102,.1)', border: `1px solid ${(j.state === 'paused' || j.paused) ? 'var(--border)' : 'rgba(37,211,102,.3)'}`, color: (j.state === 'paused' || j.paused) ? 'var(--muted)' : 'var(--green)' }}>
                             {(j.state === 'paused' || j.paused) ? 'PAUSADO' : 'ATIVO'}
                           </span>
                         </td>
                         <td style={{ padding: '10px 14px', maxWidth: 200 }}>
                           <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{j.name || j.prompt?.slice(0, 40) || j.id}</div>
-                          {j.platform && <div style={{ fontSize: 11, color: 'var(--dim)', fontFamily: 'Share Tech Mono, monospace' }}>→ {j.platform}</div>}
+                          {j.platform && <div style={{ fontSize: 11, color: 'var(--dim)', fontFamily: 'JetBrains Mono, monospace' }}>→ {j.platform}</div>}
                         </td>
-                        <td style={{ padding: '10px 14px', fontFamily: 'Share Tech Mono, monospace', fontSize: 12, color: 'var(--cyan)' }}>{j.schedule?.display || j.schedule?.expr || j.schedule || '—'}</td>
-                        <td style={{ padding: '10px 14px', fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--gold)' }}>{(j.next_run_at || j.next_run) ? fmtDateFull(j.next_run_at || j.next_run) : '—'}</td>
-                        <td style={{ padding: '10px 14px', fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--muted)' }}>{(j.last_run_at || j.last_run) ? fmtDateFull(j.last_run_at || j.last_run) : 'nunca'}</td>
+                        <td style={{ padding: '10px 14px', fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: 'var(--cyan)' }}>{j.schedule?.display || j.schedule?.expr || j.schedule || '—'}</td>
+                        <td style={{ padding: '10px 14px', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: 'var(--gold)' }}>{(j.next_run_at || j.next_run) ? fmtDateFull(j.next_run_at || j.next_run) : '—'}</td>
+                        <td style={{ padding: '10px 14px', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: 'var(--muted)' }}>{(j.last_run_at || j.last_run) ? fmtDateFull(j.last_run_at || j.last_run) : 'nunca'}</td>
                         <td style={{ padding: '10px 14px' }}>
                           <div style={{ display: 'flex', gap: 4 }}>
                             <button onClick={() => runJobNow(j)} title="Executar agora" style={{ ...S.btn, padding: '4px 8px', fontSize: 11, background: 'rgba(255,184,0,.1)', border: '1px solid rgba(255,184,0,.3)', color: 'var(--gold)' }}>▶</button>
@@ -2212,7 +2262,7 @@ const InfraPage = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
               <div style={{ fontSize: 24 }}>🤖</div>
               <div>
-                <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--cyan)', letterSpacing: '0.2em', marginBottom: 2 }}>// HERMES AGENT CHAT</div>
+                <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: 'var(--cyan)', letterSpacing: '0.2em', marginBottom: 2 }}>// HERMES AGENT CHAT</div>
                 <div style={{ fontSize: 13, color: 'var(--dim)' }}>{HERMES_URL} · {hermesOk ? <span style={{ color: 'var(--green)' }}>● online</span> : <span style={{ color: 'var(--red-b)' }}>● offline</span>}</div>
               </div>
               <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -2224,13 +2274,13 @@ const InfraPage = () => {
           </div>
 
           <div style={{ ...S.card, padding: 0, display: 'flex', flexDirection: 'column', height: 520 }}>
-            <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 10, color: 'var(--dim)', letterSpacing: '0.15em', padding: '10px 16px', borderBottom: '1px solid var(--border)', background: 'var(--bg3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'var(--dim)', letterSpacing: '0.15em', padding: '10px 16px', borderBottom: '1px solid var(--border)', background: 'var(--bg3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span>// HERMES TERMINAL</span>
               {hermesChat.length > 0 && <button onClick={() => setHermesChat([])} style={{ ...S.btn, padding: '2px 8px', fontSize: 10, background: 'none', border: '1px solid var(--border)', color: 'var(--muted)' }}>limpar</button>}
             </div>
             <div style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
               {hermesChat.length === 0 && (
-                <div style={{ textAlign: 'center', padding: 40, color: 'var(--muted)', fontFamily: 'Share Tech Mono, monospace', fontSize: 12 }}>
+                <div style={{ textAlign: 'center', padding: 40, color: 'var(--muted)', fontFamily: 'JetBrains Mono, monospace', fontSize: 12 }}>
                   💬 Chat direto com o Hermes Agent<br /><br />
                   <span style={{ fontSize: 10 }}>Pergunte sobre status dos serviços, execute comandos, consulte logs...</span>
                 </div>
@@ -2248,7 +2298,7 @@ const InfraPage = () => {
               {hermesLoading && (
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                   <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(0,255,255,.15)', border: '1px solid rgba(0,255,255,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>🤖</div>
-                  <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 12, color: 'var(--dim)', animation: 'pulse 1s infinite' }}>processando...</div>
+                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: 'var(--dim)', animation: 'pulse 1s infinite' }}>processando...</div>
                 </div>
               )}
               <div ref={chatEndRef} />
@@ -2274,10 +2324,10 @@ const InfraPage = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
               <div style={{ fontSize: 24 }}>🔄</div>
               <div>
-                <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: '#ff9500', letterSpacing: '0.2em', marginBottom: 2 }}>// N8N SELF-HOSTED</div>
+                <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#ff9500', letterSpacing: '0.2em', marginBottom: 2 }}>// N8N SELF-HOSTED</div>
                 <div style={{ fontSize: 13, color: 'var(--dim)' }}>Docker · {N8N_URL}</div>
               </div>
-              <span style={{ marginLeft: 'auto', fontFamily: 'Share Tech Mono, monospace', fontSize: 10, padding: '3px 10px', borderRadius: 2, background: 'rgba(37,211,102,.12)', border: '1px solid rgba(37,211,102,.3)', color: 'var(--green)' }}>● ONLINE</span>
+              <span style={{ marginLeft: 'auto', fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '3px 10px', borderRadius: 2, background: 'rgba(37,211,102,.12)', border: '1px solid rgba(37,211,102,.3)', color: 'var(--green)' }}>● ONLINE</span>
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <a href={N8N_URL} target="_blank" rel="noopener" style={{ ...S.btn, background: 'rgba(255,140,0,.15)', border: '1px solid rgba(255,140,0,.4)', color: '#ff9500', textDecoration: 'none' }}>↗ Abrir N8N</a>
@@ -2292,7 +2342,7 @@ const InfraPage = () => {
       {sub === 'minipc' && (() => {
         if (!dashStatus && !hermesOk && !sysInfo) return (
           <div style={{...S.card,borderLeft:'3px solid var(--red-b)',padding:24}}>
-            <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--red-b)',marginBottom:8}}>MINI PC SEM DADOS — Hermes offline ou bloqueado?</div>
+            <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:12,color:'var(--red-b)',marginBottom:8}}>MINI PC SEM DADOS — Hermes offline ou bloqueado?</div>
             <div style={{fontSize:13,color:'var(--dim)',lineHeight:1.8}}>
               Verifique: <code style={{background:'var(--bg3)',padding:'1px 6px',borderRadius:3,color:'var(--text)'}}>systemctl status hermes-gateway hermes-dashboard</code><br/>
               e <code style={{background:'var(--bg3)',padding:'1px 6px',borderRadius:3,color:'var(--text)'}}>systemctl status cloudflared</code>
@@ -2317,8 +2367,8 @@ const InfraPage = () => {
               <div style={{display:'flex',alignItems:'center',gap:10}}>
                 <div style={{fontSize:24}}>🖥</div>
                 <div>
-                  <div style={{fontFamily:'Press Start 2P, monospace',fontSize:11,color:'var(--text)',marginBottom:2}}>Mini PC · {sysInfo?'Ubuntu 24.04':'Hermes v'+hermesVer}</div>
-                  <div style={{fontSize:12,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>
+                  <div style={{fontFamily:'Space Grotesk, monospace',fontSize:11,color:'var(--text)',marginBottom:2}}>Mini PC · {sysInfo?'Ubuntu 24.04':'Hermes v'+hermesVer}</div>
+                  <div style={{fontSize:12,color:'var(--muted)',fontFamily:'JetBrains Mono, monospace'}}>
                     <span style={{color:hermesOk||sysInfo?'var(--green)':'var(--amber)'}}>{hermesOk||sysInfo?'● ONLINE':'⚠ OFFLINE'}</span>
                     {lastRefresh && <span> · {lastRefresh.toLocaleTimeString('pt-BR')}</span>}
                   </div>
@@ -2336,8 +2386,8 @@ const InfraPage = () => {
                 {label:'Serviços', pct:null, val: gwOk?'ON':'OFF', sub: gatewayState||'desconhecido', forceColor: gwOk?'var(--green)':'var(--red-b)'},
               ].map(({label,pct,sub,val,forceColor})=>(
                 <div key={label} style={{...S.card,borderTop:`3px solid ${forceColor || col(pct)}`}}>
-                  <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:10,color:'var(--muted)',textTransform:'uppercase',marginBottom:8,letterSpacing:'0.15em'}}>{label}</div>
-                  <div style={{fontFamily:'Press Start 2P, monospace',fontSize:20,color:forceColor || col(pct),marginBottom:4}}>{val!==undefined?val:(pct!=null?`${pct}%`:'—')}</div>
+                  <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:10,color:'var(--muted)',textTransform:'uppercase',marginBottom:8,letterSpacing:'0.15em'}}>{label}</div>
+                  <div style={{fontFamily:'Space Grotesk, monospace',fontSize:20,color:forceColor || col(pct),marginBottom:4}}>{val!==undefined?val:(pct!=null?`${pct}%`:'—')}</div>
                   <div style={{fontSize:11,color:'var(--muted)',marginBottom:2}}>{sub}</div>
                   {pct!=null && <MBar pct={pct}/>}
                 </div>
@@ -2352,8 +2402,8 @@ const InfraPage = () => {
                 { label:'Cron Jobs', val: activeJobs, sub: `de ${jobs.length} total`, color: activeJobs>0?'var(--gold)':'var(--dim)' },
               ].map(({label,val,sub,color})=>(
                 <div key={label} style={{...S.card,borderTop:`3px solid ${color}`}}>
-                  <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:10,color:'var(--muted)',textTransform:'uppercase',marginBottom:8,letterSpacing:'0.15em'}}>{label}</div>
-                  <div style={{fontFamily:'Press Start 2P, monospace',fontSize:20,color,marginBottom:4}}>{val}</div>
+                  <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:10,color:'var(--muted)',textTransform:'uppercase',marginBottom:8,letterSpacing:'0.15em'}}>{label}</div>
+                  <div style={{fontFamily:'Space Grotesk, monospace',fontSize:20,color,marginBottom:4}}>{val}</div>
                   <div style={{fontSize:11,color:'var(--muted)'}}>{sub}</div>
                 </div>
               ))}
@@ -2362,7 +2412,7 @@ const InfraPage = () => {
             {/* Alertas de Hardware */}
             {((cpuPct!=null&&cpuPct>85)||(memPct!=null&&memPct>85)||(hdPct!=null&&hdPct>85)) && (
               <div style={{...S.card,borderLeft:'3px solid var(--amber)',marginTop:16,padding:'12px 16px'}}>
-                <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:10,color:'var(--amber)',letterSpacing:'0.15em',marginBottom:8}}>⚠ ALERTAS DE HARDWARE</div>
+                <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:10,color:'var(--amber)',letterSpacing:'0.15em',marginBottom:8}}>⚠ ALERTAS DE HARDWARE</div>
                 {cpuPct!=null&&cpuPct>85 && <div style={{fontSize:13,color:'var(--dim)',marginBottom:4}}>🔥 CPU alta ({cpuPct}%)</div>}
                 {memPct!=null&&memPct>85 && <div style={{fontSize:13,color:'var(--dim)',marginBottom:4}}>🧠 RAM alta ({memPct}%)</div>}
                 {hdPct!=null&&hdPct>85   && <div style={{fontSize:13,color:'var(--dim)'}}>💾 SSD quase cheio ({hdPct}%)</div>}
@@ -2371,7 +2421,7 @@ const InfraPage = () => {
 
             {/* Info do gateway */}
             <div style={{...S.card,marginTop:16,marginBottom:16}}>
-              <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:12}}>// Hermes Agent Status</div>
+              <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:12}}>// Hermes Agent Status</div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px 24px'}}>
                 {[
                   ['Versão',        `v${hermesVer}`],
@@ -2382,8 +2432,8 @@ const InfraPage = () => {
                   ['WPP estado',    wppState ?? '—'],
                 ].map(([k,v])=>(
                   <div key={k} style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',padding:'4px 0',borderBottom:'1px solid var(--border)'}}>
-                    <span style={{fontSize:11,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>{k}</span>
-                    <span style={{fontSize:12,color:'var(--text)',fontFamily:'Share Tech Mono, monospace'}}>{v}</span>
+                    <span style={{fontSize:11,color:'var(--muted)',fontFamily:'JetBrains Mono, monospace'}}>{k}</span>
+                    <span style={{fontSize:12,color:'var(--text)',fontFamily:'JetBrains Mono, monospace'}}>{v}</span>
                   </div>
                 ))}
               </div>
@@ -2392,9 +2442,9 @@ const InfraPage = () => {
             {/* Alertas */}
             {!wppOk && (
               <div style={{...S.card,borderLeft:'3px solid var(--amber)',padding:'12px 16px'}}>
-                <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:10,color:'var(--amber)',letterSpacing:'0.15em',marginBottom:8}}>⚠ ALERTAS</div>
+                <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:10,color:'var(--amber)',letterSpacing:'0.15em',marginBottom:8}}>⚠ ALERTAS</div>
                 <div style={{fontSize:13,color:'var(--dim)',marginBottom:4}}>📱 WhatsApp {wppState==='disconnected'?'desconectado':'com problema'} — clique em ↻ para atualizar ou reconecte via Hermes</div>
-                <div style={{fontSize:11,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>Ver: [[WhatsApp Bridge - Reconexão e Troubleshooting]] no Obsidian</div>
+                <div style={{fontSize:11,color:'var(--muted)',fontFamily:'JetBrains Mono, monospace'}}>Ver: [[WhatsApp Bridge - Reconexão e Troubleshooting]] no Obsidian</div>
               </div>
             )}
             {!gwOk && hermesOk && (
@@ -2405,7 +2455,7 @@ const InfraPage = () => {
 
             {/* Conectividade */}
             <div style={{ ...S.card, marginTop: 16, marginBottom: 16 }}>
-              <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--dim)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 16 }}>// Mapa de Conectividade</div>
+              <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: 'var(--dim)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 16 }}>// Mapa de Conectividade</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', justifyContent: 'center', padding: '8px 0' }}>
                 {[
                   { label: 'Admin', color: 'var(--red-b)', icon: '🏰', ok: true },
@@ -2421,7 +2471,7 @@ const InfraPage = () => {
                   ) : (
                     <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
                       <div style={{ width: 56, height: 56, borderRadius: 8, background: `${node.color}18`, border: `2px solid ${node.color}55`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>{node.icon}</div>
-                      <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 10, color: node.color }}>{node.label}</div>
+                      <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: node.color }}>{node.label}</div>
                       <div style={{ width: 6, height: 6, borderRadius: '50%', background: node.ok ? 'var(--green)' : 'var(--red-b)', boxShadow: `0 0 6px ${node.ok ? 'var(--green)' : 'var(--red-b)'}` }} />
                     </div>
                   )
@@ -2443,10 +2493,10 @@ const InfraPage = () => {
             {/* Features do Hermes */}
             {caps && (
               <div style={{ ...S.card, marginBottom: 16 }}>
-                <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--dim)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 12 }}>// Capabilities do Hermes</div>
+                <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: 'var(--dim)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 12 }}>// Capabilities do Hermes</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   {Object.entries(FEATURE_LABELS).map(([key, label]) => (
-                    <span key={key} style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 11, padding: '4px 10px', borderRadius: 2, background: features[key] ? 'rgba(37,211,102,.1)' : 'var(--surface2)', border: `1px solid ${features[key] ? 'rgba(37,211,102,.3)' : 'var(--border)'}`, color: features[key] ? 'var(--green)' : 'var(--muted)' }}>
+                    <span key={key} style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, padding: '4px 10px', borderRadius: 2, background: features[key] ? 'rgba(37,211,102,.1)' : 'var(--surface2)', border: `1px solid ${features[key] ? 'rgba(37,211,102,.3)' : 'var(--border)'}`, color: features[key] ? 'var(--green)' : 'var(--muted)' }}>
                       {features[key] ? '✔' : '✕'} {label}
                     </span>
                   ))}
@@ -2457,11 +2507,11 @@ const InfraPage = () => {
             {/* Modelo ativo */}
             {model && (
               <div style={{ ...S.card }}>
-                <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--dim)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 12 }}>// Modelo LLM ativo</div>
+                <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: 'var(--dim)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 12 }}>// Modelo LLM ativo</div>
                 {(model.data || [model]).map((m, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--green)', flexShrink: 0 }} />
-                    <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 13, color: 'var(--cyan)' }}>{m.id || m.model || 'hermes-agent'}</div>
+                    <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, color: 'var(--cyan)' }}>{m.id || m.model || 'hermes-agent'}</div>
                     {m.created && <div style={{ fontSize: 11, color: 'var(--muted)', marginLeft: 'auto' }}>{new Date(m.created * 1000).toLocaleDateString('pt-BR')}</div>}
                   </div>
                 ))}
@@ -2483,7 +2533,7 @@ const InfraPage = () => {
             <StatCard label="Nginx" value=":443" sub="Reverse Proxy" color="var(--dim)" icon="🔒" />
           </div>
           <div style={{ ...S.card }}>
-            <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 11, color: 'var(--dim)', letterSpacing: '0.2em', marginBottom: 16 }}>// REFERÊNCIA SSH RÁPIDA</div>
+            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: 'var(--dim)', letterSpacing: '0.2em', marginBottom: 16 }}>// REFERÊNCIA SSH RÁPIDA</div>
             {[
               { label: 'SSH na VPS',           cmd: `ssh root@${VPS_IP}` },
               { label: 'Status Hermes',         cmd: 'systemctl status hermes-gateway' },
@@ -2498,7 +2548,7 @@ const InfraPage = () => {
             ].map(({ label, cmd }) => (
               <div key={cmd} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
                 <div style={{ fontSize: 12, color: 'var(--dim)', minWidth: 180, flexShrink: 0 }}>{label}</div>
-                <code style={{ flex: 1, fontFamily: 'Share Tech Mono, monospace', fontSize: 12, color: 'var(--cyan)', background: 'rgba(0,0,0,.3)', padding: '4px 10px', borderRadius: 3, overflow: 'auto', whiteSpace: 'nowrap' }}>{cmd}</code>
+                <code style={{ flex: 1, fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: 'var(--cyan)', background: 'rgba(0,0,0,.3)', padding: '4px 10px', borderRadius: 3, overflow: 'auto', whiteSpace: 'nowrap' }}>{cmd}</code>
                 <button onClick={() => { navigator.clipboard?.writeText(cmd); showToast('📋 Copiado!'); }} style={{ ...S.btn, padding: '4px 8px', fontSize: 11, background: 'var(--surface2)', border: '1px solid var(--border)', color: 'var(--muted)', flexShrink: 0 }}>📋</button>
               </div>
             ))}
@@ -2580,10 +2630,10 @@ const HermesPage = () => {
 
   return (
     <div>
-      {toast && <div style={{position:'fixed',top:20,right:20,background:'var(--surface2)',border:'1px solid var(--border)',borderRadius:6,padding:'12px 20px',zIndex:999,fontFamily:'Share Tech Mono, monospace',fontSize:13,color:'var(--text)',animation:'slideIn .2s ease'}}>{toast}</div>}
+      {toast && <div style={{position:'fixed',top:20,right:20,background:'var(--surface2)',border:'1px solid var(--border)',borderRadius:6,padding:'12px 20px',zIndex:999,fontFamily:'JetBrains Mono, monospace',fontSize:13,color:'var(--text)',animation:'slideIn .2s ease'}}>{toast}</div>}
 
       <div style={{marginBottom:20}}>
-        <div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>🦇 Hermes Bot</div>
+        <div style={{fontFamily:'Space Grotesk, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>🦇 Hermes Bot</div>
         <div style={{fontSize:14,color:'var(--muted)'}}>Lista de espera · Conversas · Blacklist</div>
       </div>
 
@@ -2608,7 +2658,7 @@ const HermesPage = () => {
       {/* Lista de Espera */}
       {tab==='espera' && (
         <div style={S.card}>
-          <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',marginBottom:16}}>// CLIENTES AGUARDANDO PRODUTO</div>
+          <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',marginBottom:16}}>// CLIENTES AGUARDANDO PRODUTO</div>
           {espera.length===0
             ? <div style={{fontSize:14,color:'var(--muted)',textAlign:'center',padding:24}}>Nenhum cliente na lista de espera</div>
             : espera.map(e=>(
@@ -2616,7 +2666,7 @@ const HermesPage = () => {
                 <div style={{flex:1,minWidth:200}}>
                   <div style={{fontSize:15,fontWeight:700,color:e.notificado?'var(--muted)':'var(--text)'}}>{e.cliente_name||'Desconhecido'}</div>
                   <div style={{fontSize:13,color:'var(--dim)'}}>📱 {e.phone} · 🎮 <strong>{e.termo_buscado}</strong>{e.console?' ('+e.console+')':''}</div>
-                  <div style={{fontSize:11,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>{fmtDateFull(e.created_at)}</div>
+                  <div style={{fontSize:11,color:'var(--muted)',fontFamily:'JetBrains Mono, monospace'}}>{fmtDateFull(e.created_at)}</div>
                 </div>
                 <div style={{display:'flex',gap:8,alignItems:'center'}}>
                   {e.notificado
@@ -2632,7 +2682,7 @@ const HermesPage = () => {
       {/* Conversas Ativas */}
       {tab==='conversas' && (
         <div style={S.card}>
-          <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',marginBottom:16}}>// CONVERSAS EM ANDAMENTO</div>
+          <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',marginBottom:16}}>// CONVERSAS EM ANDAMENTO</div>
           {conversas.length===0
             ? <div style={{fontSize:14,color:'var(--muted)',textAlign:'center',padding:24}}>Nenhuma conversa registrada</div>
             : conversas.map(c=>(
@@ -2640,7 +2690,7 @@ const HermesPage = () => {
                 <div style={{flex:1,minWidth:200}}>
                   <div style={{fontSize:15,fontWeight:700,color:c.converteu?'var(--muted)':'var(--text)'}}>{c.cliente_name||'Desconhecido'}</div>
                   <div style={{fontSize:13,color:'var(--dim)'}}>📱 {c.phone}{c.ultimo_interesse?' · 🎮 '+c.ultimo_interesse:''}{c.console?' ('+c.console+')':''}</div>
-                  <div style={{fontSize:11,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>Última msg: {fmtDateFull(c.ultima_mensagem_at)}</div>
+                  <div style={{fontSize:11,color:'var(--muted)',fontFamily:'JetBrains Mono, monospace'}}>Última msg: {fmtDateFull(c.ultima_mensagem_at)}</div>
                 </div>
                 <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
                   {c.converteu && <MonoTag color="var(--green)" bg="rgba(37,211,102,.1)">✅ Converteu</MonoTag>}
@@ -2657,7 +2707,7 @@ const HermesPage = () => {
       {tab==='blacklist' && (
         <div>
           <div style={{...S.card, marginBottom:16}}>
-            <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',marginBottom:16}}>// ADICIONAR À BLACKLIST</div>
+            <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',marginBottom:16}}>// ADICIONAR À BLACKLIST</div>
             <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
               <div style={{flex:1,minWidth:180}}>
                 <label style={S.label}>Número (somente dígitos)</label>
@@ -2673,7 +2723,7 @@ const HermesPage = () => {
             </div>
           </div>
           <div style={S.card}>
-            <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',marginBottom:16}}>// NÚMEROS BLOQUEADOS</div>
+            <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',marginBottom:16}}>// NÚMEROS BLOQUEADOS</div>
             {blacklist.length===0
               ? <div style={{fontSize:14,color:'var(--muted)',textAlign:'center',padding:24}}>Nenhum número bloqueado</div>
               : blacklist.map(b=>(
@@ -2681,7 +2731,7 @@ const HermesPage = () => {
                   <div style={{flex:1}}>
                     <div style={{fontSize:15,fontWeight:700,color:b.ativo?'var(--red-b)':'var(--muted)'}}>{b.phone}</div>
                     {b.motivo && <div style={{fontSize:13,color:'var(--dim)'}}>{b.motivo}</div>}
-                    <div style={{fontSize:11,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>{fmtDateFull(b.created_at)}</div>
+                    <div style={{fontSize:11,color:'var(--muted)',fontFamily:'JetBrains Mono, monospace'}}>{fmtDateFull(b.created_at)}</div>
                   </div>
                   <div style={{display:'flex',gap:8}}>
                     {b.ativo ? <MonoTag color="var(--red-b)" bg="rgba(204,20,20,.1)">🚫 Bloqueado</MonoTag> : <MonoTag color="var(--muted)" bg="var(--surface2)">Inativo</MonoTag>}
@@ -2743,31 +2793,31 @@ const CuponsPage = () => {
 
   return (
     <div>
-      {toast && <div style={{position:'fixed',top:70,right:24,zIndex:2000,background:'var(--surface2)',border:'1px solid var(--border)',padding:'10px 18px',borderRadius:4,fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--text)'}}>{toast}</div>}
+      {toast && <div style={{position:'fixed',top:70,right:24,zIndex:2000,background:'var(--surface2)',border:'1px solid var(--border)',padding:'10px 18px',borderRadius:4,fontFamily:'JetBrains Mono, monospace',fontSize:12,color:'var(--text)'}}>{toast}</div>}
       <div style={{marginBottom:20,display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:12}}>
-        <div><div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Cupons</div><div style={{fontSize:14,color:'var(--muted)'}}>{cupons.length} cupons cadastrados</div></div>
+        <div><div style={{fontFamily:'Space Grotesk, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Cupons</div><div style={{fontSize:14,color:'var(--muted)'}}>{cupons.length} cupons cadastrados</div></div>
         <Btn onClick={()=>setEditando({...EMPTY})}>+ Novo Cupom</Btn>
       </div>
-      {loading ? <div style={{textAlign:'center',padding:40,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace',fontSize:12}}>Carregando...</div> : (
+      {loading ? <div style={{textAlign:'center',padding:40,color:'var(--muted)',fontFamily:'JetBrains Mono, monospace',fontSize:12}}>Carregando...</div> : (
         <div style={{...S.card,padding:0,overflow:'hidden'}}>
           <div style={{overflowX:'auto'}}>
             <table style={{width:'100%',borderCollapse:'collapse',minWidth:600}}>
               <thead><tr style={{background:'var(--bg3)'}}>{['Código','Desconto','Usos','Validade','Status','Ações'].map(h=>(
-                <th key={h} style={{padding:'10px 14px',textAlign:'left',fontFamily:'Share Tech Mono, monospace',fontSize:10,color:'var(--muted)',letterSpacing:'0.15em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>
+                <th key={h} style={{padding:'10px 14px',textAlign:'left',fontFamily:'JetBrains Mono, monospace',fontSize:10,color:'var(--muted)',letterSpacing:'0.15em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>
               ))}</tr></thead>
               <tbody>
-                {cupons.length===0 && <tr><td colSpan={6} style={{padding:'2rem',textAlign:'center',color:'var(--muted)',fontFamily:'Share Tech Mono, monospace',fontSize:13}}>nenhum cupom cadastrado</td></tr>}
+                {cupons.length===0 && <tr><td colSpan={6} style={{padding:'2rem',textAlign:'center',color:'var(--muted)',fontFamily:'JetBrains Mono, monospace',fontSize:13}}>nenhum cupom cadastrado</td></tr>}
                 {cupons.map(c=>(
                   <tr key={c.id} style={{borderTop:'1px solid var(--border)',opacity:c.ativo?1:0.5}}>
-                    <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:14,fontWeight:700,color:'var(--gold)'}}>{c.codigo}</td>
+                    <td style={{padding:'10px 14px',fontFamily:'JetBrains Mono, monospace',fontSize:14,fontWeight:700,color:'var(--gold)'}}>{c.codigo}</td>
                     <td style={{padding:'10px 14px',fontSize:13,color:'var(--green)'}}>
                       {c.desconto_pct>0?c.desconto_pct+'%':''}
                       {c.desconto_fixo>0?(c.desconto_pct>0?' + ':'')+('R$'+Number(c.desconto_fixo).toLocaleString('pt-BR')):''}
                     </td>
-                    <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--dim)'}}>{c.usos_atual||0}/{c.usos_max||'∞'}</td>
-                    <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--muted)'}}>{c.validade||'Sem limite'}</td>
+                    <td style={{padding:'10px 14px',fontFamily:'JetBrains Mono, monospace',fontSize:12,color:'var(--dim)'}}>{c.usos_atual||0}/{c.usos_max||'∞'}</td>
+                    <td style={{padding:'10px 14px',fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--muted)'}}>{c.validade||'Sem limite'}</td>
                     <td style={{padding:'10px 14px'}}>
-                      <span style={{fontFamily:'Share Tech Mono, monospace',fontSize:10,padding:'2px 8px',borderRadius:2,background:c.ativo?'rgba(37,211,102,.12)':'var(--surface2)',color:c.ativo?'var(--green)':'var(--muted)',border:'1px solid '+( c.ativo?'rgba(37,211,102,.3)':'var(--border)')}}>
+                      <span style={{fontFamily:'JetBrains Mono, monospace',fontSize:10,padding:'2px 8px',borderRadius:2,background:c.ativo?'rgba(37,211,102,.12)':'var(--surface2)',color:c.ativo?'var(--green)':'var(--muted)',border:'1px solid '+( c.ativo?'rgba(37,211,102,.3)':'var(--border)')}}>
                         {c.ativo?'✅ ATIVO':'⏸ INATIVO'}
                       </span>
                     </td>
@@ -2789,7 +2839,7 @@ const CuponsPage = () => {
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.85)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
           <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:8,width:'100%',maxWidth:460,padding:24,position:'relative'}}>
             <button onClick={()=>setEditando(null)} style={{position:'absolute',top:14,right:14,background:'none',border:'none',color:'var(--dim)',fontSize:20,cursor:'pointer'}}>✕</button>
-            <div style={{fontFamily:'Press Start 2P, monospace',fontSize:11,color:'var(--text)',marginBottom:20}}>{editando.id?'EDITAR CUPOM':'NOVO CUPOM'}</div>
+            <div style={{fontFamily:'Space Grotesk, monospace',fontSize:11,color:'var(--text)',marginBottom:20}}>{editando.id?'EDITAR CUPOM':'NOVO CUPOM'}</div>
             <Input label="Código (ex: JULIO FLORES10)" value={editando.codigo} onChange={e=>setEditando(p=>({...p,codigo:e.target.value.toUpperCase()}))} placeholder="NATAL20" />
             <div className="ng-grid2" style={S.grid2}>
               <Input label="Desconto (%)" type="number" value={editando.desconto_pct} onChange={e=>setEditando(p=>({...p,desconto_pct:e.target.value}))} placeholder="10" />
@@ -2847,29 +2897,29 @@ const RastreiosPage = () => {
 
   return (
     <div>
-      {toast && <div style={{position:'fixed',top:70,right:24,zIndex:2000,background:'var(--surface2)',border:'1px solid var(--border)',padding:'10px 18px',borderRadius:4,fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--text)'}}>{toast}</div>}
+      {toast && <div style={{position:'fixed',top:70,right:24,zIndex:2000,background:'var(--surface2)',border:'1px solid var(--border)',padding:'10px 18px',borderRadius:4,fontFamily:'JetBrains Mono, monospace',fontSize:12,color:'var(--text)'}}>{toast}</div>}
       <div style={{marginBottom:20,display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:12}}>
-        <div><div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Rastreios</div><div style={{fontSize:14,color:'var(--muted)'}}>{rastreios.filter(r=>!r.entregue).length} em trânsito · {rastreios.filter(r=>r.entregue).length} entregues</div></div>
+        <div><div style={{fontFamily:'Space Grotesk, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Rastreios</div><div style={{fontSize:14,color:'var(--muted)'}}>{rastreios.filter(r=>!r.entregue).length} em trânsito · {rastreios.filter(r=>r.entregue).length} entregues</div></div>
         <Btn onClick={()=>setEditando({...EMPTY})}>+ Novo Rastreio</Btn>
       </div>
-      {loading ? <div style={{textAlign:'center',padding:40,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace',fontSize:12}}>Carregando...</div> : (
+      {loading ? <div style={{textAlign:'center',padding:40,color:'var(--muted)',fontFamily:'JetBrains Mono, monospace',fontSize:12}}>Carregando...</div> : (
         <div style={{...S.card,padding:0,overflow:'hidden'}}>
           <div style={{overflowX:'auto'}}>
             <table style={{width:'100%',borderCollapse:'collapse',minWidth:700}}>
               <thead><tr style={{background:'var(--bg3)'}}>{['Código','Cliente','WhatsApp','Status','Última atualização','Ações'].map(h=>(
-                <th key={h} style={{padding:'10px 14px',textAlign:'left',fontFamily:'Share Tech Mono, monospace',fontSize:10,color:'var(--muted)',letterSpacing:'0.15em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>
+                <th key={h} style={{padding:'10px 14px',textAlign:'left',fontFamily:'JetBrains Mono, monospace',fontSize:10,color:'var(--muted)',letterSpacing:'0.15em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>
               ))}</tr></thead>
               <tbody>
-                {rastreios.length===0 && <tr><td colSpan={6} style={{padding:'2rem',textAlign:'center',color:'var(--muted)',fontFamily:'Share Tech Mono, monospace',fontSize:13}}>nenhum rastreio cadastrado</td></tr>}
+                {rastreios.length===0 && <tr><td colSpan={6} style={{padding:'2rem',textAlign:'center',color:'var(--muted)',fontFamily:'JetBrains Mono, monospace',fontSize:13}}>nenhum rastreio cadastrado</td></tr>}
                 {rastreios.map(r=>(
                   <tr key={r.id} style={{borderTop:'1px solid var(--border)',opacity:r.entregue?0.5:1}}>
-                    <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:13,fontWeight:700,color:'var(--purple)'}}>{r.codigo}</td>
+                    <td style={{padding:'10px 14px',fontFamily:'JetBrains Mono, monospace',fontSize:13,fontWeight:700,color:'var(--purple)'}}>{r.codigo}</td>
                     <td style={{padding:'10px 14px',fontSize:13,color:'var(--text)'}}>{r.cliente_nome||'—'}</td>
-                    <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--green)'}}>{r.cliente_whatsapp||'—'}</td>
+                    <td style={{padding:'10px 14px',fontFamily:'JetBrains Mono, monospace',fontSize:12,color:'var(--green)'}}>{r.cliente_whatsapp||'—'}</td>
                     <td style={{padding:'10px 14px',fontSize:12,color:r.entregue?'var(--green)':'var(--gold)'}}>
                       {r.entregue?'✅ Entregue':(r.ultimo_status||'Aguardando consulta')}
                     </td>
-                    <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--muted)'}}>{r.ultima_atualizacao?new Date(r.ultima_atualizacao).toLocaleDateString('pt-BR'):'—'}</td>
+                    <td style={{padding:'10px 14px',fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--muted)'}}>{r.ultima_atualizacao?new Date(r.ultima_atualizacao).toLocaleDateString('pt-BR'):'—'}</td>
                     <td style={{padding:'10px 14px'}}>
                       <div style={{display:'flex',gap:4}}>
                         <button onClick={()=>setEditando(r)} style={{...S.btn,padding:'4px 8px',fontSize:12,background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--dim)'}}>✏</button>
@@ -2888,13 +2938,13 @@ const RastreiosPage = () => {
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.85)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
           <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:8,width:'100%',maxWidth:460,padding:24,position:'relative'}}>
             <button onClick={()=>setEditando(null)} style={{position:'absolute',top:14,right:14,background:'none',border:'none',color:'var(--dim)',fontSize:20,cursor:'pointer'}}>✕</button>
-            <div style={{fontFamily:'Press Start 2P, monospace',fontSize:11,color:'var(--text)',marginBottom:20}}>{editando.id?'EDITAR RASTREIO':'NOVO RASTREIO'}</div>
+            <div style={{fontFamily:'Space Grotesk, monospace',fontSize:11,color:'var(--text)',marginBottom:20}}>{editando.id?'EDITAR RASTREIO':'NOVO RASTREIO'}</div>
             <Input label="Código de Rastreio" value={editando.codigo} onChange={e=>setEditando(p=>({...p,codigo:e.target.value.toUpperCase()}))} placeholder="AB123456789BR" />
             <div className="ng-grid2" style={S.grid2}>
               <Input label="Nome do Cliente" value={editando.cliente_nome||''} onChange={e=>setEditando(p=>({...p,cliente_nome:e.target.value}))} placeholder="João Silva" />
               <Input label="WhatsApp (com DDI)" value={editando.cliente_whatsapp||''} onChange={e=>setEditando(p=>({...p,cliente_whatsapp:e.target.value}))} placeholder="5551999999999" />
             </div>
-            <div style={{fontSize:12,color:'var(--muted)',marginBottom:14,fontFamily:'Share Tech Mono, monospace'}}>⚡ O n8n consultará os Correios e avisará o cliente automaticamente 3x por dia via WhatsApp.</div>
+            <div style={{fontSize:12,color:'var(--muted)',marginBottom:14,fontFamily:'JetBrains Mono, monospace'}}>⚡ O n8n consultará os Correios e avisará o cliente automaticamente 3x por dia via WhatsApp.</div>
             <div style={{display:'flex',gap:10,justifyContent:'flex-end'}}>
               <Btn color="ghost" onClick={()=>setEditando(null)}>Cancelar</Btn>
               <Btn onClick={salvar} disabled={saving}>{saving?'Salvando...':'Salvar'}</Btn>
@@ -2974,15 +3024,15 @@ const UploadCSVPage = () => {
 
   return (
     <div>
-      {toast && <div style={{position:'fixed',top:70,right:24,zIndex:2000,background:'var(--surface2)',border:'1px solid var(--border)',padding:'10px 18px',borderRadius:4,fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--text)'}}>{toast}</div>}
+      {toast && <div style={{position:'fixed',top:70,right:24,zIndex:2000,background:'var(--surface2)',border:'1px solid var(--border)',padding:'10px 18px',borderRadius:4,fontFamily:'JetBrains Mono, monospace',fontSize:12,color:'var(--text)'}}>{toast}</div>}
       <div style={{marginBottom:20,display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:12}}>
-        <div><div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Upload em Massa</div><div style={{fontSize:14,color:'var(--muted)'}}>Importe vários produtos via CSV</div></div>
+        <div><div style={{fontFamily:'Space Grotesk, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Upload em Massa</div><div style={{fontSize:14,color:'var(--muted)'}}>Importe vários produtos via CSV</div></div>
         <Btn color="ghost" onClick={baixarTemplate}>⬇ Baixar Template</Btn>
       </div>
       <div style={{...S.card,marginBottom:16}}>
-        <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.15em',textTransform:'uppercase',marginBottom:12}}>// Colunas do CSV</div>
+        <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.15em',textTransform:'uppercase',marginBottom:12}}>// Colunas do CSV</div>
         <div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:16}}>
-          {COLUNAS.map(c=><span key={c} style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,padding:'3px 8px',background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:3,color:'var(--purple)'}}>{c}</span>)}
+          {COLUNAS.map(c=><span key={c} style={{fontFamily:'JetBrains Mono, monospace',fontSize:11,padding:'3px 8px',background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:3,color:'var(--purple)'}}>{c}</span>)}
         </div>
         <label style={{display:'flex',alignItems:'center',gap:12,cursor:'pointer',border:'2px dashed var(--border)',borderRadius:6,padding:'20px',justifyContent:'center'}}>
           <span style={{fontSize:24}}>📂</span>
@@ -3009,18 +3059,18 @@ const UploadCSVPage = () => {
             <div style={{overflowX:'auto'}}>
               <table style={{width:'100%',borderCollapse:'collapse',minWidth:500}}>
                 <thead><tr style={{background:'var(--bg3)'}}>{['Nome','Console','Preço','Condição'].map(h=>(
-                  <th key={h} style={{padding:'8px 12px',textAlign:'left',fontFamily:'Share Tech Mono, monospace',fontSize:10,color:'var(--muted)',letterSpacing:'0.1em',textTransform:'uppercase'}}>{h}</th>
+                  <th key={h} style={{padding:'8px 12px',textAlign:'left',fontFamily:'JetBrains Mono, monospace',fontSize:10,color:'var(--muted)',letterSpacing:'0.1em',textTransform:'uppercase'}}>{h}</th>
                 ))}</tr></thead>
                 <tbody>
                   {preview.slice(0,20).map((r,i)=>(
                     <tr key={i} style={{borderTop:'1px solid var(--border)'}}>
                       <td style={{padding:'8px 12px',fontSize:13,color:'var(--text)'}}>{r.nome}</td>
                       <td style={{padding:'8px 12px',fontSize:12,color:'var(--dim)'}}>{r.console||'—'}</td>
-                      <td style={{padding:'8px 12px',fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--gold)'}}>{r.preco?'R$'+r.preco:'—'}</td>
+                      <td style={{padding:'8px 12px',fontFamily:'JetBrains Mono, monospace',fontSize:12,color:'var(--gold)'}}>{r.preco?'R$'+r.preco:'—'}</td>
                       <td style={{padding:'8px 12px',fontSize:12,color:'var(--dim)'}}>{r.condicao||'—'}</td>
                     </tr>
                   ))}
-                  {preview.length>20 && <tr><td colSpan={4} style={{padding:'8px 12px',textAlign:'center',color:'var(--muted)',fontFamily:'Share Tech Mono, monospace',fontSize:11}}>... e mais {preview.length-20} produtos</td></tr>}
+                  {preview.length>20 && <tr><td colSpan={4} style={{padding:'8px 12px',textAlign:'center',color:'var(--muted)',fontFamily:'JetBrains Mono, monospace',fontSize:11}}>... e mais {preview.length-20} produtos</td></tr>}
                 </tbody>
               </table>
             </div>
@@ -3077,30 +3127,30 @@ const ClientesPage = () => {
   return (
     <div>
       <div style={{marginBottom:20,display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:12}}>
-        <div><div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Clientes</div><div style={{fontSize:14,color:'var(--muted)'}}>{filtrados.length} cadastrados</div></div>
+        <div><div style={{fontFamily:'Space Grotesk, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Clientes</div><div style={{fontSize:14,color:'var(--muted)'}}>{filtrados.length} cadastrados</div></div>
         <Btn color="ghost" onClick={carregar}>↻ Atualizar</Btn>
       </div>
 
       <input value={busca} onChange={e=>setBusca(e.target.value)} placeholder="🔍 Buscar por nome, WhatsApp ou email..." style={{...S.input,width:'100%',marginBottom:16}}/>
 
-      {loading ? <div style={{textAlign:'center',padding:40,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace',fontSize:12}}>Carregando...</div> : (
+      {loading ? <div style={{textAlign:'center',padding:40,color:'var(--muted)',fontFamily:'JetBrains Mono, monospace',fontSize:12}}>Carregando...</div> : (
         <div style={{...S.card,padding:0,overflow:'hidden'}}>
           <div style={{overflowX:'auto'}}>
             <table style={{width:'100%',borderCollapse:'collapse',minWidth:600}}>
               <thead><tr style={{background:'var(--bg3)'}}>
                 {['Nome','WhatsApp','Email','Cidade','Cadastro','Ações'].map(h=>(
-                  <th key={h} style={{padding:'10px 14px',textAlign:'left',fontFamily:'Share Tech Mono, monospace',fontSize:10,color:'var(--muted)',letterSpacing:'0.15em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>
+                  <th key={h} style={{padding:'10px 14px',textAlign:'left',fontFamily:'JetBrains Mono, monospace',fontSize:10,color:'var(--muted)',letterSpacing:'0.15em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>
                 ))}
               </tr></thead>
               <tbody>
-                {filtrados.length===0 && <tr><td colSpan={6} style={{padding:'2rem',textAlign:'center',color:'var(--muted)',fontFamily:'Share Tech Mono, monospace',fontSize:13}}>nenhum cliente encontrado</td></tr>}
+                {filtrados.length===0 && <tr><td colSpan={6} style={{padding:'2rem',textAlign:'center',color:'var(--muted)',fontFamily:'JetBrains Mono, monospace',fontSize:13}}>nenhum cliente encontrado</td></tr>}
                 {filtrados.map(c=>(
                   <tr key={c.id} style={{borderTop:'1px solid var(--border)'}}>
                     <td style={{padding:'10px 14px',fontSize:14,fontWeight:700,color:'var(--text)'}}>{c.nome||'—'}</td>
-                    <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--green)'}}>{c.whatsapp||'—'}</td>
+                    <td style={{padding:'10px 14px',fontFamily:'JetBrains Mono, monospace',fontSize:12,color:'var(--green)'}}>{c.whatsapp||'—'}</td>
                     <td style={{padding:'10px 14px',fontSize:12,color:'var(--dim)'}}>{c.email||'—'}</td>
                     <td style={{padding:'10px 14px',fontSize:12,color:'var(--dim)'}}>{c.cidade||'—'}</td>
-                    <td style={{padding:'10px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--muted)'}}>{c.created_at?new Date(c.created_at).toLocaleDateString('pt-BR'):'—'}</td>
+                    <td style={{padding:'10px 14px',fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--muted)'}}>{c.created_at?new Date(c.created_at).toLocaleDateString('pt-BR'):'—'}</td>
                     <td style={{padding:'10px 14px'}}>
                       <div style={{display:'flex',gap:6}}>
                         <button onClick={()=>abrirCliente(c)} style={{...S.btn,padding:'4px 10px',fontSize:12,background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--dim)'}}>👁 Ver</button>
@@ -3120,20 +3170,20 @@ const ClientesPage = () => {
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,.85)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:16}}>
           <div style={{background:'var(--surface)',border:'1px solid var(--border)',borderRadius:8,width:'100%',maxWidth:500,maxHeight:'85vh',overflow:'auto',padding:24,position:'relative'}}>
             <button onClick={()=>setSelecionado(null)} style={{position:'absolute',top:14,right:14,background:'none',border:'none',color:'var(--dim)',fontSize:20,cursor:'pointer'}}>✕</button>
-            <div style={{fontFamily:'Press Start 2P, monospace',fontSize:11,color:'var(--text)',marginBottom:16}}>CLIENTE</div>
+            <div style={{fontFamily:'Space Grotesk, monospace',fontSize:11,color:'var(--text)',marginBottom:16}}>CLIENTE</div>
             <div style={{marginBottom:16}}>
               <div style={{fontSize:18,fontWeight:700,color:'var(--text)',marginBottom:4}}>{selecionado.nome||'Sem nome'}</div>
               {selecionado.whatsapp && <div style={{fontSize:13,color:'var(--green)',marginBottom:2}}>📱 {selecionado.whatsapp}</div>}
               {selecionado.email    && <div style={{fontSize:13,color:'var(--dim)',marginBottom:2}}>✉ {selecionado.email}</div>}
               {selecionado.cidade   && <div style={{fontSize:13,color:'var(--dim)'}}>📍 {selecionado.cidade}{selecionado.estado?', '+selecionado.estado:''}</div>}
             </div>
-            <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.15em',textTransform:'uppercase',marginBottom:12}}>// Pedidos</div>
+            <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.15em',textTransform:'uppercase',marginBottom:12}}>// Pedidos</div>
             {finCliente.length===0
               ? <div style={{fontSize:13,color:'var(--muted)',padding:'16px 0'}}>Nenhum pedido encontrado</div>
               : finCliente.map((p,i)=>(
                 <div key={p.id||i} style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid var(--border)',fontSize:13}}>
-                  <div><div style={{color:'var(--text)',fontWeight:600}}>{p.itens?JSON.stringify(p.itens).slice(0,40):'Pedido'}</div><div style={{fontSize:11,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>{p.created_at?new Date(p.created_at).toLocaleDateString('pt-BR'):''}</div></div>
-                  <div style={{color:'var(--gold)',fontFamily:'Share Tech Mono, monospace'}}>R${Number(p.total||0).toLocaleString('pt-BR')}</div>
+                  <div><div style={{color:'var(--text)',fontWeight:600}}>{p.itens?JSON.stringify(p.itens).slice(0,40):'Pedido'}</div><div style={{fontSize:11,color:'var(--muted)',fontFamily:'JetBrains Mono, monospace'}}>{p.created_at?new Date(p.created_at).toLocaleDateString('pt-BR'):''}</div></div>
+                  <div style={{color:'var(--gold)',fontFamily:'JetBrains Mono, monospace'}}>R${Number(p.total||0).toLocaleString('pt-BR')}</div>
                 </div>
               ))}
             {selecionado.whatsapp && (
@@ -3187,8 +3237,8 @@ const BuscaGlobal = ({produtos, setTab, fechar}) => {
           <input ref={inputRef} value={q} onChange={e=>setQ(e.target.value)} placeholder="Buscar produto, venda, pedido..." style={{...S.input,flex:1,border:'none',background:'transparent',fontSize:15,outline:'none'}}/>
           <button onClick={fechar} style={{background:'none',border:'none',color:'var(--dim)',fontSize:18,cursor:'pointer'}}>✕</button>
         </div>
-        {loading && <div style={{padding:'16px',textAlign:'center',color:'var(--muted)',fontFamily:'Share Tech Mono, monospace',fontSize:12}}>buscando...</div>}
-        {!loading && q.length>=2 && resultados.length===0 && <div style={{padding:'16px',textAlign:'center',color:'var(--muted)',fontFamily:'Share Tech Mono, monospace',fontSize:12}}>nenhum resultado</div>}
+        {loading && <div style={{padding:'16px',textAlign:'center',color:'var(--muted)',fontFamily:'JetBrains Mono, monospace',fontSize:12}}>buscando...</div>}
+        {!loading && q.length>=2 && resultados.length===0 && <div style={{padding:'16px',textAlign:'center',color:'var(--muted)',fontFamily:'JetBrains Mono, monospace',fontSize:12}}>nenhum resultado</div>}
         {resultados.map((r,i)=>(
           <div key={i} onClick={r.acao} style={{display:'flex',alignItems:'center',gap:12,padding:'12px 16px',borderBottom:'1px solid var(--border)',cursor:'pointer',transition:'background .15s'}}
             onMouseEnter={e=>e.currentTarget.style.background='var(--bg3)'}
@@ -3196,13 +3246,13 @@ const BuscaGlobal = ({produtos, setTab, fechar}) => {
             <span style={{fontSize:18}}>{TIPO_ICON[r.tipo]}</span>
             <div style={{flex:1}}>
               <div style={{fontSize:14,fontWeight:600,color:'var(--text)'}}>{r.label}</div>
-              <div style={{fontSize:11,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>{r.sub}</div>
+              <div style={{fontSize:11,color:'var(--muted)',fontFamily:'JetBrains Mono, monospace'}}>{r.sub}</div>
             </div>
-            <div style={{fontSize:12,color:TIPO_COLOR[r.tipo],fontFamily:'Share Tech Mono, monospace'}}>{r.valor}</div>
-            <span style={{fontSize:10,background:'var(--bg3)',color:'var(--muted)',padding:'2px 6px',borderRadius:3,fontFamily:'Share Tech Mono, monospace'}}>{r.tipo}</span>
+            <div style={{fontSize:12,color:TIPO_COLOR[r.tipo],fontFamily:'JetBrains Mono, monospace'}}>{r.valor}</div>
+            <span style={{fontSize:10,background:'var(--bg3)',color:'var(--muted)',padding:'2px 6px',borderRadius:3,fontFamily:'JetBrains Mono, monospace'}}>{r.tipo}</span>
           </div>
         ))}
-        <div style={{padding:'8px 16px',fontSize:11,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>ESC para fechar</div>
+        <div style={{padding:'8px 16px',fontSize:11,color:'var(--muted)',fontFamily:'JetBrains Mono, monospace'}}>ESC para fechar</div>
       </div>
     </div>
   );
@@ -3227,24 +3277,24 @@ const LogPage = () => {
   return (
     <div>
       <div style={{marginBottom:20,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-        <div><div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Log de Atividades</div><div style={{fontSize:14,color:'var(--muted)'}}>Histórico de alterações</div></div>
+        <div><div style={{fontFamily:'Space Grotesk, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Log de Atividades</div><div style={{fontSize:14,color:'var(--muted)'}}>Histórico de alterações</div></div>
         <Btn color="ghost" onClick={carregar}>↻ Atualizar</Btn>
       </div>
-      {loading ? <div style={{textAlign:'center',padding:40,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace',fontSize:12}}>Carregando...</div> : (
+      {loading ? <div style={{textAlign:'center',padding:40,color:'var(--muted)',fontFamily:'JetBrains Mono, monospace',fontSize:12}}>Carregando...</div> : (
         <div style={{...S.card,padding:0,overflow:'hidden'}}>
           <div style={{overflowX:'auto'}}>
             <table style={{width:'100%',borderCollapse:'collapse'}}>
               <thead><tr style={{background:'var(--bg3)'}}>
                 {['Quando','Ação','Tabela','Detalhe'].map(h=>(
-                  <th key={h} style={{padding:'10px 14px',textAlign:'left',fontFamily:'Share Tech Mono, monospace',fontSize:10,color:'var(--muted)',letterSpacing:'0.15em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>
+                  <th key={h} style={{padding:'10px 14px',textAlign:'left',fontFamily:'JetBrains Mono, monospace',fontSize:10,color:'var(--muted)',letterSpacing:'0.15em',textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>
                 ))}
               </tr></thead>
               <tbody>
-                {logs.length===0 && <tr><td colSpan={4} style={{padding:'2rem',textAlign:'center',color:'var(--muted)',fontFamily:'Share Tech Mono, monospace',fontSize:13}}>nenhuma atividade registrada</td></tr>}
+                {logs.length===0 && <tr><td colSpan={4} style={{padding:'2rem',textAlign:'center',color:'var(--muted)',fontFamily:'JetBrains Mono, monospace',fontSize:13}}>nenhuma atividade registrada</td></tr>}
                 {logs.map((l,i)=>(
                   <tr key={l.id||i} style={{borderTop:'1px solid var(--border)'}}>
-                    <td style={{padding:'8px 14px',fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--muted)',whiteSpace:'nowrap'}}>{l.created_at?new Date(l.created_at).toLocaleString('pt-BR'):'—'}</td>
-                    <td style={{padding:'8px 14px'}}><span style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,padding:'2px 8px',borderRadius:3,background:'var(--bg3)',color:ACAO_COLOR[l.acao]||'var(--dim)',border:'1px solid var(--border)'}}>{l.acao}</span></td>
+                    <td style={{padding:'8px 14px',fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--muted)',whiteSpace:'nowrap'}}>{l.created_at?new Date(l.created_at).toLocaleString('pt-BR'):'—'}</td>
+                    <td style={{padding:'8px 14px'}}><span style={{fontFamily:'JetBrains Mono, monospace',fontSize:11,padding:'2px 8px',borderRadius:3,background:'var(--bg3)',color:ACAO_COLOR[l.acao]||'var(--dim)',border:'1px solid var(--border)'}}>{l.acao}</span></td>
                     <td style={{padding:'8px 14px',fontSize:12,color:'var(--dim)'}}>{l.tabela||'—'}</td>
                     <td style={{padding:'8px 14px',fontSize:12,color:'var(--text)',maxWidth:300,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{l.detalhe||'—'}</td>
                   </tr>
@@ -3514,13 +3564,13 @@ const PhotoStudioPage = () => {
 
       {/* Toast */}
       {toast && (
-        <div style={{position:'fixed',bottom:24,right:24,zIndex:999,background:'var(--surface2)',border:'1px solid var(--border)',borderLeft:'3px solid var(--red)',borderRadius:6,padding:'10px 16px',fontSize:13,fontFamily:'Share Tech Mono, monospace',color:'var(--text)',boxShadow:'0 4px 20px rgba(0,0,0,0.5)',animation:'slideIn 0.2s ease'}}>
+        <div style={{position:'fixed',bottom:24,right:24,zIndex:999,background:'var(--surface2)',border:'1px solid var(--border)',borderLeft:'3px solid var(--red)',borderRadius:6,padding:'10px 16px',fontSize:13,fontFamily:'JetBrains Mono, monospace',color:'var(--text)',boxShadow:'0 4px 20px rgba(0,0,0,0.5)',animation:'slideIn 0.2s ease'}}>
           {toast}
         </div>
       )}
 
       <div style={{marginBottom:20}}>
-        <div style={{fontFamily:'Press Start 2P, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Photo Studio</div>
+        <div style={{fontFamily:'Space Grotesk, monospace',fontSize:14,color:'var(--text)',marginBottom:4}}>Photo Studio</div>
         <div style={{fontSize:14,color:'var(--muted)'}}>Remove fundo · Aplica tema · Logo · Exporta no tamanho certo</div>
       </div>
 
@@ -3531,7 +3581,7 @@ const PhotoStudioPage = () => {
 
           {/* Upload foto */}
           <div style={S.card}>
-            <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',marginBottom:12}}>// 01. FOTO DO PRODUTO</div>
+            <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',marginBottom:12}}>// 01. FOTO DO PRODUTO</div>
             <label style={{display:'block',border:'2px dashed var(--border)',borderRadius:6,padding:'24px 16px',textAlign:'center',cursor:'pointer',background: file ? 'rgba(37,211,102,0.05)' : 'var(--bg3)',transition:'all 0.2s',position:'relative'}}
               onDragOver={e=>{e.preventDefault();e.currentTarget.style.borderColor='var(--red)';}}
               onDragLeave={e=>{e.currentTarget.style.borderColor='var(--border)';}}
@@ -3542,19 +3592,19 @@ const PhotoStudioPage = () => {
                 : <div><div style={{fontSize:28,marginBottom:8}}>📸</div><div style={{fontSize:13,color:'var(--dim)',fontWeight:600}}>Clique ou arraste a foto</div><div style={{fontSize:11,color:'var(--muted)',marginTop:4}}>JPG · PNG · WEBP</div></div>
               }
             </label>
-            {file && <div style={{marginTop:8,fontSize:11,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>{file.name}</div>}
+            {file && <div style={{marginTop:8,fontSize:11,color:'var(--muted)',fontFamily:'JetBrains Mono, monospace'}}>{file.name}</div>}
           </div>
 
           {/* Upload logo */}
           <div style={S.card}>
-            <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',marginBottom:12}}>// 02. LOGO (salvo automaticamente)</div>
+            <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',marginBottom:12}}>// 02. LOGO (salvo automaticamente)</div>
             <label style={{display:'block',border:'2px dashed var(--border)',borderRadius:6,padding:'16px',textAlign:'center',cursor:'pointer',background: logoUrl ? 'rgba(168,85,247,0.05)' : 'var(--bg3)'}}
               onDrop={e=>{e.preventDefault();handleLogoDrop(e.dataTransfer.files[0]);}}>
               <input type="file" accept="image/png,image/svg+xml,image/webp" style={{display:'none'}} onChange={e=>handleLogoDrop(e.target.files[0])} />
               {logoUrl
                 ? <div style={{display:'flex',alignItems:'center',gap:12,justifyContent:'center'}}>
                     <img src={logoUrl} style={{height:40,objectFit:'contain'}} />
-                    <span style={{fontSize:11,color:'var(--green)',fontFamily:'Share Tech Mono, monospace'}}>✔ Logo carregado</span>
+                    <span style={{fontSize:11,color:'var(--green)',fontFamily:'JetBrains Mono, monospace'}}>✔ Logo carregado</span>
                   </div>
                 : <div><div style={{fontSize:22,marginBottom:4}}>🏴</div><div style={{fontSize:12,color:'var(--dim)'}}>Clique para carregar seu logo PNG/SVG</div></div>
               }
@@ -3568,7 +3618,7 @@ const PhotoStudioPage = () => {
                 <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:8}}>
                   <span style={{fontSize:11,color:'var(--muted)'}}>Tamanho</span>
                   <input type="range" min={8} max={35} value={logoSize} onChange={e=>setLogoSize(Number(e.target.value))} style={{width:80}} />
-                  <span style={{fontSize:11,color:'var(--dim)',fontFamily:'Share Tech Mono, monospace'}}>{logoSize}%</span>
+                  <span style={{fontSize:11,color:'var(--dim)',fontFamily:'JetBrains Mono, monospace'}}>{logoSize}%</span>
                 </div>
               </div>
             )}
@@ -3576,7 +3626,7 @@ const PhotoStudioPage = () => {
 
           {/* Preset de tamanho */}
           <div style={S.card}>
-            <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',marginBottom:12}}>// 03. TIPO DE PRODUTO</div>
+            <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',marginBottom:12}}>// 03. TIPO DE PRODUTO</div>
             <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
               {Object.entries(PRESETS).map(([k,v])=>(
                 <button key={k} onClick={()=>setPreset(k)} style={btnStyle(preset===k)}>
@@ -3584,12 +3634,12 @@ const PhotoStudioPage = () => {
                 </button>
               ))}
             </div>
-            <div style={{marginTop:8,fontSize:11,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>{PRESETS[preset].desc} — {PRESETS[preset].w}×{PRESETS[preset].h}px</div>
+            <div style={{marginTop:8,fontSize:11,color:'var(--muted)',fontFamily:'JetBrains Mono, monospace'}}>{PRESETS[preset].desc} — {PRESETS[preset].w}×{PRESETS[preset].h}px</div>
           </div>
 
           {/* Tema de fundo */}
           <div style={S.card}>
-            <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',marginBottom:12}}>// 04. FUNDO</div>
+            <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',marginBottom:12}}>// 04. FUNDO</div>
             <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
               {Object.entries(BG_THEMES).map(([k,v])=>(
                 <button key={k} onClick={()=>setBgTheme(k)} style={{...btnStyle(bgTheme===k), display:'flex', alignItems:'center', gap:6}}>
@@ -3626,7 +3676,7 @@ const PhotoStudioPage = () => {
         {/* COLUNA DIREITA — Resultado */}
         <div style={{display:'flex',flexDirection:'column',gap:14}}>
           <div style={{...S.card, flex:1, minHeight:400, display:'flex', flexDirection:'column'}}>
-            <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',marginBottom:12}}>// RESULTADO</div>
+            <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',marginBottom:12}}>// RESULTADO</div>
             <div style={{flex:1, display:'flex', alignItems:'center', justifyContent:'center',
               background:'repeating-conic-gradient(#1a1830 0% 25%, #0f0e1a 0% 50%) 0 0 / 20px 20px',
               borderRadius:6, minHeight:300, position:'relative', overflow:'hidden'}}>
@@ -3634,7 +3684,7 @@ const PhotoStudioPage = () => {
                 ? <img src={result} style={{maxWidth:'100%', maxHeight:360, objectFit:'contain', display:'block'}} />
                 : <div style={{textAlign:'center',color:'var(--muted)'}}>
                     <div style={{fontSize:36,marginBottom:8,opacity:0.3}}>🖼️</div>
-                    <div style={{fontSize:12,fontFamily:'Share Tech Mono, monospace'}}>imagem processada<br/>aparece aqui</div>
+                    <div style={{fontSize:12,fontFamily:'JetBrains Mono, monospace'}}>imagem processada<br/>aparece aqui</div>
                   </div>
               }
             </div>
@@ -3658,7 +3708,7 @@ const PhotoStudioPage = () => {
             )}
 
             {result && (
-              <div style={{marginTop:10, padding:'8px 12px', background:'var(--bg3)', borderRadius:4, fontSize:11, fontFamily:'Share Tech Mono, monospace', color:'var(--muted)'}}>
+              <div style={{marginTop:10, padding:'8px 12px', background:'var(--bg3)', borderRadius:4, fontSize:11, fontFamily:'JetBrains Mono, monospace', color:'var(--muted)'}}>
                 {PRESETS[preset].w} × {PRESETS[preset].h}px · {BG_THEMES[bgTheme].label} · Logo {logoPos.toUpperCase()} · {logoSize}%
               </div>
             )}
@@ -4037,7 +4087,7 @@ const PublicarPage = () => {
 
       <div style={{marginBottom:18,display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexWrap:'wrap',gap:8}}>
         <div>
-          <div style={{fontFamily:'Press Start 2P, monospace',fontSize:13,color:'var(--text)',marginBottom:4}}>⚡ Publicar Produto</div>
+          <div style={{fontFamily:'Space Grotesk, monospace',fontSize:13,color:'var(--text)',marginBottom:4}}>⚡ Publicar Produto</div>
           <div style={{fontSize:13,color:'var(--muted)'}}>Adicione fotos → IA identifica → confirme → publique</div>
         </div>
         <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
@@ -4072,7 +4122,7 @@ const PublicarPage = () => {
       {fila.length===0&&(
         <div style={{...S.card,textAlign:'center',padding:'48px',border:'1px dashed var(--border)'}}>
           <div style={{fontSize:32,opacity:.2,marginBottom:12}}>📦</div>
-          <div style={{fontSize:12,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>nenhuma foto adicionada</div>
+          <div style={{fontSize:12,color:'var(--muted)',fontFamily:'JetBrains Mono, monospace'}}>nenhuma foto adicionada</div>
         </div>
       )}
 
@@ -4101,7 +4151,7 @@ const PublicarPage = () => {
                 {item.status !== 'processando' && item.status !== 'publicando' && (
                   <button onClick={(e)=>{e.stopPropagation(); girarItem(item.id);}} title="Girar 90 graus" style={{position:'absolute',top:6,left:6,width:20,height:20,borderRadius:'50%',background:'var(--gold)',border:'none',color:'#000',fontSize:12,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:'1',zIndex:5}}>↻</button>
                 )}
-                <div style={{position:'absolute',top:6,right:6,padding:'2px 7px',borderRadius:3,background:'var(--bg)',border:'1px solid var(--border)',fontSize:10,fontFamily:'Share Tech Mono, monospace',color:statusColor[item.status]||'var(--dim)'}}>
+                <div style={{position:'absolute',top:6,right:6,padding:'2px 7px',borderRadius:3,background:'var(--bg)',border:'1px solid var(--border)',fontSize:10,fontFamily:'JetBrains Mono, monospace',color:statusColor[item.status]||'var(--dim)'}}>
                   {statusLabel[item.status]||item.status}
                 </div>
               </div>
@@ -4113,12 +4163,12 @@ const PublicarPage = () => {
               {item.dados&&(
                 <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:6}}>
                   <span style={{...S.tag(item.dados.condicao)}}>{item.dados.condicao}</span>
-                  <span style={{fontFamily:'Share Tech Mono, monospace',fontSize:10,color:'var(--gold)'}}>R$ {item.dados.preco}</span>
+                  <span style={{fontFamily:'JetBrains Mono, monospace',fontSize:10,color:'var(--gold)'}}>R$ {item.dados.preco}</span>
                   <span style={{fontSize:10,color:'var(--muted)'}}>{item.dados.console}</span>
                 </div>
               )}
               {item.fixes?.length>0&&(
-                <div style={{fontSize:10,color:'var(--cyan)',fontFamily:'Share Tech Mono, monospace',marginBottom:4}}>
+                <div style={{fontSize:10,color:'var(--cyan)',fontFamily:'JetBrains Mono, monospace',marginBottom:4}}>
                   🔧 {item.fixes.join(' · ')}
                 </div>
               )}
@@ -4173,7 +4223,7 @@ const PublicarPage = () => {
                   {item.log?.length>0&&(
                     <div style={{marginTop:10,padding:'8px',background:'var(--bg3)',borderRadius:4,maxHeight:80,overflowY:'auto'}}>
                       {item.log.map((l,i)=>(
-                        <div key={i} style={{fontSize:10,color:logColor[l.tipo]||'var(--dim)',fontFamily:'Share Tech Mono, monospace',marginBottom:1}}>{l.ts} {l.msg}</div>
+                        <div key={i} style={{fontSize:10,color:logColor[l.tipo]||'var(--dim)',fontFamily:'JetBrains Mono, monospace',marginBottom:1}}>{l.ts} {l.msg}</div>
                       ))}
                     </div>
                   )}
@@ -4186,7 +4236,7 @@ const PublicarPage = () => {
 
       {/* Resumo */}
       {fila.length>0&&(
-        <div style={{marginTop:16,display:'flex',gap:12,flexWrap:'wrap',fontSize:12,color:'var(--muted)',fontFamily:'Share Tech Mono, monospace'}}>
+        <div style={{marginTop:16,display:'flex',gap:12,flexWrap:'wrap',fontSize:12,color:'var(--muted)',fontFamily:'JetBrains Mono, monospace'}}>
           <span>{fila.length} fotos · </span>
           <span style={{color:'var(--cyan)'}}>{prontos.length} prontas</span>
           <span> · </span>
@@ -4274,7 +4324,7 @@ const App = () => {
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',background:'var(--bg)'}}>
       <div style={{textAlign:'center'}}>
         <div style={{width:40,height:40,border:'3px solid var(--border)',borderTopColor:'var(--red-b)',borderRadius:'50%',animation:'spin 0.8s linear infinite',margin:'0 auto 16px'}}/>
-        <div style={{fontFamily:'Share Tech Mono, monospace',fontSize:12,color:'var(--muted)'}}>carregando...</div>
+        <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:12,color:'var(--muted)'}}>carregando...</div>
       </div>
     </div>
   );
@@ -4289,8 +4339,8 @@ const App = () => {
       {/* Sidebar */}
       <div className={`ng-sidebar${sidebarOpen?' open':''}`} style={S.sidebar}>
         <div style={{padding:'14px 12px 12px',borderBottom:'1px solid var(--border)'}}>
-          <div style={{fontFamily:'Press Start 2P, monospace',fontSize:9,color:'var(--red-b)',lineHeight:1.8,textShadow:'0 0 10px rgba(204,20,20,.5)'}}>🏰 JULIO FLORES</div>
-          <div style={{fontFamily:'Rajdhani, sans-serif',fontSize:10,color:'var(--gold)',letterSpacing:'0.2em'}}>ADMIN PANEL</div>
+          <div style={{fontFamily:'Space Grotesk, sans-serif',fontSize:15,fontWeight:700,color:'var(--text)',lineHeight:1.15,letterSpacing:'0.01em'}}>JÚLIO <span style={{color:'var(--blue)'}}>FLORES</span></div>
+          <div style={{fontFamily:'JetBrains Mono, monospace',fontSize:8,color:'var(--cyan)',letterSpacing:'0.18em',marginTop:3}}>RETROGAMES · GARANTIA</div>
         </div>
         <nav style={{flex:1,padding:'8px 8px',display:'flex',flexDirection:'column',gap:2,overflowY:'auto'}}>
           {NAV.map(n=>(
@@ -4309,8 +4359,8 @@ const App = () => {
       <div className="ng-main" style={S.main}>
         <div style={S.topbar}>
           <button className="ng-hamburger" onClick={()=>setSidebarOpen(s=>!s)}>☰</button>
-          <div className="ng-topbar-date" style={{flex:1,fontFamily:'Share Tech Mono, monospace',fontSize:11,color:'var(--muted)'}}>{new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})}</div>
-          <button onClick={()=>setBuscaAberta(true)} style={{...S.btn,padding:'5px 12px',fontSize:12,background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--muted)',gap:6}}>🔍 <span style={{fontFamily:'Share Tech Mono, monospace',fontSize:10}}>Ctrl+K</span></button>
+          <div className="ng-topbar-date" style={{flex:1,fontFamily:'JetBrains Mono, monospace',fontSize:11,color:'var(--muted)'}}>{new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})}</div>
+          <button onClick={()=>setBuscaAberta(true)} style={{...S.btn,padding:'5px 12px',fontSize:12,background:'var(--surface2)',border:'1px solid var(--border)',color:'var(--muted)',gap:6}}>🔍 <span style={{fontFamily:'JetBrains Mono, monospace',fontSize:10}}>Ctrl+K</span></button>
           <div style={{fontSize:11,color:'var(--dim)',textAlign:'right',whiteSpace:'nowrap'}}>
             <span style={{color:'#4ade80',fontSize:10}}>●</span> {produtos.filter(p=>p.ativo!==false&&!p.vendido).length} ativos · {visitas.filter(v=>new Date(v.created_at).toDateString()===new Date().toDateString()).length} hoje
           </div>
