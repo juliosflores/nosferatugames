@@ -1533,6 +1533,34 @@ const FinanceiroPage = () => {
 
   const showToast = (msg) => { setToast(msg); setTimeout(()=>setToast(''), 3000); };
 
+  // Salva/edita um item do financeiro (botao "+ Novo" e ✏ dos itens proprios)
+  const salvar = async () => {
+    const e = editando;
+    if (!e || !String(e.produto||'').trim()) { showToast('Informe o nome do produto'); return; }
+    setSaving(true);
+    const num = v => { if(v===''||v==null) return null; const n = Number(String(v).replace(',','.')); return isNaN(n)?null:n; };
+    const body = {
+      produto: String(e.produto).trim(),
+      console: e.console || null,
+      preco_compra: num(e.preco_compra) || 0,
+      preco_venda: num(e.preco_venda),
+      custo_extra: num(e.custo_extra) || 0,
+      data_compra: e.data_compra || null,
+      data_venda: e.data_venda || null,
+      origem: e.origem || 'proprio',
+      status: e.status || 'estoque',
+      forma_pagamento: e.forma_pagamento || null,
+      observacao: e.observacao || null,
+    };
+    if (body.status === 'vendido' && !body.data_venda) body.data_venda = new Date().toISOString().slice(0,10);
+    try {
+      if (e.id) await supa(`financeiro?id=eq.${e.id}`, { method:'PATCH', body: JSON.stringify(body) });
+      else await supa('financeiro', { method:'POST', body: JSON.stringify(body) });
+      setEditando(null); showToast('✓ Salvo'); carregar();
+    } catch(err) { showToast('Erro: '+(err.message||err)); }
+    finally { setSaving(false); }
+  };
+
   // Salva custo de reparo/desbloqueio e/ou venda de uma compra da OLX (compras_garimpo)
   const salvarGarimpo = async () => {
     const g = editGarimpo; if (!g) return;
