@@ -306,12 +306,24 @@ const Dashboard = ({produtos, visitas}) => {
   const [fin, setFin] = useState([]);
   const [pedidos, setPedidos] = useState([]);
   useEffect(()=>{
-    supa('financeiro?order=data_compra.desc&limit=500').then(r=>setFin(r||[]));
+    Promise.all([
+      supa('financeiro?order=data_compra.desc&limit=500'),
+      supa('compras_garimpo?order=data_compra.desc&limit=2000')
+    ]).then(([f,g])=>{
+      const garItens = (g||[]).filter(x=>!/cancel|fail|recus|mediac|n[aã]o.?aprov|reembols|estorn/i.test(x.status||'')).map(x=>({
+        id:x.id, produto:x.produto,
+        preco_compra:x.valor_pago, preco_venda:(x.valor_venda!=null?Number(x.valor_venda):null),
+        custo_extra:Number(x.custo_reparo)||0, data_compra:x.data_compra, data_venda:(x.data_venda||null),
+        status:(x.valor_venda!=null?'vendido':'estoque')
+      }));
+      setFin([...(f||[]), ...garItens]);
+    }).catch(e=>console.error(e));
     supa('pedidos?order=created_at.desc&limit=200').then(r=>setPedidos(r||[]));
   },[]);
 
-  const ativos   = produtos.filter(p=>p.ativo!==false&&!p.vendido).length;
-  const vendidos = produtos.filter(p=>p.vendido).length;
+  const emEstoqueN = fin.filter(i=>i.status==='estoque').length;
+  const ativos   = emEstoqueN;
+  const vendidos = fin.filter(i=>i.status==='vendido').length;
   const hoje     = new Date().toDateString();
   const mesAtual = new Date().toISOString().slice(0,7);
   const visitasHoje = visitas.filter(v=>new Date(v.created_at).toDateString()===hoje).length;
@@ -342,7 +354,7 @@ const Dashboard = ({produtos, visitas}) => {
   const topProd = [...produtos].sort((a,b)=>(b.viewed_count||0)-(a.viewed_count||0)).slice(0,5);
 
   // Estoque parado 90d
-  const parados = produtos.filter(p=>!p.vendido&&p.created_at&&Math.floor((Date.now()-new Date(p.created_at))/86400000)>=90);
+  const parados = fin.filter(i=>i.status==='estoque'&&i.data_compra&&Math.floor((Date.now()-new Date(i.data_compra))/86400000)>=90);
 
   // Últimas vendas
   const ultimasVendas = fin.filter(i=>i.status==='vendido').slice(0,5);
